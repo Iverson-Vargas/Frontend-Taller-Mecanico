@@ -21,6 +21,28 @@ Este proyecto fue creado utilizando las siguientes tecnologías:
 - **Yarn**: Como gestor de paquetes durante la creación del proyecto.
 - **Tailwind CSS**: Para el diseño y estilos de la aplicación.
 
+## Cómo correr el proyecto
+
+Para ejecutar este proyecto, puedes utilizar la terminal de tu preferencia, ya sea la terminal CMD de Windows o la terminal integrada en Visual Studio Code. A continuación, se detallan los pasos según el gestor de paquetes que elijas:
+
+### Usando npm
+1. Abre la terminal.
+2. Asegúrate de estar en la carpeta raíz del proyecto.
+3. Ejecuta el siguiente comando para iniciar el servidor de desarrollo:
+   ```
+   npm run dev
+   ```
+4. Copia y pega en tu navegador la URL que se muestra en la terminal para acceder a la aplicación.
+
+### Usando Yarn
+1. Abre la terminal.
+2. Asegúrate de estar en la carpeta raíz del proyecto.
+3. Ejecuta el siguiente comando para iniciar el servidor de desarrollo:
+   ```
+   yarn dev
+   ```
+4. Copia y pega en tu navegador la URL que se muestra en la terminal para acceder a la aplicación.
+
 ## Comandos Git
 
 A continuación, se detallan los comandos básicos de Git que se utilizan en este proyecto:
