@@ -94,6 +94,12 @@ En este proyecto, trabajamos con dos ramas principales:
    git branch -d <nombre-de-tu-rama>
    ```
 
+### Advertencia importante
+
+Es importante que, si creaste una rama para realizar modificaciones, no realices cambios directamente en la rama de desarrollo. Esto puede causar errores o conflictos con el trabajo de otros desarrolladores. Siempre asegúrate de trabajar en una rama separada y fusionar los cambios a la rama de desarrollo una vez que hayan sido revisados y aprobados.
+
 Este flujo de trabajo asegura que la rama principal (`main`) se mantenga estable y que los desarrollos se realicen de manera ordenada.
 
-¡Gracias por usar nuestra aplicación para la gestión de talleres mecánicos!
+### Por ultimo
+
+¡Por favor cualquier cosa preguntarle al Ing. Iverson Vargas Gracias!
