@@ -28,7 +28,7 @@ A continuación, se detallan los comandos básicos de Git que se utilizan en est
 - **`git clone <url-del-repositorio>`**: Clona el repositorio en tu máquina local.
 - **`git pull`**: Descarga los últimos cambios del repositorio remoto.
 - **`git checkout <nombre-de-la-rama>`**: Cambia a la rama especificada.
-- **`git branch <nombre-de-la-rama>`**: Crea una nueva rama.
+- **`git checkout -b <nombre-de-la-rama>`**: Crea una nueva rama.
 - **`git add .`**: Agrega los cambios realizados al área de preparación (staging area).
 - **`git commit -m "mensaje"`**: Crea un commit con los cambios agregados.
 - **`git push origin <nombre-de-la-rama>`**: Sube los cambios de la rama local al repositorio remoto.
