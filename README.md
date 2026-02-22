@@ -86,7 +86,7 @@ En este proyecto, trabajamos con dos ramas principales:
 8. Antes de eliminar la rama, asegúrate de subir los cambios a la rama de desarrollo para que no se pierdan:
 
    ```bash
-   git push origin desarrollo
+   git push -u origin desarrollo
    ```
 
 9. Una vez que los cambios han sido fusionados correctamente, elimina la rama que creaste:
