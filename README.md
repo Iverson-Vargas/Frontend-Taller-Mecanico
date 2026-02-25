@@ -34,15 +34,6 @@ Para ejecutar este proyecto, puedes utilizar la terminal de tu preferencia, ya s
    ```
 4. Copia y pega en tu navegador la URL que se muestra en la terminal para acceder a la aplicación.
 
-### Usando Yarn
-1. Abre la terminal.
-2. Asegúrate de estar en la carpeta raíz del proyecto.
-3. Ejecuta el siguiente comando para iniciar el servidor de desarrollo:
-   ```
-   yarn dev
-   ```
-4. Copia y pega en tu navegador la URL que se muestra en la terminal para acceder a la aplicación.
-
 ## Comandos Git
 
 A continuación, se detallan los comandos básicos de Git que se utilizan en este proyecto:
@@ -72,46 +63,64 @@ En este proyecto, trabajamos con dos ramas principales:
    git checkout desarrollo
    ```
 
-2. Crea una nueva rama para realizar tus cambios:
+2. Antes de realizar cualquier modificación, asegúrate de descargar los últimos cambios del repositorio remoto para que la rama siempre esté al día:
+
+   ```bash
+   git pull origin desarrollo
+   ```
+
+3. Si ya estabas trabajando en una rama y volviste a entrar en ella, realiza un merge desde la rama de desarrollo para traerte los últimos cambios:
+
+   ```bash
+   git merge desarrollo
+   ```
+
+#### Si no vas hacer modificaciones en ramas anteriores y vas a crear una nueva seguimos aqui:
+
+4. Crea una nueva rama para realizar tus cambios:
 
    ```bash
    git checkout -b <nombre-de-tu-rama>
    ```
 
-3. Realiza las modificaciones necesarias en tu rama.
+5. Realiza las modificaciones necesarias en tu rama.
 
-4. Agrega los cambios al área de preparación y crea un commit:
+6. Agrega los cambios al área de preparación y crea un commit:
 
    ```bash
    git add .
    git commit -m "Descripción de los cambios realizados"
    ```
 
-5. Sube los cambios al repositorio remoto:
+7. Sube los cambios al repositorio remoto:
 
    ```bash
    git push origin <nombre-de-tu-rama>
    ```
 
-6. Cambia a la rama de desarrollo:
+8. Cambia a la rama de desarrollo:
 
    ```bash
    git checkout desarrollo
    ```
 
-7. Fusiona los cambios de tu rama a la rama de desarrollo:
+9. Fusiona los cambios de tu rama a la rama de desarrollo:
 
    ```bash
    git merge <nombre-de-tu-rama>
    ```
 
-8. Antes de eliminar la rama, asegúrate de subir los cambios a la rama de desarrollo para que no se pierdan:
+10. Antes de eliminar la rama, asegúrate de subir los cambios a la rama de desarrollo para que no se pierdan. Puedes usar cualquiera de los siguientes comandos:
 
    ```bash
    git push -u origin desarrollo
    ```
+   o
+   ```bash
+   git push origin desarrollo
+   ```
 
-9. Una vez que los cambios han sido fusionados correctamente, elimina la rama que creaste:
+11. Una vez que los cambios han sido fusionados correctamente, elimina la rama que creaste:
    ```bash
    git branch -d <nombre-de-tu-rama>
    ```
