@@ -2,11 +2,11 @@ import './boton.css'
 export function Boton() {
 
     const saludar = () =>{
-        alert('Hola')
+        alert('Hola 🦄')
     }
     return(
         <button className="button" onClick={saludar}>
-            Enviar
+            Enviar 🦄
         </button>
     )
 }
