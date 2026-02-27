@@ -6,7 +6,7 @@ export const Login = () => {
         <>
             <h1>Login</h1>
             <p>Esto es el login</p>
-            <button><Link to="/Recepcion">Ingresar</Link></button>
+            <button><Link to="/Recepcion">Ingre</Link></button>
         </>
     )
 }
