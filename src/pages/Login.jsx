@@ -1,11 +1,12 @@
 import { Boton } from "../components/boton.jsx"
+import { Link } from "react-router-dom"
 
 export const Login = () => {
     return (
         <>
             <h1>Login</h1>
-            <p class="text-9xl">Esto es el login</p>
-            <Boton/>  
+            <p>Esto es el login</p>
+            <button><Link to="/Recepcion">Ingresar</Link></button>
         </>
     )
 }
