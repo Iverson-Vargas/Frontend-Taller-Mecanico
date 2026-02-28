@@ -1,0 +1,38 @@
+/*fondo pricipal*/
+.nomina-container {
+    background-color: #ffff;
+    min-height: 100vh;
+}
+
+/* detalles*/
+.text-pink-accent{
+    color: #ec4899;
+}
+
+.bg-pink-accent{
+    background-color: #ec4899;
+}
+
+.shadow-pink-accent{
+    box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.2);
+
+}
+
+/*boton de liquidacion*/
+.btn-liquidar-pink {
+    background-color: #fdf2f8;
+    color: #db2777;
+    border: 1px solid #fce7f3;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-liquidar-pink:hover {
+    background-color: #db2777;
+    color: #ffffff;
+    
+}
+
