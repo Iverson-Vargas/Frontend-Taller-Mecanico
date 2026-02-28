@@ -4,8 +4,8 @@ import '../assets/orden-servicio.css';
 export const OrdenServicio = () => {
     const navigate = useNavigate(); //importando funcion de navegacion
 
-     const handListaServicio = () => {
-            navigate('/Listado-servicios');
+      const ListaClientes = () => {
+            navigate('/Listado-clientes');
         };
 
     return (
@@ -13,7 +13,7 @@ export const OrdenServicio = () => {
             {/* Botones*/}
             <div className="botones">
                 <button className="btn-2" onClick={() => navigate('/Recepcion')}> ← Volver </button>
-                <button className="btn-2" onClick={handListaServicio}> Listado de servicios </button>
+                <button className="btn-2" onClick={ListaClientes}> Listado de clientes </button>
             </div>
 
             <h1 className="titulo-principal">ORDEN DE SERVICIO</h1>

@@ -8,7 +8,7 @@ export const Recepcion = () => {
         const handGenerarServicio = () => {
             navigate('/Orden-servicio');
         };
-        const handListadolClientes = () => {
+        const handListaClientes = () => {
             navigate('/Listado-clientes');
         };
     
@@ -18,7 +18,7 @@ export const Recepcion = () => {
         <div className="container-formulario">
              <div className="botones-container">
                 <button className="btn-1" onClick={handGenerarServicio}>Generar orden</button>
-                <button className="btn-1" onClick={handListadolClientes}>Listado de clientes</button>
+                <button className="btn-1" onClick={handListaClientes}>Listado de clientes</button>
             </div>
             <h2>Datos de Recepción</h2>
 
