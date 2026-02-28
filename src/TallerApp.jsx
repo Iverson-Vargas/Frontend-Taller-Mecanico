@@ -7,6 +7,8 @@ import { GestionEmpleados } from './pages/GestionEmpleados.jsx';
 import { Facturacion } from './pages/Facturacion.jsx';
 import { Egresos_Gastos } from './pages/Egresos_Gastos.jsx';
 import { Reportes } from './pages/Reportes.jsx';
+import { OrdenServicio } from './pages/Orden-servicio.jsx';
+import { ListaClientes } from './pages/Listado-clientes.jsx';
 
 
 function TallerApp() {
@@ -20,7 +22,7 @@ function TallerApp() {
               <h1>Prueba</h1>
                   <nav>
                     <ul>
-                      <li><Link to="/Recepcion">Recepcion y Diagnostico</Link></li>
+                      <li><Link to="/Recepcion">Recepcion</Link></li>
                       <li><Link to="/Servicios">Servicios y Precios</Link></li>
                       <li><Link to="/Inventario">Inventario y Respuesto</Link></li>
                       <li><Link to="/GestionEmpleados">Gestion de Empleados </Link></li>
@@ -40,7 +42,9 @@ function TallerApp() {
               <Route path="/Facturacion" element={<Facturacion />} />
               <Route path="/Egresos_Gastos" element={<Egresos_Gastos />} />
               <Route path="/Reportes" element={<Reportes />} />
-              
+              <Route path="/Orden-servicio" element={<OrdenServicio />} />
+              <Route path="/Listado-clientes" element={<ListaClientes />} />
+
             </Routes>
           </div>
         </Router>
