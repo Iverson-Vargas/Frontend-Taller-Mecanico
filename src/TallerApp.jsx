@@ -8,6 +8,7 @@ import { Facturacion } from './pages/Facturacion.jsx';
 import { Egresos_Gastos } from './pages/Egresos_Gastos.jsx';
 import { Reportes } from './pages/Reportes.jsx';
 
+
 function TallerApp() {
 
 
@@ -19,7 +20,7 @@ function TallerApp() {
               <h1>Prueba</h1>
                   <nav>
                     <ul>
-                      <li><Link to="/Recepcion">Recepcion Y Diagnostico</Link></li>
+                      <li><Link to="/Recepcion">Recepcion y Diagnostico</Link></li>
                       <li><Link to="/Servicios">Servicios y Precios</Link></li>
                       <li><Link to="/Inventario">Inventario y Respuesto</Link></li>
                       <li><Link to="/GestionEmpleados">Gestion de Empleados </Link></li>

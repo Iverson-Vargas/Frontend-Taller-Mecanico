@@ -1,0 +1,152 @@
+/* Container principal */
+.container-formulario {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #e0f2f1; /* Cian grisáceo */
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Títulos principales */
+.container-formulario h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    border-bottom: 3px solid #f8bbd0; /* Rosado bebé */
+    padding-bottom: 0.5rem;
+}
+
+/* Títulos de sección */
+.container-formulario h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    padding-left: 0.5rem;
+    border-left: 5px solid #f8bbd0; /* Rosado bebé */
+}
+
+/* Contenedores de formulario */
+.form-cliente {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #b2dfdb; /* Borde cian más oscuro */
+}
+
+/* Campos del formulario */
+.campo {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+.campo label {
+    margin-bottom: 0.3rem;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Inputs */
+.campo input {
+    padding: 0.8rem 1rem;
+    border: 2px solid #b2dfdb; /* Cian más oscuro */
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+/* Efecto focus en inputs */
+.campo input:focus {
+    outline: none;
+    border-color: #f8bbd0; /* Rosado bebé */
+    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.3);
+    background-color: #ffffff;
+}
+
+/* Placeholder */
+.campo input::placeholder {
+    color: #90a4ae;
+    opacity: 0.7;
+}
+
+/* Contenedor de botones */
+.botones-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+/* Estilos para los botones HTML */
+.botones-container button {
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Botón Guardar */
+.btn-guardar {
+    background-color: #f8bbd0;
+    color: #2c3e50;
+    border: 2px solid #f8bbd0;
+}
+
+.btn-guardar:hover {
+    background-color: #f48fb1;
+    border-color: #f48fb1;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 143, 177, 0.4);
+}
+
+/* Botón Limpiar */
+.btn-limpiar {
+    background-color: transparent;
+    color: #2c3e50;
+    border: 2px solid #f8bbd0;
+}
+
+.btn-limpiar:hover {
+    background-color: #f8bbd0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(248, 187, 208, 0.3);
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .container-formulario {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .botones-container {
+        flex-direction: column;
+    }
+    
+    .botones-container button {
+        width: 100%;
+    }
+    
+    .campo input {
+        padding: 0.7rem;
+    }
+}
+
+/* Efecto hover en los contenedores de formulario */
+.form-cliente:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
