@@ -6,7 +6,7 @@ export const Login = () => {
     return (
         <div className="flex flex-col justify-center items-center min-h-screen">
             <h1 className="po text-2xl font-bold mb-4">Login</h1>
-            <p className="">Esto es el login falta mejorarlo</p>
+            <p className="">Esto es el login falta mejorarlo davianan ponle un caja para ecribir el usuario y la contraseña</p>
             <p className="mb-6">Posdata son las 4 de la mañana</p>
             
             {/* Le agregué unas clases de ejemplo al botón para que se vea mejor */}
