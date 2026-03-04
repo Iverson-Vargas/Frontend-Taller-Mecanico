@@ -1,7 +1,9 @@
 import react, {useState} from 'react';
 import '../assets/GestionEmpleados.css';
+import { useNavigate } from 'react-router-dom';
 
 export const GestionEmpleados = () => {
+    const navigate = useNavigate();
     const [empleados, setEmpleados] = useState([
         {id:1, nombre: "jose", apellido: "pernalete", cargo: "mecanico senior", comision:30, acumulado: 850.00},
         { id: 2, nombre: "Juan Rodríguez", cargo: "Especialista Frenos", comision: 25, acumulado: 420.00 }
@@ -26,8 +28,8 @@ export const GestionEmpleados = () => {
                     </h1>
                     <p className="text-slate-500 italic text-sm">Control administrativo de comisiones por servicios finalizados.</p>
                 </div>
-                <button className="bg-pink-accent text-white font-bold py-3 px-6 rounded-2xl shadow-pink-accent hover:opacity-90 transition-all">
-                    Registrar Empleados
+                <button onClick={() => navigate('/Prueba/RegistroEmpleado')} className="btn-registrar-pink">
+                    Registrar Nuevo Empleado
                 </button>
             </header>
 

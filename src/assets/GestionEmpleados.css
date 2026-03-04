@@ -36,3 +36,25 @@
     
 }
 
+/* Botón de Registro (El que no muestra color) */
+.btn-registrar-pink {
+    background-color: #ec4899; /* El mismo rosa de tus acentos */
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px 0 rgba(236, 72, 153, 0.39);
+}
+
+.btn-registrar-pink:hover {
+    background-color: #db2777;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.23);
+}
+
+.btn-registrar-pink:active {
+    transform: translateY(0);
+}
