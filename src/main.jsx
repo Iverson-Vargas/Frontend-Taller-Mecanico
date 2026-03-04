@@ -5,6 +5,8 @@ import TallerApp from './TallerApp.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+
     <TallerApp />
+    
   </StrictMode>,
 )
