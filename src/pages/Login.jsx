@@ -13,21 +13,21 @@ export const Login = () => {
                     <button 
                         type="button"
                         onClick={() => setEsEmpleado(true)}
-                        className={`flex-1 py-4 text-sm font-bold transition-all ${esEmpleado ? 'text-pink-600 border-b-2 border-pink-500 bg-pink-50' : 'text-gray-400 hover:text-gray-600'}`}
+                        className={`flex-1 py-4 text-sm font-bold transition-all ${esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                         EMPLEADOS
                     </button>
                     <button 
                         type="button"
                         onClick={() => setEsEmpleado(false)}
-                        className={`flex-1 py-4 text-sm font-bold transition-all ${!esEmpleado ? 'text-pink-600 border-b-2 border-pink-500 bg-pink-50' : 'text-gray-400 hover:text-gray-600'}`}
+                        className={`flex-1 py-4 text-sm font-bold transition-all ${!esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                         CLIENTES
                     </button>
                 </div>
 
                 <div className="p-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                    <h2 className="text-2xl font-bold text-[#1E293B] mb-2 text-center">
                         {esEmpleado ? "Gestión de Taller" : "Consulta tu Vehículo"}
                     </h2>
                     <p className="text-gray-500 text-sm text-center mb-8">
@@ -42,7 +42,7 @@ export const Login = () => {
                                     <label className="text-xs font-semibold text-gray-600 uppercase ml-1">Usuario</label>
                                     <input 
                                         type="text" 
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none transition-all"
                                         placeholder="ej: amaro123"
                                     />
                                 </div>
@@ -50,7 +50,7 @@ export const Login = () => {
                                     <label className="text-xs font-semibold text-gray-600 uppercase ml-1">Contraseña</label>
                                     <input 
                                         type="password" 
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none transition-all"
                                         placeholder="••••••••"
                                     />
                                 </div>
@@ -62,7 +62,7 @@ export const Login = () => {
                                 <input 
                                     type="text" 
                                     inputMode="numeric"
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none transition-all"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none transition-all"
                                     placeholder="28123456"
                                     onKeyPress={(e) => {
                                         if (!/[0-9]/.test(e.key)) e.preventDefault();
@@ -71,8 +71,8 @@ export const Login = () => {
                             </div>
                         )}
 
-                        {/* Botón Principal en Rosa */}
-                        <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-lg shadow-md transition-all active:scale-[0.98]">
+                        {/* Botón Principal con Pink Accent */}
+                        <button className="w-full bg-[#F43F5E] hover:bg-[#E11D48] text-white font-bold py-3 rounded-lg shadow-md transition-all active:scale-[0.98]">
                             <Link to={esEmpleado ? "/prueba/Recepcion" : "/estado-cliente"} className="block w-full">
                                 {esEmpleado ? "ENTRAR AL SISTEMA" : "CONSULTAR ESTADO"}
                             </Link>
