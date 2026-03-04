@@ -1,30 +1,28 @@
 import '../assets/recepcion.css';
-import { useNavigate } from 'react-router-dom'; //importar la anvegacion entre paginas
+import { useNavigate } from 'react-router-dom';
 
 export const Recepcion = () => {
-    const navigate = useNavigate(); //importando funcion de navegacion
+    const navigate = useNavigate();
     
-        //funcion que redirige al tocar el boton
-        const handGenerarServicio = () => {
-            navigate('/Orden-servicio');
-        };
-        const handListaClientes = () => {
-            navigate('/Listado-clientes');
-        };
+    const handGenerarServicio = () => {
+        navigate('/Prueba/Orden-Servicio');
+    };
     
-        return (
+    const handListaClientes = () => {
+        navigate('/Prueba/Listado-Clientes');
+    };
 
-    //botones superiores
+    return (
         <div className="container-formulario">
-             <div className="botones-container">
+            <div className="botones-container">
                 <button className="btn-1" onClick={handGenerarServicio}>Generar orden</button>
                 <button className="btn-1" onClick={handListaClientes}>Listado de clientes</button>
             </div>
+            
             <h2>Datos de Recepción</h2>
 
             <div className="formularios">
-
-                {/*FORMULARIO DE REGISTRO DE CLIENTE*/}
+                {/* FORMULARIO DE REGISTRO DE CLIENTE */}
                 <div className="form-cliente">
                     <h3>Datos del propietario</h3>
 
@@ -54,7 +52,7 @@ export const Recepcion = () => {
                     </div>
                 </div>
 
-                {/*FORMULARIO DE REGISTRO DE VEHICULO*/}
+                {/* FORMULARIO DE REGISTRO DE VEHICULO */}
                 <div className="form-cliente">
                     <h3>Datos del vehiculo</h3>
 
@@ -88,7 +86,6 @@ export const Recepcion = () => {
                         <input type="text" id="gasolina" placeholder="Ej. 50" />
                     </div>
 
-                    {/* Botón para añadir otro vehículo */}
                     <div className="btn-vehiculo-container">
                         <button className="btn-anadir-vehiculo">
                             + Añadir otro vehículo
@@ -97,7 +94,6 @@ export const Recepcion = () => {
                 </div>
             </div>
 
-            {/*BOTONES PRINCIPALES*/}
             <div className="botones-container">
                 <button className="btn-1">Guardar Registro</button>
                 <button className="btn-limpiar">Limpiar Formulario</button>

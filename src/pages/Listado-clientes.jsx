@@ -6,10 +6,8 @@ export const ListaClientes = () => {
 
     return (
         <div className="tabla-container">
-                {/* TÍTULO DE LA TABLA */}
-                <h1 className="titulo-tabla">LISTADO DE CLEINTES</h1>
+            <h1 className="titulo-tabla">LISTADO DE CLIENTES</h1>
 
-            {/* Barra superior con búsqueda, filtro y botón */}
             <div className="tabla-header">
                 <div className="busqueda-filtro">
                     <div className="campo-busqueda">
@@ -19,14 +17,9 @@ export const ListaClientes = () => {
                             className="busqueda-input"
                         />
                     </div>
-                    
-                    
                 </div>
-
-                
             </div>
 
-            {/* Tabla de órdenes */}
             <table className="ordenes-tabla">
                 <thead>
                     <tr>
@@ -34,12 +27,11 @@ export const ListaClientes = () => {
                         <th>Cedula</th>
                         <th>Nombre</th>
                         <th>Servicios activos</th>
-                        <th>Ultimo servicio realizado </th>
+                        <th>Ultimo servicio realizado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {/* Filas vacías para estructura */}
                     <tr>
                         <td></td>
                         <td></td>
@@ -52,7 +44,6 @@ export const ListaClientes = () => {
                             <button className="btn-accion eliminar">🗑</button>
                         </td>
                     </tr>
-
                 </tbody>
             </table>
         </div>

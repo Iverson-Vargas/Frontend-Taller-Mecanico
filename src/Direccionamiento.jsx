@@ -38,6 +38,9 @@ export const Direccionamiento = () => {
                 <Route path='Facturacion' element={<Facturacion />} />
                 <Route path='Egresos_Gastos' element={<Egresos_Gastos />} />
                 <Route path='Reportes' element={<Reportes />} />
+                <Route path='Orden-Servicio' element={<OrdenServicio />} />
+                <Route path='Lista-Servicio' element={<ListaServicio />} />
+                <Route path='Listado-Clientes' element={<ListaClientes />} />
             </Route>
         </Routes>
     )
