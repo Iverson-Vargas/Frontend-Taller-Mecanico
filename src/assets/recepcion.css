@@ -3,7 +3,7 @@
     max-width: 1200px;
     margin: 2rem auto;
     padding: 2rem;
-    background-color: #e0f2f1;
+    background-color: #ffffff;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,10 +12,10 @@
 /* Títulos principales */
 .container-formulario h2 {
     text-align: center;
-    color: #2c3e50;
+    color: #1E293B;
     margin-bottom: 2rem;
     font-size: 2.2rem;
-    border-bottom: 3px solid #f8bbd0;
+    border-bottom: 3px solid #F43F5E;
     padding-bottom: 0.5rem;
 }
 
@@ -33,7 +33,7 @@
     padding: 1.8rem;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid #b2dfdb;
+    border: 1px solid #e2e8f0;
     transition: box-shadow 0.3s ease;
 }
 
@@ -43,11 +43,11 @@
 
 /* Títulos de sección */
 .form-cliente h3 {
-    color: #2c3e50;
+    color: #1E293B;
     margin-bottom: 1.5rem;
     font-size: 1.4rem;
     padding-left: 0.5rem;
-    border-left: 5px solid #f8bbd0;
+    border-left: 5px solid #F43F5E;
 }
 
 /* Campos del formulario */
@@ -60,7 +60,7 @@
 /* Labels */
 .campo label {
     margin-bottom: 0.3rem;
-    color: #2c3e50;
+    color: #1E293B;
     font-weight: 600;
     font-size: 0.95rem;
 }
@@ -68,7 +68,7 @@
 /* Inputs */
 .campo input {
     padding: 0.8rem 1rem;
-    border: 2px solid #b2dfdb;
+    border: 2px solid #e2e8f0;
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -78,14 +78,14 @@
 /* Efecto focus en inputs */
 .campo input:focus {
     outline: none;
-    border-color: #f8bbd0;
-    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.3);
+    border-color: #F43F5E;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
     background-color: #ffffff;
 }
 
 /* Placeholder */
 .campo input::placeholder {
-    color: #90a4ae;
+    color: #94a3b8;
     opacity: 0.7;
 }
 
@@ -96,7 +96,7 @@
     justify-content: center;
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 2px solid #b2dfdb;
+    border-top: 2px solid #e2e8f0;
 }
 
 /* Estilos para los botones HTML */
@@ -114,29 +114,30 @@
 
 /* Botón Guardar */
 .btn-1 {
-    background-color: #f8bbd0;
-    color: #2c3e50;
-    border: 2px solid #f8bbd0;
+    background-color: #10B981;
+    color: #ffffff;
+    border: 2px solid #10B981;
 }
 
 .btn-1:hover {
-    background-color: #f48fb1;
-    border-color: #f48fb1;
+    background-color: #059669;
+    border-color: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(244, 143, 177, 0.4);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 /* Botón Limpiar */
 .btn-limpiar {
     background-color: transparent;
-    color: #2c3e50;
-    border: 2px solid #f8bbd0;
+    color: #1E293B;
+    border: 2px solid #F43F5E;
 }
 
 .btn-limpiar:hover {
-    background-color: #f8bbd0;
+    background-color: #F43F5E;
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(248, 187, 208, 0.3);
+    box-shadow: 0 5px 15px rgba(244, 63, 94, 0.3);
 }
 
 /* Botón para añadir vehículo */
@@ -147,8 +148,8 @@
 
 .btn-anadir-vehiculo {
     background-color: transparent;
-    color: #2c3e50;
-    border: 2px dashed #f8bbd0;
+    color: #1E293B;
+    border: 2px dashed #F43F5E;
     border-radius: 25px;
     padding: 0.6rem 1.5rem;
     font-size: 0.95rem;
@@ -162,10 +163,11 @@
 }
 
 .btn-anadir-vehiculo:hover {
-    background-color: #f8bbd0;
-    border: 2px solid #f8bbd0;
+    background-color: #F43F5E;
+    color: #ffffff;
+    border: 2px solid #F43F5E;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(248, 187, 208, 0.3);
+    box-shadow: 0 5px 15px rgba(244, 63, 94, 0.3);
 }
 
 .btn-anadir-vehiculo:active {
