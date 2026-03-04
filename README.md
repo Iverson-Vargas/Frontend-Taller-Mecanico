@@ -137,3 +137,7 @@ Este flujo de trabajo asegura que la rama principal (`main`) se mantenga estable
 
 Rama: Isis
 Rama: Jose
+Rama: Anthony
+Rama: Sebastian 
+Rama: Daviana
+Rama: Iverson

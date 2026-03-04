@@ -1,0 +1,202 @@
+/* Container principal */
+.container-formulario {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #e0f2f1;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Títulos principales */
+.container-formulario h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 2.2rem;
+    border-bottom: 3px solid #f8bbd0;
+    padding-bottom: 0.5rem;
+}
+
+/* Contenedor flexible para los formularios */
+.formularios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Contenedores de formulario */
+.form-cliente {
+    background-color: #ffffff;
+    padding: 1.8rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #b2dfdb;
+    transition: box-shadow 0.3s ease;
+}
+
+.form-cliente:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Títulos de sección */
+.form-cliente h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    padding-left: 0.5rem;
+    border-left: 5px solid #f8bbd0;
+}
+
+/* Campos del formulario */
+.campo {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+.campo label {
+    margin-bottom: 0.3rem;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Inputs */
+.campo input {
+    padding: 0.8rem 1rem;
+    border: 2px solid #b2dfdb;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+/* Efecto focus en inputs */
+.campo input:focus {
+    outline: none;
+    border-color: #f8bbd0;
+    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.3);
+    background-color: #ffffff;
+}
+
+/* Placeholder */
+.campo input::placeholder {
+    color: #90a4ae;
+    opacity: 0.7;
+}
+
+/* Contenedor de botones */
+.botones-container {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #b2dfdb;
+}
+
+/* Estilos para los botones HTML */
+.botones-container button {
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Botón Guardar */
+.btn-1 {
+    background-color: #f8bbd0;
+    color: #2c3e50;
+    border: 2px solid #f8bbd0;
+}
+
+.btn-1:hover {
+    background-color: #f48fb1;
+    border-color: #f48fb1;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 143, 177, 0.4);
+}
+
+/* Botón Limpiar */
+.btn-limpiar {
+    background-color: transparent;
+    color: #2c3e50;
+    border: 2px solid #f8bbd0;
+}
+
+.btn-limpiar:hover {
+    background-color: #f8bbd0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(248, 187, 208, 0.3);
+}
+
+/* Botón para añadir vehículo */
+.btn-vehiculo-container {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.btn-anadir-vehiculo {
+    background-color: transparent;
+    color: #2c3e50;
+    border: 2px dashed #f8bbd0;
+    border-radius: 25px;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-anadir-vehiculo:hover {
+    background-color: #f8bbd0;
+    border: 2px solid #f8bbd0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(248, 187, 208, 0.3);
+}
+
+.btn-anadir-vehiculo:active {
+    transform: translateY(0);
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .formularios {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .container-formulario {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .botones-container {
+        flex-direction: column;
+    }
+    
+    .botones-container button {
+        width: 100%;
+    }
+    
+    .campo input {
+        padding: 0.7rem;
+    }
+    
+    .container-formulario h2 {
+        font-size: 1.8rem;
+    }
+}
