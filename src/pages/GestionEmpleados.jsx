@@ -76,7 +76,7 @@ export const GestionEmpleados = () => {
                                 <td className="px-8 py-6 text-center">
                                     {emp.acumulado > 0 ? (
                                         <button onClick={() => liquidarPago(emp.id)} className="btn-liquidar-pink">
-                                            Liquidar Pago
+                                            Liquidar Pago.
                                         </button>
                                     ) : (
                                         <span className="text-green-success font-bold text-xs tracking-widest uppercase">Pagado</span>
