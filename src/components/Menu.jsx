@@ -30,8 +30,7 @@ export const Menu = () => {
             {/* Lista con un pequeño gap entre botones */}
                 <ul className="flex flex-col gap-1">
                     <li><NavLink to="/prueba/Recepcion" className={estilosDelEnlace}>Recepción</NavLink></li>
-                    <li><NavLink to="/prueba/Orden-Servicio" className={estilosDelEnlace}>Orden de Servicio</NavLink></li>
-                    <li><NavLink to="/prueba/Servicios" className={estilosDelEnlace}>Servicios y Precios</NavLink></li>                  
+                    <li><NavLink to="/prueba/Orden-Servicio" className={estilosDelEnlace}>Orden de Servicio</NavLink></li>          
                     <li><NavLink to="/prueba/Inventario" className={estilosDelEnlace}>Inventario y Repuestos</NavLink></li>
                     <li><NavLink to="/prueba/GestionEmpleados" className={estilosDelEnlace}>Gestión de Empleados</NavLink></li>
                     <li><NavLink to="/prueba/Facturacion" className={estilosDelEnlace}>Facturación</NavLink></li>

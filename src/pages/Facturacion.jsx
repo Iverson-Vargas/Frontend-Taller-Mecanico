@@ -104,135 +104,170 @@ export const Facturacion = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 p-4">
-      {/* Columna Izquierda */}
-      <div className="w-full lg:w-2/3 bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-4">Búsqueda y Desglose</h2>
+    <div className="p-6 min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-black text-slate-900 mb-6">
+            Módulo de <span className="text-pink-600">Facturación</span>
+        </h1>
 
-        {/* Selector de OS */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Seleccionar Orden de Servicio</label>
-          <select
-            value={ordenServicio}
-            onChange={(e) => setOrdenServicio(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Seleccione una orden</option>
-            {ordenesFinalizadas.map((orden) => (
-              <option key={orden.id} value={orden.id}>
-                {orden.descripcion}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={buscarOrdenServicio}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Buscar
-          </button>
-        </div>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Columna Izquierda */}
+          <div className="w-full lg:w-2/3 bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+            <h2 className="text-lg font-black text-slate-900 mb-4">Búsqueda y Desglose</h2>
 
-        {/* Tabla de Desglose */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Desglose</h3>
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr>
-                <th className="border border-gray-300 px-4 py-2">Categoría</th>
-                <th className="border border-gray-300 px-4 py-2">Descripción</th>
-                <th className="border border-gray-300 px-4 py-2">Precio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detalles.repuestos.map((item, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">Repuesto</td>
-                  <td className="border border-gray-300 px-4 py-2">{item.descripcion}</td>
-                  <td className="border border-gray-300 px-4 py-2">${item.precio}</td>
-                </tr>
-              ))}
-              {detalles.servicios.map((item, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">Servicio</td>
-                  <td className="border border-gray-300 px-4 py-2">{item.descripcion}</td>
-                  <td className="border border-gray-300 px-4 py-2">${item.precio}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            {/* Selector de OS */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Seleccionar Orden de Servicio</label>
+              <div className="flex gap-2">
+                  <select
+                    value={ordenServicio}
+                    onChange={(e) => setOrdenServicio(e.target.value)}
+                    className="w-full p-2 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-pink-500 outline-none text-slate-700 font-medium text-sm"
+                  >
+                    <option value="">Seleccione una orden</option>
+                    {ordenesFinalizadas.map((orden) => (
+                      <option key={orden.id} value={orden.id}>
+                        {orden.descripcion}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={buscarOrdenServicio}
+                    className="bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-slate-700 transition-all font-bold shadow-lg shadow-slate-200 text-sm"
+                  >
+                    Buscar
+                  </button>
+              </div>
+            </div>
 
-      {/* Columna Derecha */}
-      <div className="w-full lg:w-1/3 bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-bold mb-4">Totales, Impuestos y Pagos</h2>
-
-        {/* Panel de Tasa del Día */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Tasa de Cambio</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={tasaCambio}
-              onChange={(e) => setTasaCambio(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            />
+            {/* Tabla de Desglose */}
+            <div className="overflow-hidden rounded-xl border border-slate-100">
+              <h3 className="text-base font-bold text-slate-800 p-3 bg-slate-50">Detalles de la Orden</h3>
+              <table className="w-full">
+                <thead className="bg-slate-100">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Categoría</th>
+                    <th className="px-4 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Descripción</th>
+                    <th className="px-4 py-2 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Precio</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {detalles.repuestos.map((item, index) => (
+                    <tr key={`rep-${index}`} className="hover:bg-pink-50/30 transition-colors">
+                      <td className="px-4 py-2 text-sm font-medium text-slate-600">Repuesto</td>
+                      <td className="px-4 py-2 text-sm text-slate-600">{item.descripcion}</td>
+                      <td className="px-4 py-2 text-sm font-bold text-slate-800 text-right">${item.precio}</td>
+                    </tr>
+                  ))}
+                  {detalles.servicios.map((item, index) => (
+                    <tr key={`serv-${index}`} className="hover:bg-pink-50/30 transition-colors">
+                      <td className="px-4 py-2 text-sm font-medium text-slate-600">Servicio</td>
+                      <td className="px-4 py-2 text-sm text-slate-600">{item.descripcion}</td>
+                      <td className="px-4 py-2 text-sm font-bold text-slate-800 text-right">${item.precio}</td>
+                    </tr>
+                  ))}
+                  {detalles.repuestos.length === 0 && detalles.servicios.length === 0 && (
+                     <tr>
+                        <td colSpan="3" className="px-4 py-6 text-center text-slate-400 italic text-sm">
+                            No hay items seleccionados
+                        </td>
+                     </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {/* Resumen Matemático */}
-        <div className="mb-4">
-          <p>Subtotal (USD): ${subtotalUSD}</p>
-          <p>Subtotal (Bs): {subtotalBs}</p>
-          <p>IVA (16%): ${iva}</p>
-          {igtf > 0 && <p>IGTF (3%): ${igtf}</p>}
-        </div>
+          {/* Columna Derecha */}
+          <div className="w-full lg:w-1/3 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 h-fit">
+            <h2 className="text-lg font-black text-slate-900 mb-4">Totales y Pagos</h2>
 
-        {/* Sección de Pagos */}
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Método de Pago</h3>
-          <div className="flex items-center gap-2 mb-4">
-            <select
-              value={pagos[0]?.metodo || ""}
-              onChange={(e) => actualizarPago(0, "metodo", e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-1/3"
+            {/* Panel de Tasa del Día */}
+            <div className="mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Tasa de Cambio (Bs/USD)</label>
+              <input
+                type="number"
+                value={tasaCambio}
+                onChange={(e) => setTasaCambio(e.target.value)}
+                className="w-full p-2 bg-white rounded-xl border-none focus:ring-2 focus:ring-pink-500 outline-none text-slate-900 font-bold text-base"
+                placeholder="0.00"
+              />
+            </div>
+
+            {/* Resumen Matemático */}
+            <div className="mb-6 space-y-2">
+              <div className="flex justify-between items-center text-slate-600 text-sm">
+                  <span>Subtotal (USD)</span>
+                  <span className="font-bold text-base">${subtotalUSD.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600 text-sm">
+                  <span>IVA (16%)</span>
+                  <span className="font-bold text-base">${iva.toFixed(2)}</span>
+              </div>
+              {igtf > 0 && (
+                  <div className="flex justify-between items-center text-pink-600 text-sm">
+                      <span>IGTF (3%)</span>
+                      <span className="font-bold text-base">${igtf.toFixed(2)}</span>
+                  </div>
+              )}
+              <div className="border-t border-slate-200 pt-2 mt-2">
+                  <div className="flex justify-between items-center text-slate-900">
+                      <span className="font-black text-lg">Total (USD)</span>
+                      <span className="font-black text-lg">${(subtotalUSD + iva + igtf).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-500 mt-1">
+                      <span className="text-xs font-medium">Total (Bs)</span>
+                      <span className="text-xs font-bold">Bs {subtotalBs.toFixed(2)}</span>
+                  </div>
+              </div>
+            </div>
+
+            {/* Sección de Pagos */}
+            <div className="mb-4">
+              <h3 className="text-xs font-bold uppercase text-slate-400 mb-2">Método de Pago</h3>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                    <select
+                    value={pagos[0]?.metodo || ""}
+                    onChange={(e) => actualizarPago(0, "metodo", e.target.value)}
+                    className="w-1/2 p-2 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-pink-500 outline-none text-xs font-medium text-slate-700"
+                    >
+                    <option value="">Método</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Pago Móvil">Pago Móvil</option>
+                    <option value="Zelle">Zelle</option>
+                    </select>
+                    <select
+                    value={pagos[0]?.moneda || ""}
+                    onChange={(e) => actualizarPago(0, "moneda", e.target.value)}
+                    className="w-1/2 p-2 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-pink-500 outline-none text-xs font-medium text-slate-700"
+                    >
+                    <option value="">Moneda</option>
+                    <option value="USD">USD</option>
+                    <option value="Bs">Bs</option>
+                    </select>
+                </div>
+                <input
+                  type="number"
+                  value={pagos[0]?.monto || 0}
+                  onChange={(e) => actualizarPago(0, "monto", parseFloat(e.target.value))}
+                  className="w-full p-2 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-pink-500 outline-none text-slate-900 font-bold text-sm"
+                  placeholder="Monto a pagar"
+                />
+              </div>
+            </div>
+
+            {/* Botón de Facturar */}
+            <button
+              onClick={() => {
+                alert('Factura generada con éxito');
+                console.log(`Orden ${ordenServicio} marcada como Facturada`);
+              }}
+              className="w-full bg-pink-600 text-white py-3 px-4 rounded-xl hover:bg-pink-700 transition-all duration-300 font-bold shadow-lg shadow-pink-200 transform active:scale-95 text-sm"
             >
-              <option value="">Método</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Pago Móvil">Pago Móvil</option>
-              <option value="Zelle">Zelle</option>
-            </select>
-            <select
-              value={pagos[0]?.moneda || ""}
-              onChange={(e) => actualizarPago(0, "moneda", e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2 w-1/3"
-            >
-              <option value="">Moneda</option>
-              <option value="USD">USD</option>
-              <option value="Bs">Bs</option>
-            </select>
-            <input
-              type="number"
-              value={pagos[0]?.monto || 0}
-              onChange={(e) => actualizarPago(0, "monto", parseFloat(e.target.value))}
-              className="border border-gray-300 rounded px-3 py-2 w-1/3"
-              placeholder="Monto"
-            />
+              Generar Factura
+            </button>
           </div>
-        </div>
-
-        {/* Botón de Facturar */}
-        <div className="mt-4">
-          <button
-            onClick={() => {
-              alert('Factura generada con éxito');
-              // Cambiar el estado de la orden a 'Facturado'
-              console.log(`Orden ${ordenServicio} marcada como Facturada`);
-            }}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-all duration-300"
-          >
-            Facturar
-          </button>
         </div>
       </div>
     </div>
