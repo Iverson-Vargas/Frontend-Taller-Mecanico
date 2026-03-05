@@ -38,6 +38,16 @@ export const Menu = () => {
                     <li><NavLink to="/prueba/Reportes" className={estilosDelEnlace}>Reportes</NavLink></li>
                 </ul>
             </nav>
+
+            {/* Botón de cerrar sesión */}
+            <div className="mt-auto px-6 py-3">
+                <button
+                    onClick={() => window.location.href = '/'}
+                    className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-all duration-300"
+                >
+                    Cerrar Sesión
+                </button>
+            </div>
         </aside>
     );
 };
