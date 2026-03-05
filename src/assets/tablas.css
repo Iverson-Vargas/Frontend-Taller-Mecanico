@@ -31,7 +31,7 @@
 .busqueda-input {
     width: 100%;
     padding: 0.8rem 1rem;
-    border: 2px solid #b2dfdb;
+    border: 2px solid #e2e8f0;
     border-radius: 25px;
     font-size: 0.95rem;
     transition: all 0.3s ease;
@@ -40,8 +40,8 @@
 
 .busqueda-input:focus {
     outline: none;
-    border-color: #f8bbd0;
-    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.2);
+    border-color: #F43F5E;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
     background-color: #ffffff;
 }
 
@@ -52,7 +52,7 @@
 .estado-select {
     width: 100%;
     padding: 0.8rem 1rem;
-    border: 2px solid #b2dfdb;
+    border: 2px solid #e2e8f0;
     border-radius: 25px;
     font-size: 0.95rem;
     background-color: #f9f9f9;
@@ -61,15 +61,15 @@
 
 .estado-select:focus {
     outline: none;
-    border-color: #f8bbd0;
-    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.2);
+    border-color: #F43F5E;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
 }
 
 /* Botón generar orden */
 .btn-generar {
-    background-color: #f8bbd0;
-    color: #2c3e50;
-    border: 2px solid #f8bbd0;
+    background-color: #10B981;
+    color: #ffffff;
+    border: 2px solid #10B981;
     border-radius: 25px;
     padding: 0.8rem 2rem;
     font-size: 1rem;
@@ -80,10 +80,10 @@
 }
 
 .btn-generar:hover {
-    background-color: #f48fb1;
-    border-color: #f48fb1;
+    background-color: #059669;
+    border-color: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(244, 143, 177, 0.4);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 /* Tabla */
@@ -97,13 +97,13 @@
 }
 
 .ordenes-tabla thead {
-    background-color: #f8bbd0;
+    background-color: #F43F5E;
 }
 
 .ordenes-tabla th {
     padding: 1rem;
     text-align: left;
-    color: #2c3e50;
+    color: #ffffff;
     font-weight: 600;
     font-size: 0.95rem;
     text-transform: uppercase;
@@ -111,17 +111,17 @@
 }
 
 .ordenes-tabla tbody tr {
-    border-bottom: 1px solid #b2dfdb;
+    border-bottom: 1px solid #e2e8f0;
     transition: background-color 0.3s ease;
 }
 
 .ordenes-tabla tbody tr:hover {
-    background-color: #f5f5f5;
+    background-color: #f8fafc;
 }
 
 .ordenes-tabla td {
     padding: 1rem;
-    color: #2c3e50;
+    color: #1E293B;
 }
 
 /* Botones de acción */
@@ -137,37 +137,57 @@
 }
 
 .btn-accion.ver:hover {
-    background-color: #e3f2fd;
+    background-color: #e2e8f0;
+    color: #10B981;
     transform: scale(1.1);
 }
 
 .btn-accion.editar:hover {
-    background-color: #fff3e0;
+    background-color: #e2e8f0;
+    color: #F43F5E;
     transform: scale(1.1);
 }
 
 .btn-accion.eliminar:hover {
-    background-color: #ffebee;
+    background-color: #e2e8f0;
+    color: #EF4444;
     transform: scale(1.1);
 }
 
 /* Título de la tabla */
 .titulo-tabla {
     text-align: center;
-    color: #2c3e50;
+    color: #1E293B;
     font-size: 2rem;
     margin-bottom: 2rem;
-    border-bottom: 3px solid #f8bbd0;
+    border-bottom: 3px solid #F43F5E;
     padding-bottom: 0.5rem;
 }
+
+/* Estados de orden */
+.estado-pendiente {
+    color: #F43F5E;
+    font-weight: 600;
+}
+
+.estado-completado {
+    color: #10B981;
+    font-weight: 600;
+}
+
+.estado-cancelado {
+    color: #EF4444;
+    font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .ordenes-container {
+    .tabla-container {
         margin: 1rem;
         padding: 1rem;
     }
 
-    .ordenes-header {
+    .tabla-header {
         flex-direction: column;
     }
 
