@@ -1,44 +1,29 @@
-/*fondo pricipal*/
+/* fondo principal */
 .nomina-container {
-    background-color: #ffff;
+    background-color: #ffffff;
     min-height: 100vh;
 }
 
-/* detalles*/
-.text-pink-accent{
-    color: #ec4899;
+/* Identidad Visual del Taller */
+.text-pink-accent {
+    color: #F43F5E;
 }
 
-.bg-pink-accent{
-    background-color: #ec4899;
+.bg-pink-accent {
+    background-color: #F43F5E;
 }
 
-.shadow-pink-accent{
-    box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.2);
-
+.text-slate-main {
+    color: #1E293B;
 }
 
-/*boton de liquidacion*/
-.btn-liquidar-pink {
-    background-color: #fdf2f8;
-    color: #db2777;
-    border: 1px solid #fce7f3;
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.75rem;
-    font-weight: 700;
-    font-size: 0.75rem;
-    transition: all 0.3s ease;
+.shadow-pink-accent {
+    box-shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.2);
 }
 
-.btn-liquidar-pink:hover {
-    background-color: #db2777;
-    color: #ffffff;
-    
-}
-
-/* Botón de Registro (El que no muestra color) */
+/* Botón de Registro Principal */
 .btn-registrar-pink {
-    background-color: #ec4899; /* El mismo rosa de tus acentos */
+    background-color: #F43F5E;
     color: #ffffff;
     padding: 0.75rem 1.5rem;
     border-radius: 1rem;
@@ -46,15 +31,37 @@
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 14px 0 rgba(236, 72, 153, 0.39);
+    box-shadow: 0 4px 14px 0 rgba(244, 63, 94, 0.4);
 }
 
 .btn-registrar-pink:hover {
-    background-color: #db2777;
+    background-color: #E11D48; /* Un tono más intenso */
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.23);
 }
 
-.btn-registrar-pink:active {
-    transform: translateY(0);
+/* Botón de liquidación en tabla */
+.btn-liquidar-pink {
+    background-color: #FFF1F2;
+    color: #F43F5E;
+    border: 1px solid #FFE4E6;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-liquidar-pink:hover {
+    background-color: #F43F5E;
+    color: #ffffff;
+}
+
+/* Estados */
+.text-green-success {
+    color: #10B981;
+}
+
+.text-red-danger {
+    color: #EF4444;
 }
