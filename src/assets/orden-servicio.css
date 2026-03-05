@@ -15,9 +15,9 @@
 }
 
 .btn-2 {
-    background-color: #f8bbd0;
-    color: #2c3e50;
-    border: 2px solid #f8bbd0;
+    background-color: #F43F5E;
+    color: #ffffff;
+    border: 2px solid #F43F5E;
     border-radius: 25px;
     padding: 0.5rem 1.5rem;
     font-size: 0.95rem;
@@ -35,36 +35,36 @@
 }
 
 .botones .btn-2:first-child {
-    margin-right: auto; /* Empuja el primer botón a la izquierda */
+    margin-right: auto;
 }
 
 .botones .btn-2:last-child {
-    margin-left: auto; /* Empuja el último botón a la derecha */
+    margin-left: auto;
 }
 
 /* Títulos */
 .titulo-principal {
     text-align: center;
-    color: #2c3e50;
+    color: #1E293B;
     font-size: 2.2rem;
     margin-bottom: 2rem;
-    border-bottom: 3px solid #f8bbd0;
+    border-bottom: 3px solid #F43F5E;
     padding-bottom: 0.5rem;
 }
 
 .subtitulo {
-    color: #2c3e50;
+    color: #1E293B;
     font-size: 1.4rem;
     margin: 1.5rem 0 1rem 0;
     padding-left: 0.5rem;
-    border-left: 5px solid #f8bbd0;
+    border-left: 5px solid #F43F5E;
     background-color: #f9f9f9;
     padding: 0.5rem 1rem;
     border-radius: 8px;
 }
 
 .subtitulo-secundario {
-    color: #2c3e50;
+    color: #1E293B;
     font-size: 1.1rem;
     margin: 1rem 0 0.5rem 0;
     font-weight: 600;
@@ -79,7 +79,7 @@
 
 .campo label {
     margin-bottom: 0.3rem;
-    color: #2c3e50;
+    color: #1E293B;
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -88,7 +88,7 @@
 .campo select, 
 .campo textarea {
     padding: 0.6rem 1rem;
-    border: 2px solid #b2dfdb;
+    border: 2px solid #e2e8f0;
     border-radius: 8px;
     font-size: 0.95rem;
     transition: all 0.3s ease;
@@ -100,8 +100,8 @@
 .campo select:focus,
 .campo textarea:focus {
     outline: none;
-    border-color: #f8bbd0;
-    box-shadow: 0 0 0 3px rgba(248, 187, 208, 0.2);
+    border-color: #F43F5E;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
     background-color: #ffffff;
 }
 
@@ -113,7 +113,7 @@
 
 .campo-destacado {
     background-color: #e8f4f8 !important;
-    border-color: #f8bbd0 !important;
+    border-color: #F43F5E !important;
     font-weight: 600;
     font-size: 1.1rem !important;
 }
@@ -172,7 +172,7 @@
 }
 
 .checkbox-item label {
-    color: #2c3e50;
+    color: #1E293B;
     font-weight: 500;
     cursor: pointer;
 }
@@ -213,7 +213,7 @@
     padding: 1.5rem;
     background-color: #e8f4f8;
     border-radius: 10px;
-    border: 2px solid #f8bbd0;
+    border: 2px solid #10B981;
 }
 
 .mano-obra {
@@ -229,7 +229,7 @@
 .subtotal input {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #1E293B;
 }
 
 /* Botones de acción */
@@ -239,7 +239,7 @@
     justify-content: center;
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 2px solid #b2dfdb;
+    border-top: 2px solid #e2e8f0;
 }
 
 .btn-imprimir,
@@ -256,28 +256,29 @@
 }
 
 .btn-guardar {
-    background-color: #f8bbd0;
-    color: #2c3e50;
-    border: 2px solid #f8bbd0;
+    background-color: #10B981;
+    color: #ffffff;
+    border: 2px solid #10B981;
 }
 
 .btn-guardar:hover {
-    background-color: #f48fb1;
-    border-color: #f48fb1;
+    background-color: #059669;
+    border-color: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(244, 143, 177, 0.4);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 .btn-imprimir {
     background-color: transparent;
-    color: #2c3e50;
-    border: 2px solid #b2dfdb;
+    color: #1E293B;
+    border: 2px solid #F43F5E;
 }
 
 .btn-imprimir:hover {
-    background-color: #b2dfdb;
+    background-color: #F43F5E;
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(178, 223, 219, 0.4);
+    box-shadow: 0 5px 15px rgba(244, 63, 94, 0.4);
 }
 
 /* Responsive */
