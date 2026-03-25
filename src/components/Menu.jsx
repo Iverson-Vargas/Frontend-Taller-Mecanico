@@ -43,7 +43,7 @@ export const Menu = () => {
             <div className="mt-auto px-6 py-3">
                 <button
                     onClick={() => window.location.href = '/'}
-                    className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-all duration-300"
+                    className=" cursor-pointer w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-all duration-300"
                 >
                     Cerrar Sesión
                 </button>
