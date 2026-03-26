@@ -28,7 +28,7 @@ export const GestionEmpleados = () => {
                     </h1>
                     <p className="text-slate-500 italic text-sm">Control administrativo de comisiones por servicios finalizados.</p>
                 </div>
-                <button onClick={() => navigate('/Prueba/RegistroEmpleado')} className="btn-registrar-pink">
+                <button onClick={() => navigate('/panel/RegistroEmpleado')} className="btn-registrar-pink">
                     Registrar Nuevo Empleado
                 </button>
             </header>

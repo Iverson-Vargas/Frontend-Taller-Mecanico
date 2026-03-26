@@ -19,11 +19,11 @@ export const Recepcion = () => {
     });
 
     const handGenerarServicio = () => {
-        navigate('/Prueba/Orden-Servicio');
+        navigate('/panel/Orden-Servicio');
     };
     
     const handListaClientes = () => {
-        navigate('/Prueba/Listado-Clientes');
+        navigate('/panel/Listado-Clientes');
     };
 
     const handleChange = (e) => {

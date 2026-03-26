@@ -5,11 +5,11 @@ export const OrdenServicio = () => {
     const navigate = useNavigate();
 
     const handListaServicio = () => {
-        navigate('/Prueba/Lista-Servicio');
+        navigate('/panel/Lista-Servicio');
     };
 
     const handListaClientes = () => {
-        navigate('/Prueba/Listado-Clientes');
+        navigate('/panel/Listado-Clientes');
     };
 
     return (

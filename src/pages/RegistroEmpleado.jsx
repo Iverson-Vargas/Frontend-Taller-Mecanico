@@ -18,7 +18,7 @@ export const RegistroEmpleado = () => {
         e.preventDefault();
         console.log("Empleado registrado:", formData);
         alert(`¡Empleado ${formData.nombre} ${formData.apellido} registrado con éxito!`);
-        navigate('/Prueba/GestionEmpleados');
+        navigate('/panel/GestionEmpleados');
     };
 
     return (
