@@ -107,7 +107,7 @@ export const Login = () => {
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
-                                        placeholder="ej: amaro123"
+                                        placeholder="amaro@taller.com"
                                         required
                                     />
                                 </div>
@@ -132,7 +132,7 @@ export const Login = () => {
                                     onChange={(e) => setCedula(e.target.value)}
                                     inputMode="numeric"
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
-                                    placeholder="28123456"
+                                    placeholder="V-28123456"
                                     required
                                 />
                             </div>
