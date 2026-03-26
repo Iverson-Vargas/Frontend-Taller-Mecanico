@@ -1,15 +1,62 @@
 import '../assets/recepcion.css';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export const Recepcion = () => {
     const navigate = useNavigate();
     
+    const [formData, setFormData] = useState({
+        cedula_rif: '',
+        nombre: '',
+        apellido: '',
+        telefono: '',
+        direccion: '',
+        placa: '',
+        marca: '',
+        modelo: '',
+        ano: '',
+        kilometraje: ''
+    });
+
     const handGenerarServicio = () => {
         navigate('/Prueba/Orden-Servicio');
     };
     
     const handListaClientes = () => {
         navigate('/Prueba/Listado-Clientes');
+    };
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleGuardar = async () => {
+        try {
+            const respuesta = await fetch('http://localhost:3000/api/clientes/recepcion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await respuesta.json();
+
+            if (respuesta.ok) {
+                alert('¡Registro exitoso!');
+                setFormData({
+                    cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '',
+                    placa: '', marca: '', modelo: '', ano: '', kilometraje: ''
+                });
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error al conectar con el servidor');
+        }
     };
 
     return (
@@ -22,68 +69,61 @@ export const Recepcion = () => {
             <h2>Datos de Recepción</h2>
 
             <div className="formularios">
-                {/* FORMULARIO DE REGISTRO DE CLIENTE */}
                 <div className="form-cliente">
                     <h3>Datos del propietario</h3>
 
                     <div className="campo">
-                        <label htmlFor="cedula">Cédula:</label>
-                        <input type="text" id="cedula" placeholder="123456789" />
+                        <label>Cédula o RIF:</label>
+                        <input type="text" name="cedula_rif" value={formData.cedula_rif} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="nombre">Nombre y apellido:</label>
-                        <input type="text" id="nombre" placeholder="Ingrese nombre y apellido" />
+                        <label>Nombre:</label>
+                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="telefono">Teléfono:</label>
-                        <input type="text" id="telefono" placeholder="04123456789" />
+                        <label>Apellido:</label>
+                        <input type="text" name="apellido" value={formData.apellido} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="direccion">Dirección:</label>
-                        <input type="text" id="direccion" placeholder="Av. 1 entre calles 2 y 3" />
+                        <label>Teléfono:</label>
+                        <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="correo">Correo:</label>
-                        <input type="text" id="correo" placeholder="ejemplo@gmail.com" />
+                        <label>Dirección:</label>
+                        <textarea name="direccion" value={formData.direccion} onChange={handleChange} rows="3"></textarea>
                     </div>
                 </div>
 
-                {/* FORMULARIO DE REGISTRO DE VEHICULO */}
-                <div className="form-cliente">
-                    <h3>Datos del vehiculo</h3>
+                <div className="form-vehiculo">
+                    <h3>Datos del Vehículo</h3>
 
                     <div className="campo">
-                        <label htmlFor="placa">Placa:</label>
-                        <input type="text" id="placa" placeholder="AAA-32A" />
+                        <label>Placa:</label>
+                        <input type="text" name="placa" value={formData.placa} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="marca">Marca:</label>
-                        <input type="text" id="marca" placeholder="Ingrese marca" />
+                        <label>Marca:</label>
+                        <input type="text" name="marca" value={formData.marca} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="modelo">Modelo:</label>
-                        <input type="text" id="modelo" placeholder="Ingrese modelo" />
+                        <label>Modelo:</label>
+                        <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="año">Año:</label>
-                        <input type="text" id="año" placeholder="Ej: 2020" />
+                        <label>Año:</label>
+                        <input type="text" name="ano" value={formData.ano} onChange={handleChange} />
                     </div>
 
                     <div className="campo">
-                        <label htmlFor="kilometraje">Kilometraje:</label>
-                        <input type="text" id="kilometraje" placeholder="Ej. 50000" />
-                    </div>
-
-                    <div className="campo">
-                        <label htmlFor="gasolina">Capacidad del tanque:</label>
-                        <input type="text" id="gasolina" placeholder="Ej. 50" />
+                        <label>Kilometraje:</label>
+                        <input type="text" name="kilometraje" value={formData.kilometraje} onChange={handleChange} />
                     </div>
 
                     <div className="btn-vehiculo-container">
@@ -95,8 +135,11 @@ export const Recepcion = () => {
             </div>
 
             <div className="botones-container">
-                <button className="btn-1">Guardar Registro</button>
-                <button className="btn-limpiar">Limpiar Formulario</button>
+                <button className="btn-1" onClick={handleGuardar}>Guardar Registro</button>
+                <button className="btn-limpiar" onClick={() => setFormData({
+                    cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '',
+                    placa: '', marca: '', modelo: '', ano: '', kilometraje: ''
+                })}>Limpiar Formulario</button>
             </div>
         </div>
     );
