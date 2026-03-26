@@ -64,29 +64,21 @@ export const Login = () => {
 
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-slate-100 p-4 font-sans">
-            <div className="bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.05)] w-full max-w-md overflow-hidden border border-slate-200">
+            <div className="bg-white rounded-2xl shadow-lg w-full max-w-md overflow-hidden border border-slate-200">
                 
                 {/* PESTAÑAS (TABS) */}
                 <div className="flex border-b border-slate-100">
                     <button 
                         type="button"
-                        onClick={() => setEsEmpleado(true)}
-                        className={` cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${
-                            esEmpleado 
-                            ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' 
-                            : 'text-slate-400 hover:text-slate-600 bg-white'
-                        }`}
+                        onClick={() => setEsEmpleado(true)} 
+                        className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         EMPLEADOS
                     </button>
                     <button 
                         type="button"
-                        onClick={() => setEsEmpleado(false)}
-                        className={` cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${
-                            !esEmpleado 
-                            ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' 
-                            : 'text-slate-400 hover:text-slate-600 bg-white'
-                        }`}
+                        onClick={() => setEsEmpleado(false)} 
+                        className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${!esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         CLIENTES
                     </button>
@@ -107,7 +99,6 @@ export const Login = () => {
                             </div>
                         )}
                         {esEmpleado ? (
-                            /* --- VISTA EMPLEADOS --- */
                             <>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Usuario</label>
@@ -115,8 +106,9 @@ export const Login = () => {
                                         type="text" 
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
                                         placeholder="ej: amaro123"
+                                        required
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -125,13 +117,13 @@ export const Login = () => {
                                         type="password" 
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
                                         placeholder="••••••••"
+                                        required
                                     />
                                 </div>
                             </>
                         ) : (
-                            /* --- VISTA CLIENTES --- */
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Número de Cédula</label>
                                 <input 
@@ -139,11 +131,9 @@ export const Login = () => {
                                     value={cedula}
                                     onChange={(e) => setCedula(e.target.value)}
                                     inputMode="numeric"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
                                     placeholder="28123456"
-                                    onKeyPress={(e) => {
-                                        if (!/[0-9]/.test(e.key)) e.preventDefault();
-                                    }}
+                                    required
                                 />
                             </div>
                         )}

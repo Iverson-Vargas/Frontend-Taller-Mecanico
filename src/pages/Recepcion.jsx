@@ -11,11 +11,13 @@ export const Recepcion = () => {
         apellido: '',
         telefono: '',
         direccion: '',
+        correo: '',
         placa: '',
         marca: '',
         modelo: '',
         ano: '',
-        kilometraje: ''
+        kilometraje: '',
+        gasolina: ''
     });
 
     const handGenerarServicio = () => {
@@ -48,8 +50,8 @@ export const Recepcion = () => {
             if (respuesta.ok) {
                 alert('¡Registro exitoso!');
                 setFormData({
-                    cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '',
-                    placa: '', marca: '', modelo: '', ano: '', kilometraje: ''
+                    cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '', correo: '',
+                    placa: '', marca: '', modelo: '', ano: '', kilometraje: '', gasolina: ''
                 });
             } else {
                 alert('Error: ' + data.error);
@@ -60,86 +62,124 @@ export const Recepcion = () => {
     };
 
     return (
-        <div className="container-formulario">
-            <div className="botones-container">
-                <button className="btn-1" onClick={handGenerarServicio}>Generar orden</button>
-                <button className="btn-1" onClick={handListaClientes}>Listado de clientes</button>
+        <div className="container-formulario" style={{ backgroundColor: '#F8FAFC', padding: '20px' }}>
+             <div className="botones-container" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <button 
+                    className="btn-1" 
+                    onClick={handGenerarServicio}
+                    style={{ backgroundColor: '#1E293B', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                >
+                    Generar orden
+                </button>
+                <button 
+                    className="btn-1" 
+                    onClick={handListaClientes}
+                    style={{ backgroundColor: '#1E293B', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                >
+                    Listado de clientes
+                </button>
             </div>
-            
-            <h2>Datos de Recepción</h2>
 
-            <div className="formularios">
-                <div className="form-cliente">
-                    <h3>Datos del propietario</h3>
+            <h2 style={{ color: '#1E293B', fontWeight: 'bold', marginBottom: '20px' }}>Datos de Recepción</h2>
 
-                    <div className="campo">
-                        <label>Cédula o RIF:</label>
-                        <input type="text" name="cedula_rif" value={formData.cedula_rif} onChange={handleChange} />
+            <div className="formularios" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+
+                {/*FORMULARIO DE REGISTRO DE CLIENTE*/}
+                <div className="form-cliente" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <h3 style={{ color: '#F43F5E', marginBottom: '15px' }}>Datos del propietario</h3>
+
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Cédula o RIF:</label>
+                        <input type="text" name="cedula_rif" value={formData.cedula_rif} onChange={handleChange} placeholder="123456789" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
+                    </div>
+
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Nombre:</label>
+                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Ingrese nombre" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
+                    </div>
+
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Apellido:</label>
+                        <input type="text" name="apellido" value={formData.apellido} onChange={handleChange} placeholder="Ingrese apellido" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
+                    </div>
+
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Teléfono:</label>
+                        <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="04123456789" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
+                    </div>
+
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Dirección:</label>
+                        <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Av. 1 entre calles 2 y 3" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
                     <div className="campo">
-                        <label>Nombre:</label>
-                        <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} />
-                    </div>
-
-                    <div className="campo">
-                        <label>Apellido:</label>
-                        <input type="text" name="apellido" value={formData.apellido} onChange={handleChange} />
-                    </div>
-
-                    <div className="campo">
-                        <label>Teléfono:</label>
-                        <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} />
-                    </div>
-
-                    <div className="campo">
-                        <label>Dirección:</label>
-                        <textarea name="direccion" value={formData.direccion} onChange={handleChange} rows="3"></textarea>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Correo:</label>
+                        <input type="text" name="correo" value={formData.correo} onChange={handleChange} placeholder="ejemplo@gmail.com" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
                 </div>
 
-                <div className="form-vehiculo">
-                    <h3>Datos del Vehículo</h3>
+                {/*FORMULARIO DE REGISTRO DE VEHICULO*/}
+                <div className="form-cliente" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <h3 style={{ color: '#F43F5E', marginBottom: '15px' }}>Datos del vehiculo</h3>
 
-                    <div className="campo">
-                        <label>Placa:</label>
-                        <input type="text" name="placa" value={formData.placa} onChange={handleChange} />
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Placa:</label>
+                        <input type="text" name="placa" value={formData.placa} onChange={handleChange} placeholder="AAA-32A" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
-                    <div className="campo">
-                        <label>Marca:</label>
-                        <input type="text" name="marca" value={formData.marca} onChange={handleChange} />
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Marca:</label>
+                        <input type="text" name="marca" value={formData.marca} onChange={handleChange} placeholder="Ingrese marca" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
-                    <div className="campo">
-                        <label>Modelo:</label>
-                        <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} />
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Modelo:</label>
+                        <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Ingrese modelo" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
-                    <div className="campo">
-                        <label>Año:</label>
-                        <input type="text" name="ano" value={formData.ano} onChange={handleChange} />
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Año:</label>
+                        <input type="text" name="ano" value={formData.ano} onChange={handleChange} placeholder="Ej: 2020" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
-                    <div className="campo">
-                        <label>Kilometraje:</label>
-                        <input type="text" name="kilometraje" value={formData.kilometraje} onChange={handleChange} />
+                    <div className="campo" style={{ marginBottom: '10px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Kilometraje:</label>
+                        <input type="text" name="kilometraje" value={formData.kilometraje} onChange={handleChange} placeholder="Ej. 50000" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
+                    </div>
+
+                    <div className="campo" style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', color: '#1E293B', fontSize: '14px', fontWeight: '600' }}>Capacidad del tanque:</label>
+                        <input type="text" name="gasolina" value={formData.gasolina} onChange={handleChange} placeholder="Ej. 50" style={{ width: '100%', padding: '8px', border: '1px solid #CBD5E1', borderRadius: '6px' }} />
                     </div>
 
                     <div className="btn-vehiculo-container">
-                        <button className="btn-anadir-vehiculo">
+                        <button className="btn-anadir-vehiculo" style={{ background: 'none', border: 'none', color: '#F43F5E', fontWeight: 'bold', cursor: 'pointer' }}>
                             + Añadir otro vehículo
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="botones-container">
-                <button className="btn-1" onClick={handleGuardar}>Guardar Registro</button>
-                <button className="btn-limpiar" onClick={() => setFormData({
-                    cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '',
-                    placa: '', marca: '', modelo: '', ano: '', kilometraje: ''
-                })}>Limpiar Formulario</button>
+            {/*BOTONES PRINCIPALES*/}
+            <div className="botones-container" style={{ display: 'flex', gap: '15px', marginTop: '30px', justifyContent: 'center' }}>
+                <button 
+                    onClick={handleGuardar}
+                    className="btn-1" 
+                    style={{ backgroundColor: '#10B981', color: 'white', padding: '12px 30px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                    Guardar Registro
+                </button>
+                <button 
+                    onClick={() => setFormData({
+                        cedula_rif: '', nombre: '', apellido: '', telefono: '', direccion: '', correo: '',
+                        placa: '', marca: '', modelo: '', ano: '', kilometraje: '', gasolina: ''
+                    })}
+                    className="btn-limpiar" 
+                    style={{ backgroundColor: '#EF4444', color: 'white', padding: '12px 30px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                    Limpiar Formulario
+                </button>
             </div>
         </div>
     );
