@@ -27,7 +27,7 @@ function PlantillaPrueba() {
     return(
         <div className="min-h-screen bg-gray-50">
             <Menu />
-            <main className="ml-65 p-4">
+            <main className="pt-20 px-4 pb-8 md:ml-65 md:pt-4 md:px-6 transition-all duration-300">
                 <Outlet />
             </main>
         </div>
