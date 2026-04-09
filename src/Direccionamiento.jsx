@@ -17,22 +17,24 @@ import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
 import { ReporteNominas } from './pages/reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
+import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
+import { ControlProductividad } from './pages/ControlProductividad.jsx';
 
 // 1. IMPORTACIÓN DE TU COMPONENTE
 import { ServiciosRentables } from './pages/ServiciosRentables.jsx'; 
 
-export const Direccionamiento = () => {
+function PlantillaPrueba() {
+    return(
+        <div className="min-h-screen bg-gray-50">
+            <Menu />
+            <main className="ml-65 p-4">
+                <Outlet />
+            </main>
+        </div>
+    )
+}
 
-    function PlantillaPrueba() {
-        return(
-            <div className="min-h-screen bg-gray-50">
-                <Menu />
-                <main className="ml-65 p-4">
-                    <Outlet />
-                </main>
-            </div>
-        )
-    }
+export const Direccionamiento = () => {
 
     return(
         <Routes>
@@ -65,6 +67,8 @@ export const Direccionamiento = () => {
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
+                <Route path='Reporte-Inventario' element={<MovimientoValorInventario />} />
+                <Route path='Control-Productividad' element={<ControlProductividad />} />
             </Route>
         </Routes>
     )

@@ -56,7 +56,7 @@ export const Recepcion = () => {
             } else {
                 alert('Error: ' + data.error);
             }
-        } catch (error) {
+        } catch {
             alert('Error al conectar con el servidor');
         }
     };

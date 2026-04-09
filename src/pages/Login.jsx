@@ -55,7 +55,7 @@ export const Login = () => {
                     setError(data.error || data.message || 'Cédula no encontrada');
                 }
             }
-        } catch (err) {
+        } catch {
             setError('Error de conexión con el servidor');
         } finally {
             setLoading(false);

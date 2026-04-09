@@ -1,8 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import '../assets/tablas.css';
 import '../assets/tablas.css';
 
 export const ListaClientes = () => {
-    const navigate = useNavigate();
 
     return (
         <div className="tabla-container">
