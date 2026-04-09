@@ -49,7 +49,7 @@ export const EstadoCliente = () => {
                 </div>
                 <button 
                     onClick={handleLogout}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                    className=" cursor-pointer bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
                 >
                     Cerrar Sesión
                 </button>
