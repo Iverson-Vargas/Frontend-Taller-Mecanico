@@ -14,6 +14,7 @@ import { OrdenServicio } from './pages/Orden-servicio.jsx';
 import { ListaServicio } from './pages/Listado-servicio.jsx';
 import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
+import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
 
 export const Direccionamiento = () => {
 
@@ -52,6 +53,7 @@ export const Direccionamiento = () => {
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
+                <Route path='Reporte-Inventario' element={<MovimientoValorInventario />} />
             </Route>
         </Routes>
     )
