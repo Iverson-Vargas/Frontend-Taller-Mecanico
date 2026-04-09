@@ -28,19 +28,21 @@ export const GestionEmpleados = () => {
                     </h1>
                     <p className="text-slate-500 italic text-sm">Control administrativo de comisiones por servicios finalizados.</p>
                 </div>
-                <button onClick={() => navigate('/Prueba/RegistroEmpleado')} className="btn-registrar-pink">
+                <button onClick={() => navigate('/panel/RegistroEmpleado')} className="btn-registrar-pink">
                     Registrar Nuevo Empleado
                 </button>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 ">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                {/* Card de Total Pasivo */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Total Pasivo Laboral</p>
-                    <p className="text-5xl font-black text-slate-main tracking-tighter">${totalPasivo.toLocaleString('es-ES')}               
+                    <p className="text-5xl font-black text-slate-main tracking-tighter">${totalPasivo.toLocaleString('es-ES')}               
                     </p>
                     <p className="text-pink-accent text-sm font-bold mt-2 italic">Monto pendiente por liquidar a mecánicos.</p>
                 </div>
 
+                {/* Card Informativa */}
                 <div className='bg-rose-50 p-8 rounded-3xl border border-rose-100 flex items-center justify-center text-center'>
                     <p className="text-pink-accent font-medium text-sm italic">
                         "Cada vez que una Orden de Servicio se marca como FINALIZADA, se suma la comisión automáticamente."
@@ -48,6 +50,7 @@ export const GestionEmpleados = () => {
                 </div>
             </div>
 
+            {/* Tabla de empleados */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden">
                 <table className="w-full">
                     <thead className='bg-slate-50'>
@@ -76,7 +79,7 @@ export const GestionEmpleados = () => {
                                 <td className="px-8 py-6 text-center">
                                     {emp.acumulado > 0 ? (
                                         <button onClick={() => liquidarPago(emp.id)} className="btn-liquidar-pink">
-                                            Liquidar Pago.
+                                            Liquidar Pago
                                         </button>
                                     ) : (
                                         <span className="text-green-success font-bold text-xs tracking-widest uppercase">Pagado</span>
