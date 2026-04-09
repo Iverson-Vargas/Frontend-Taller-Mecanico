@@ -16,6 +16,7 @@ import { ListaServicio } from './pages/Listado-servicio.jsx';
 import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
 import { ReporteNominas } from './pages/reporte_nominas.jsx';
+import { EstadoCliente } from './pages/EstadoCliente.jsx';
 
 export const Direccionamiento = () => {
 
@@ -33,7 +34,16 @@ export const Direccionamiento = () => {
     return(
         <Routes>
             <Route path='/' element={<Login />} />
-            <Route path="/Prueba" element={<PlantillaPrueba />}>
+            <Route path='/estado-cliente' element={
+                <ProtectedRoute>
+                    <EstadoCliente />
+                </ProtectedRoute>
+            } />
+            <Route path="/panel" element={
+                <ProtectedRoute>
+                    <PlantillaPrueba />
+                </ProtectedRoute>
+            }>
                 <Route path='ReporteGanancia' element={<ReporteGanancia />} />
                 <Route path='ReporteNominas' element={<ReporteNominas />} />
                 <Route path='Recepcion' element={<Recepcion />} />
