@@ -5,15 +5,13 @@ export const ListaServicio = () => {
     const navigate = useNavigate();
 
     const handleGenerarOrden = () => {
-        navigate('/Orden-servicio');
+        navigate('/panel/Orden-Servicio');
     };
 
     return (
         <div className="tabla-container">
-                {/* TÍTULO DE LA TABLA */}
-                <h1 className="titulo-tabla">LISTADO DE ORDENES</h1>
+            <h1 className="titulo-tabla">LISTADO DE ORDENES</h1>
 
-            {/* Barra superior con búsqueda, filtro y botón */}
             <div className="tabla-header">
                 <div className="busqueda-filtro">
                     <div className="campo-busqueda">
@@ -43,7 +41,6 @@ export const ListaServicio = () => {
                 </button>
             </div>
 
-            {/* Tabla de órdenes */}
             <table className="ordenes-tabla">
                 <thead>
                     <tr>
@@ -56,7 +53,6 @@ export const ListaServicio = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* Filas vacías para estructura */}
                     <tr>
                         <td></td>
                         <td></td>
@@ -69,7 +65,6 @@ export const ListaServicio = () => {
                             <button className="btn-accion eliminar">🗑</button>
                         </td>
                     </tr>
-
                 </tbody>
             </table>
         </div>

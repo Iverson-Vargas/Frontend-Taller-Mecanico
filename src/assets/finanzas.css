@@ -1,0 +1,66 @@
+ /*fondo pricipal*/
+ .nomina-container {
+    background-color: #ffff;
+    min-height: 100vh;
+}
+
+/* detalles*/
+.text-pink-accent{
+    color: #ec4899;
+}
+
+
+
+.bg-pink-accent{
+    background-color: #ec4899;
+}
+
+.shadow-pink-accent{
+    box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.2);
+
+}
+
+/*boton de liquidacion*/
+.btn-liquidar-pink {
+    background-color: #fdf2f8;
+    color: #db2777;
+    border: 1px solid #fce7f3;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-liquidar-pink:hover {
+    background-color: #db2777;
+    color: #ffffff;
+    
+}
+
+/* Botón de Registro (El que no muestra color) */
+.btn-registrar-pink {
+    background-color: #ec4899; /* El mismo rosa de tus acentos */
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px 0 rgba(236, 72, 153, 0.39);
+}
+
+.btn-registrar-pink:hover {
+    background-color: #db2777;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.23);
+}
+
+.btn-registrar-pink:active {
+    transform: translateY(0);
+}
+body {
+    background-color: lightblue;
+  }
+  

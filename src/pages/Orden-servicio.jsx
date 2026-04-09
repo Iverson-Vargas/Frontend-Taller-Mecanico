@@ -2,22 +2,28 @@ import { useNavigate } from 'react-router-dom';
 import '../assets/orden-servicio.css';
 
 export const OrdenServicio = () => {
-    const navigate = useNavigate(); //importando funcion de navegacion
+    const navigate = useNavigate();
 
-      const ListaClientes = () => {
-            navigate('/Listado-clientes');
-        };
+    const handListaServicio = () => {
+        navigate('/panel/Lista-Servicio');
+    };
+
+    const handListaClientes = () => {
+        navigate('/panel/Listado-Clientes');
+    };
 
     return (
         <div className="orden-container">
-            {/* Botones*/}
             <div className="botones">
-                <button className="btn-2" onClick={() => navigate('/Recepcion')}> ← Volver </button>
-                <button className="btn-2" onClick={ListaClientes}> Listado de clientes </button>
+                <button className="btn-2" onClick={handListaServicio}>
+                    Listado de servicios
+                </button>
+                <button className="btn-2" onClick={handListaClientes}>
+                    Listado de clientes
+                </button>
             </div>
 
             <h1 className="titulo-principal">ORDEN DE SERVICIO</h1>
-
 
             <div className="encabezado-orden">
                 <div className="numero-orden">
@@ -36,7 +42,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Estado y mecánico */}
             <div className="estado-mecanico">
                 <div className="campo">
                     <label>Estado de la orden:</label>
@@ -57,12 +62,10 @@ export const OrdenServicio = () => {
                         <option value="">Seleccione</option>
                         <option>Carlos Rodríguez</option>
                         <option>Juan Pérez</option>
-
                     </select>
                 </div>
             </div>
 
-            {/* Datos del Cliente */}
             <h2 className="subtitulo">DATOS DEL CLIENTE</h2>
             <div className="seccion-grid">
                 <div className="campo">
@@ -79,7 +82,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Datos del Vehículo */}
             <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
             <div className="seccion-grid">
                 <div className="campo">
@@ -112,7 +114,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Diagnóstico Inicial */}
             <h2 className="subtitulo">DIAGNÓSTICO INICIAL</h2>
             <div className="diagnostico-inicial">
                 <div className="campo">
@@ -146,7 +147,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Diagnóstico Técnico */}
             <h2 className="subtitulo">DIAGNÓSTICO TÉCNICO</h2>
             <div className="diagnostico-tecnico">
                 <div className="campo">
@@ -159,7 +159,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Servicio */}
             <h2 className="subtitulo">SERVICIO</h2>
             <div className="servicio-grid">
                 <div className="campo">
@@ -180,7 +179,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Repuestos */}
             <div className="repuestos-seccion">
                 <div className="checkbox-item">
                     <input type="checkbox" id="repuesto" />
@@ -197,7 +195,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Costos */}
             <div className="costos-grid">
                 <div className="campo">
                     <label>Costo ($):</label>
@@ -221,7 +218,6 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* Botones de acción */}
             <div className="botones-accion">
                 <button className="btn-imprimir">Imprimir Orden</button>
                 <button className="btn-guardar">Guardar Orden</button>

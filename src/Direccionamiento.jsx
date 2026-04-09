@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Menu } from './components/Menu.jsx';
 import { Login } from './pages/Login.jsx'
 import { Recepcion } from './pages/Recepcion.jsx';
@@ -12,6 +13,7 @@ import { Reportes } from './pages/Reportes.jsx';
 import { OrdenServicio } from './pages/Orden-servicio.jsx';
 import { ListaServicio } from './pages/Listado-servicio.jsx';
 import { ListaClientes } from './pages/Listado-clientes.jsx';
+import { EstadoCliente } from './pages/EstadoCliente.jsx';
 
 export const Direccionamiento = () => {
 
@@ -29,7 +31,16 @@ export const Direccionamiento = () => {
     return(
         <Routes>
             <Route path='/' element={<Login />} />
-            <Route path="/Prueba" element={<PlantillaPrueba />}>
+            <Route path='/estado-cliente' element={
+                <ProtectedRoute>
+                    <EstadoCliente />
+                </ProtectedRoute>
+            } />
+            <Route path="/panel" element={
+                <ProtectedRoute>
+                    <PlantillaPrueba />
+                </ProtectedRoute>
+            }>
                 <Route path='Recepcion' element={<Recepcion />} />
                 <Route path='Servicios' element={<Servicios />} />
                 <Route path='Inventario' element={<Inventario />} />
@@ -38,6 +49,9 @@ export const Direccionamiento = () => {
                 <Route path='Facturacion' element={<Facturacion />} />
                 <Route path='Egresos_Gastos' element={<Egresos_Gastos />} />
                 <Route path='Reportes' element={<Reportes />} />
+                <Route path='Orden-Servicio' element={<OrdenServicio />} />
+                <Route path='Lista-Servicio' element={<ListaServicio />} />
+                <Route path='Listado-Clientes' element={<ListaClientes />} />
             </Route>
         </Routes>
     )

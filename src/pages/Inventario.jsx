@@ -1,79 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-export const Inventario = () => {
-   const [repuestos, setRepuestos] = useState([]);
-
-    const [form, setForm] = useState({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
-    const [modalVenta, setModalVenta] = useState({ abierto: false, producto: null, cantidadVenta: 1 });
-
-const gananciaTotal = repuestos.reduce((acc, r) => acc + (Number(r.gananciaAcumulada) || 0), 0);
-const inversionStock = repuestos.reduce((acc, r) => acc + ((Number(r.precio_compra) || 0) * (Number(r.stock_actual) || 0)), 0);
-useEffect(() => {
-    const obtenerRepuestos = async () => {
-        try {
-            const respuesta = await fetch('http://localhost:3000/api/inventario');
-            const datos = await respuesta.json();
-            setRepuestos(datos); // Esto llena la tabla con lo que hay en Postgres
-        } catch (error) {
-            console.error("Error al cargar repuestos:", error);
-        }
-    };
-
-    obtenerRepuestos();
-}, []); 
-
-
-
-    const guardar = async (e) => {
-    e.preventDefault();
-
-    // Validar que al menos tenga descripción
-    if (!form.desc) return alert("Por favor, agrega una descripción");
-
-    try {
-        const respuesta = await fetch('http://localhost:3000/api/inventario', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-           body: JSON.stringify({
-    codigo_barra: form.id,               
-    descripcion: form.desc,               
-stock_actual: parseInt(form.stock) || 0,
-precio_venta_sugerido: parseFloat(form.pVenta) || 0})
-        });
-
-      if (respuesta.ok) {
-            const resultado = await respuesta.json();
-            // Borramos el setRepuestos que daba error y ponemos esto:
-            window.location.reload(); 
-            
-            setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
-            alert("¡Repuesto guardado en la Base de Datos!");
-        } else {
-            alert("Error al guardar en el servidor");
-        }
-    } catch (error) {
-        console.error("Error de conexión:", error);
-        alert("No se pudo conectar con el Backend. ¿Está encendido?");
-    }
+const colors = {
+  fondo: '#e0f2f1', blanco: '#ffffff', rosaBtn: '#f8bbd0', rosaTexto: '#880e4f', grisBorde: '#dddddd', texto: '#333333'
 };
 
-const confirmarVenta = () => {
-    const cant = Number(modalVenta.cantidadVenta);
-    // Usamos stock_actual que es el nombre real en tu base de datos
-    if (cant > modalVenta.producto.stock_actual) return alert("Stock insuficiente para realizar esta venta.");
+const styles = {
+  main: { backgroundColor: colors.fondo, minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' },
+  overlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
+  modal: { backgroundColor: 'white', padding: '30px', borderRadius: '15px', width: '350px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', textAlign: 'center' },
+  btnSecundario: { background: '#eee', border: 'none', padding: '8px 15px', borderRadius: '20px', cursor: 'pointer' },
+  miniCard: { backgroundColor: 'white', padding: '15px', borderRadius: '12px', flex: 1, boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  card: { backgroundColor: 'white', padding: '20px', borderRadius: '15px', marginBottom: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' },
+  cardTitle: { borderLeft: `5px solid ${colors.rosaBtn}`, paddingLeft: '10px', marginBottom: '15px' },
+  input: { padding: '8px', borderRadius: '6px', border: `1px solid ${colors.grisBorde}`, width: '100px' },
+  btnNegro: { background: '#333', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer' },
+  btnRosa: { backgroundColor: colors.rosaBtn, color: colors.rosaTexto, border: 'none', padding: '8px 15px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer' },
+  td: { padding: '12px', textAlign: 'left', borderBottom: '1px solid #f0f0f0' }
+};
 
+
+export function Inventario() {
+  const [repuestos, setRepuestos] = useState([
+    { id: 'REP-001', desc: 'Pastillas de Freno', ubicacion: 'A1', pCompra: 10, pVenta: 25, stock: 10, gananciaAcumulada: 0 }
+  ]);
+  const [form, setForm] = useState({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+  const [modalVenta, setModalVenta] = useState({ abierto: false, producto: null, cantidadVenta: 1 });
+
+  const gananciaTotal = repuestos.reduce((acc, r) => acc + r.gananciaAcumulada, 0);
+  const inversionStock = repuestos.reduce((acc, r) => acc + (r.pCompra * r.stock), 0);
+
+  const guardar = (e) => {
+    e.preventDefault();
+    if(!form.id) return alert("Pon el código");
+    setRepuestos([...repuestos, { ...form, stock: Number(form.stock), pCompra: Number(form.pCompra), pVenta: Number(form.pVenta), gananciaAcumulada: 0 }]);
+    setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+  };
+
+  const confirmarVenta = () => {
+    const cant = Number(modalVenta.cantidadVenta);
+    if (cant > modalVenta.producto.stock) return alert("Stock insuficiente");
+    
     setRepuestos(repuestos.map(r => {
-      if (r.id_repuesto === modalVenta.producto.id_repuesto) {
-        // Calculamos la ganancia: (Venta - Compra) * Cantidad
-        const gananciaVenta = (Number(r.precio_venta_sugerido) - Number(r.precio_compra || 0)) * cant;
-        
-        return {
-          ...r,
-          stock_actual: r.stock_actual - cant,
-          gananciaAcumulada: (Number(r.gananciaAcumulada) || 0) + gananciaVenta
+      if (r.id === modalVenta.producto.id) {
+        return { 
+          ...r, 
+          stock: r.stock - cant, 
+          gananciaAcumulada: r.gananciaAcumulada + (cant * (r.pVenta - r.pCompra)) 
         };
       }
       return r;
@@ -177,68 +149,39 @@ const confirmarVenta = () => {
                     </form>
                 </div>
 
-                {/* TABLA DE INVENTARIO */}
-                <div className="bg-white p-0 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-5 border-b border-slate-100 bg-white">
-                        <h2 className="text-lg text-slate-800 m-0 border-l-4 border-[#F43F5E] pl-3 font-bold">
-                            Catálogo de Repuestos
-                        </h2>
-                    </div>
-                    <div className="overflow-x-auto p-5 pt-0">
-                        <table className="w-full border-collapse min-w-[800px]">
-                            <thead>
-                                <tr>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tl-lg">ID</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Descripción</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Ubicación</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">P. Compra</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">P. Venta</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Stock</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Ganancia</th>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tr-lg">Acción</th>
-                                </tr>
-                            </thead>
-                         
-   <tbody className="divide-y divide-gray-700">
-  {repuestos.map((r) => (
-    <tr key={r.id_repuesto} className="hover:bg-slate-50 transition-colors">
-      <td className="p-3.5 border-b border-slate-100 text-sm font-mono text-slate-500">{r.id_repuesto}</td>
-      <td className="p-3.5 border-b border-slate-100 text-sm text-slate-800 font-bold">{r.descripcion}</td>
-      <td className="p-3.5 border-b border-slate-100 text-sm text-slate-600">{r.ubicacion || 'Sin asignar'}</td>
-      <td className="p-3.5 border-b border-slate-100 text-sm text-slate-600">${r.precio_compra || 0}</td>
-      <td className="p-3.5 border-b border-slate-100 text-sm text-slate-800 font-semibold">${r.precio_venta_sugerido}</td>
-      <td className="p-3.5 border-b border-slate-100 text-sm">
-        <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${r.stock_actual < 3 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-          {r.stock_actual} uds
-        </span>
-      </td>
-      <td className="p-3.5 border-b border-slate-100 text-sm text-emerald-600 font-bold">
-        ${(r.gananciaAcumulada || 0).toFixed(2)}
-      </td>
-      <td className="p-3.5 border-b border-slate-100 text-sm">
-        <button
-          onClick={() => setModalVenta({ abierto: true, producto: r, cantidadVenta: 1 })}
-          className="flex items-center gap-1 text-[#F43F5E] bg-rose-50 hover:bg-[#F43F5E] hover:text-white border border-rose-200 px-3 py-1 rounded-lg transition-all"
-        >
-          🛒 Vender
-        </button>
-      </td>
-    </tr>
-  ))}
-  {repuestos.length === 0 && (
-    <tr>
-      <td colSpan="8" className="p-8 text-center text-slate-500 text-sm">
-        No hay repuestos registrados en el inventario.
-      </td>
-    </tr>
-  )}
-</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default Inventario;
+      {/* TABLA */}
+      <div style={styles.card}>
+        <table style={{width:'100%', borderCollapse:'collapse'}}>
+          <thead>
+            <tr>
+              <th style={styles.td}>ID</th>
+              <th style={styles.td}>DESCRIPCIÓN</th>
+              <th style={styles.td}>UBICACIÓN</th>
+              <th style={styles.td}>P. COMPRA</th>
+              <th style={styles.td}>P. VENTA</th>
+              <th style={styles.td}>STOCK</th>
+              <th style={styles.td}>GANANCIA</th>
+              <th style={styles.td}>ACCIÓN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {repuestos.map(r => (
+              <tr key={r.id}>
+                <td style={styles.td}>{r.id}</td>
+                <td style={styles.td}>{r.desc}</td>
+                <td style={styles.td}>{r.ubicacion}</td>
+                <td style={styles.td}>${r.pCompra}</td>
+                <td style={styles.td}>${r.pVenta}</td>
+                <td style={{...styles.td, color: r.stock < 3 ? 'red' : 'black'}}>{r.stock} uds</td>
+                <td style={{...styles.td, color:'green', fontWeight:'bold'}}>${r.gananciaAcumulada.toFixed(2)}</td>
+                <td style={styles.td}>
+                  <button onClick={() => setModalVenta({abierto:true, producto:r, cantidadVenta:1})} style={styles.btnRosa}>Vender</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
