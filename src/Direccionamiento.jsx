@@ -9,7 +9,7 @@ import { GestionEmpleados } from './pages/GestionEmpleados.jsx';
 import { RegistroEmpleado } from './pages/RegistroEmpleado.jsx';
 import { EditarEmpleado } from './pages/EditarEmpleado.jsx';
 import { Facturacion } from './pages/Facturacion.jsx';
-import { Contabilidad } from './pages/Egresos_Gastos.jsx';
+import { Contabilidad } from './pages/Contabilidad.jsx';
 import { Reportes } from './pages/Reportes.jsx';
 import { ResumenFinanciero } from './pages/ResumenFinanciero.jsx';
 import { OrdenServicio } from './pages/Orden-servicio.jsx';
@@ -55,7 +55,6 @@ export const Direccionamiento = () => {
                 <Route path='EditarEmpleado/:id' element={<EditarEmpleado />} />
                 <Route path='Facturacion' element={<Facturacion />} />
                 <Route path='Contabilidad' element={<Contabilidad />} />
-                <Route path='Egresos_Gastos' element={<Contabilidad />} />
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />

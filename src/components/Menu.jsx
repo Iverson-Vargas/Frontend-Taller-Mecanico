@@ -34,7 +34,7 @@ export const Menu = () => {
                     <li><NavLink to="/panel/Inventario" className={estilosDelEnlace}>Inventario y Repuestos</NavLink></li>
                     <li><NavLink to="/panel/GestionEmpleados" className={estilosDelEnlace}>Gestión de Empleados</NavLink></li>
                     <li><NavLink to="/panel/Facturacion" className={estilosDelEnlace}>Facturación</NavLink></li>
-                    <li><NavLink to="/panel/Contabilidad" className={estilosDelEnlace}>Gestión Contable</NavLink></li>
+                    <li><NavLink to="/panel/Contabilidad" className={estilosDelEnlace}>Contabilidad</NavLink></li>
                     <li><NavLink to="/panel/Reportes" className={estilosDelEnlace}>Reportes</NavLink></li>
                 </ul>
             </nav>
