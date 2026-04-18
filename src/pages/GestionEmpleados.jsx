@@ -11,15 +11,28 @@ export const GestionEmpleados = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('nombre'); // 'nombre', 'cargo', 'comision'
 
+    // Status Trabajando
+    const [statusTrabajando, setStatusTrabajando] = useState(() => {
+        const saved = localStorage.getItem('statusEmpleados');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    const toggleStatus = (id) => {
+        const current = statusTrabajando[id] || false;
+        const newStatus = { ...statusTrabajando, [id]: !current };
+        setStatusTrabajando(newStatus);
+        localStorage.setItem('statusEmpleados', JSON.stringify(newStatus));
+    };
+
     useEffect(() => {
         const fetchEmpleados = async () => {
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
                 if(response.ok) {
                     const result = await response.json();
-                    // Suponiendo que result.data es el arreglo
-                    // Aseguramos que tengan un acumulado mock si no viene de DB por ahora
-                    const dataWithMock = (result.data || []).map(emp => ({ ...emp, acumulado: emp.acumulado || 0 }));
+                    // El backend devuelve los empleados dentro de data.empleados
+                    const empleadosArray = result.data?.empleados || [];
+                    const dataWithMock = empleadosArray.map(emp => ({ ...emp, acumulado: emp.acumulado || 0 }));
                     setEmpleados(dataWithMock);
                 }
             } catch (error) {
@@ -112,6 +125,7 @@ export const GestionEmpleados = () => {
                         <thead className='bg-slate-50'>
                             <tr className="text-slate-400 text-[11px] uppercase tracking-widest font-bold">
                                 <th className="px-8 py-4 text-left">Mecánico / Especialidad</th>
+                                <th className="px-8 py-4 text-center">Estado Laboral</th>
                                 <th className="px-8 py-4 text-center">Sueldo / Comisión</th>
                                 <th className="px-8 py-4 text-left">Acumulado</th>
                                 <th className="px-8 py-4 text-center">Acciones</th>
@@ -130,6 +144,18 @@ export const GestionEmpleados = () => {
                                         <p className="text-slate-400 text-xs italic">{emp.cargo}</p>
                                         <p className="text-slate-300 text-[10px] mt-1">ID: {emp.id_empleado}</p>
                                     </td>
+                                    <td className="px-8 py-6 text-center">
+                                        <button 
+                                            onClick={() => toggleStatus(emp.id_empleado)}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-all uppercase ${
+                                                statusTrabajando[emp.id_empleado] 
+                                                ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200' 
+                                                : 'bg-slate-100 text-slate-400 border border-slate-200'
+                                            }`}
+                                        >
+                                            {statusTrabajando[emp.id_empleado] ? '🟢 Trabajando' : '⚪ En Pausa'}
+                                        </button>
+                                    </td>
                                     <td className="px-8 py-6 text-center font-mono font-medium text-slate-500">
                                         Base: ${Number(emp.sueldo_base || 0).toFixed(2)}<br/>
                                         Com: {emp.aplica_comision ? `$${Number(emp.monto_comision_fija || 0).toFixed(2)}` : 'N/A'}
@@ -139,7 +165,14 @@ export const GestionEmpleados = () => {
                                             ${(emp.acumulado || 0).toFixed(2)}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6 text-center">
+                                    <td className="px-8 py-6 text-center space-x-2">
+                                        <button 
+                                            onClick={() => navigate(`/panel/EditarEmpleado/${emp.id_empleado}`)}
+                                            className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+                                            title="Editar Datos"
+                                        >
+                                            Editar
+                                        </button>
                                         {(emp.acumulado || 0) > 0 ? (
                                             <button onClick={() => liquidarPago(emp.id_empleado)} className="btn-liquidar-pink">
                                                 Liquidar Pago

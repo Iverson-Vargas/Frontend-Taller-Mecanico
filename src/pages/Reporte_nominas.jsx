@@ -12,8 +12,9 @@ export const ReporteNominas = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
         if(response.ok) {
           const result = await response.json();
-          // Mapeamos los datos de base de datos a estructura de nómina, simulando bonos y osFinalizadas temporalmente si no hay
-          const datosNomina = (result.data || []).map(emp => {
+          // Mapeamos los datos de base de datos a estructura de nómina, extrayendo result.data.empleados
+          const empleadosArray = result.data?.empleados || [];
+          const datosNomina = empleadosArray.map(emp => {
             const salarioBase = Number(emp.sueldo_base || 0);
             const osFinalizadas = Math.floor(Math.random() * 10); // Dummy para presentar funcionalidad pro
             const comisionProduccion = osFinalizadas * Number(emp.monto_comision_fija || 0);
@@ -39,6 +40,24 @@ export const ReporteNominas = () => {
     };
     fetchNominas();
   }, []);
+
+  const liquidarPago = async (empleado, neto) => {
+    if(!window.confirm(`¿Seguro que deseas liquidar $${neto.toFixed(2)} a ${empleado.nombre}?`)) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/nomina/pagar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_empleado: empleado.id_empleado, monto_total: neto })
+      });
+      if(response.ok) {
+        alert("¡Pago registrado al historial de nómina correctamente!");
+      } else {
+        alert("No se pudo registrar el pago. Asegúrate de tener el backend actualizado.");
+      }
+    } catch(err) {
+      alert("Error de conexión al pagar.");
+    }
+  };
 
   // Filtrado y Orden
   const filteredNominas = nominas.filter(n => {
@@ -144,8 +163,9 @@ export const ReporteNominas = () => {
                       </td>
                       <td className="p-4 text-center">
                         <button 
-                          onClick={() => alert(`Liquidando nómina de ${n.nombre}...`)}
-                          className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95"
+                          onClick={() => liquidarPago(n, neto)}
+                          disabled={neto <= 0}
+                          className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
                         >
                           Liquidar
                         </button>
