@@ -8,7 +8,7 @@ import { Inventario } from './pages/Inventario.jsx';
 import { GestionEmpleados } from './pages/GestionEmpleados.jsx';
 import { RegistroEmpleado } from './pages/RegistroEmpleado.jsx';
 import { Facturacion } from './pages/Facturacion.jsx';
-import { Egresos_Gastos } from './pages/Egresos_Gastos.jsx';
+import { Contabilidad } from './pages/Egresos_Gastos.jsx';
 import { Reportes } from './pages/Reportes.jsx';
 import { OrdenServicio } from './pages/Orden-servicio.jsx';
 import { ListaServicio } from './pages/Listado-servicio.jsx';
@@ -47,7 +47,8 @@ export const Direccionamiento = () => {
                 <Route path='GestionEmpleados' element={<GestionEmpleados />} />
                 <Route path='RegistroEmpleado' element={<RegistroEmpleado />} />
                 <Route path='Facturacion' element={<Facturacion />} />
-                <Route path='Egresos_Gastos' element={<Egresos_Gastos />} />
+                <Route path='Contabilidad' element={<Contabilidad />} />
+                <Route path='Egresos_Gastos' element={<Contabilidad />} />
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
