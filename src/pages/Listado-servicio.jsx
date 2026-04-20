@@ -5,7 +5,7 @@ export const ListaServicio = () => {
     const navigate = useNavigate();
 
     const handleGenerarOrden = () => {
-        navigate('/Prueba/Orden-Servicio');
+        navigate('/panel/Orden-Servicio');
     };
 
     return (

@@ -1,35 +1,100 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
-    // Estado para saber si estamos en pestaña de Empleado o Cliente
+    const navigate = useNavigate();
     const [esEmpleado, setEsEmpleado] = useState(true);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [cedula, setCedula] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    // URL del Backend
+    const API_BASE_URL = "http://localhost:3001/api";
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError("");
+        
+        if (esEmpleado && (!username || !password)) {
+            setError("Por favor ingresa usuario y contraseña");
+            return;
+        }
+        if (!esEmpleado && !cedula) {
+            setError("Por favor ingresa tu cédula");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            if (esEmpleado) {
+                const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario: username, password })
+                });
+                
+                const data = await res.json().catch(() => ({}));
+                
+                if (res.ok) {
+                    // --- CORRECCIÓN: Guardar el objeto de sesión completo ---
+                    localStorage.setItem('isAuthenticated', 'true');
+                    localStorage.setItem('userRole', 'empleado');
+                    
+                    // Guardamos la cédula y nombre en un objeto para que Egresos lo lea
+                    localStorage.setItem('usuario', JSON.stringify({
+                        cedula_rif: data.empleado.cedula_rif,
+                        nombre: data.empleado.nombre,
+                        rol: data.empleado.cargo
+                    }));
+
+                    navigate('/panel/Recepcion');
+                } else {
+                    setError(data.error || data.message || 'Credenciales inválidas');
+                }
+            } else {
+                const res = await fetch(`${API_BASE_URL}/clientes/consulta/${cedula}`);
+                const data = await res.json().catch(() => ({}));
+                
+                if (res.ok) {
+                    localStorage.setItem('isAuthenticated', 'true');
+                    localStorage.setItem('userRole', 'cliente');
+                    localStorage.setItem('clienteCedula', cedula);
+                    
+                    // También guardamos aquí por si el cliente necesita ver sus datos
+                    localStorage.setItem('usuario', JSON.stringify(data));
+
+                    navigate('/estado-cliente');
+                } else {
+                    setError(data.error || data.message || 'Cédula no encontrada');
+                }
+            }
+        } catch (err) {
+            setError('Error de conexión con el servidor (Revisa el puerto 3001)');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-slate-100 p-4 font-sans">
-            <div className="bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.05)] w-full max-w-md overflow-hidden border border-slate-200">
+            <div className="bg-white rounded-2xl shadow-lg w-full max-w-md overflow-hidden border border-slate-200">
                 
                 {/* PESTAÑAS (TABS) */}
                 <div className="flex border-b border-slate-100">
                     <button 
                         type="button"
-                        onClick={() => setEsEmpleado(true)}
-                        className={` cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${
-                            esEmpleado 
-                            ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' 
-                            : 'text-slate-400 hover:text-slate-600 bg-white'
-                        }`}
+                        onClick={() => setEsEmpleado(true)} 
+                        className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         EMPLEADOS
                     </button>
                     <button 
                         type="button"
-                        onClick={() => setEsEmpleado(false)}
-                        className={` cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${
-                            !esEmpleado 
-                            ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' 
-                            : 'text-slate-400 hover:text-slate-600 bg-white'
-                        }`}
+                        onClick={() => setEsEmpleado(false)} 
+                        className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${!esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         CLIENTES
                     </button>
@@ -43,52 +108,58 @@ export const Login = () => {
                         {esEmpleado ? "Ingresa tus credenciales de acceso" : "Introduce tu cédula para ver el estado"}
                     </p>
 
-                    <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                    <form className="space-y-5" onSubmit={handleLogin}>
+                        {error && (
+                            <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg text-center border border-red-200">
+                                {error}
+                            </div>
+                        )}
                         {esEmpleado ? (
-                            /* --- VISTA EMPLEADOS --- */
                             <>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Usuario</label>
                                     <input 
                                         type="text" 
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
-                                        placeholder="ej: amaro123"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
+                                        placeholder="amaro@taller.com"
+                                        required
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Contraseña</label>
                                     <input 
                                         type="password" 
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
                                         placeholder="••••••••"
+                                        required
                                     />
                                 </div>
                             </>
                         ) : (
-                            /* --- VISTA CLIENTES --- */
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Número de Cédula</label>
                                 <input 
                                     type="text" 
+                                    value={cedula}
+                                    onChange={(e) => setCedula(e.target.value)}
                                     inputMode="numeric"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none transition-all text-slate-800 text-sm"
-                                    placeholder="28123456"
-                                    onKeyPress={(e) => {
-                                        if (!/[0-9]/.test(e.key)) e.preventDefault();
-                                    }}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
+                                    placeholder="V-28123456"
+                                    required
                                 />
                             </div>
                         )}
 
-                        {/* Botón Principal */}
-                        <button className="w-full mt-2 bg-[#F43F5E] hover:bg-rose-600 text-white font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] border-none p-0 overflow-hidden">
-                            <Link 
-                                to={esEmpleado ? "/prueba/Recepcion" : "/estado-cliente"} 
-                                className=" block w-full py-3.5 text-center text-sm tracking-wide"
-                                style={{ textDecoration: 'none', color: 'white' }}
-                            >
-                                {esEmpleado ? "ENTRAR AL SISTEMA" : "CONSULTAR ESTADO"}
-                            </Link>
+                        <button 
+                            type="submit" 
+                            disabled={loading}
+                            className={`cursor-pointer w-full mt-2 bg-[#F43F5E] hover:bg-rose-600 text-white font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] border-none p-3.5 text-center text-sm tracking-wide ${loading ? 'opacity-75 cursor-wait' : ''}`}
+                        >
+                            {loading ? "CARGANDO..." : (esEmpleado ? "ENTRAR AL SISTEMA" : "CONSULTAR ESTADO")}
                         </button>
                     </form>
                 </div>
