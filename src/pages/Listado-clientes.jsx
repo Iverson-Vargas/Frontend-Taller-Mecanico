@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import '../assets/tablas.css';
@@ -16,21 +15,34 @@ export const ListaClientes = () => {
         try {
             const respuesta = await fetch('http://localhost:3000/api/clientes');
             const data = await respuesta.json();
-            setClientes(data);
+            
+            // Si el backend devuelve un arreglo directamente
+            if (Array.isArray(data)) {
+                setClientes(data);
+            } 
+            // Si el backend devuelve un objeto como { data: [...] } o { clientes: [...] }
+            else if (data && Array.isArray(data.data)) {
+                setClientes(data.data);
+            } 
+            else if (data && Array.isArray(data.clientes)) {
+                setClientes(data.clientes);
+            } 
+            else {
+                console.error("Formato de datos inesperado:", data);
+                setClientes([]);
+            }
         } catch (error) {
             console.error("Error al obtener clientes:", error);
+            setClientes([]);
         }
     };
 
-    const clientesFiltrados = clientes.filter(cliente =>
+    // Aseguramos que clientes sea un array antes de usar .filter()
+    const clientesArray = Array.isArray(clientes) ? clientes : [];
+    
+    const clientesFiltrados = clientesArray.filter(cliente => 
         (cliente.cedula_rif || "").toLowerCase().includes(busqueda.toLowerCase())
     );
-=======
-import '../assets/tablas.css';
-import '../assets/tablas.css';
-
-export const ListaClientes = () => {
->>>>>>> reportes
 
     return (
         <div className="tabla-container">
@@ -53,11 +65,11 @@ export const ListaClientes = () => {
             <table className="ordenes-tabla">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Cédula / RIF</th>
+                        <th>N° de cliente</th>
+                        <th>Cédula</th>
                         <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Teléfono</th>
+                        <th>Servicios activos</th>
+                        <th>Último servicio realizado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -67,9 +79,9 @@ export const ListaClientes = () => {
                             <tr key={cliente.id_cliente}>
                                 <td>{cliente.id_cliente}</td>
                                 <td>{cliente.cedula_rif}</td>
-                                <td>{cliente.nombre}</td>
-                                <td>{cliente.apellido}</td>
-                                <td>{cliente.telefono}</td>
+                                <td>{cliente.nombre} {cliente.apellido}</td>
+                                <td>{cliente.servicios_activos || '0'}</td>
+                                <td>{cliente.ultimo_servicio || 'N/A'}</td>
                                 <td>
                                     <button className="btn-accion ver">👁 Ver expediente</button>
                                     <button className="btn-accion editar">✎</button>
