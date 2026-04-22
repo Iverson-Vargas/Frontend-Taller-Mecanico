@@ -11,7 +11,7 @@ export const Login = () => {
     const [loading, setLoading] = useState(false);
 
     // URL del Backend
-    const API_BASE_URL = "http://localhost:3001/api";
+    const API_BASE_URL = "http://localhost:3000/api";
 
     const handleLogin = async (e) => {
         e.preventDefault();

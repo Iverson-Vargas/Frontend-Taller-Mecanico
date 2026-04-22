@@ -22,7 +22,7 @@ export const ListaClientes = () => {
     };
 
     const clientesFiltrados = clientes.filter(cliente => 
-        cliente.cedula_rif.toLowerCase().includes(busqueda.toLowerCase())
+        (cliente.cedula_rif || "").toLowerCase().includes(busqueda.toLowerCase())
     );
 
     return (

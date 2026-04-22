@@ -24,9 +24,9 @@ export const Direccionamiento = () => {
 
     function PlantillaPrueba() {
         return(
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 flex">
                 <Menu />
-                <main className="ml-65 p-4">
+                <main className="ml-72 p-8 w-full">
                     <Outlet />
                 </main>
             </div>
