@@ -18,6 +18,7 @@ import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
 import { ReporteNominas } from './pages/Reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
+import { RegistroCliente } from './pages/RegistroCliente.jsx';
 
 export const Direccionamiento = () => {
 
@@ -60,6 +61,7 @@ export const Direccionamiento = () => {
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
+                <Route path='RegistroCliente' element={<RegistroCliente />} />
             </Route>
         </Routes>
     )
