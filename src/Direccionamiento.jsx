@@ -19,21 +19,25 @@ import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
 import { ReporteNominas } from './pages/Reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
 import { RegistroCliente } from './pages/RegistroCliente.jsx';
+import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
+import { ControlProductividad } from './pages/ControlProductividad.jsx';
+import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
+import { Egresos_Gastos } from './pages/Egresos_Gastos.jsx';
 
 export const Direccionamiento = () => {
 
     function PlantillaPrueba() {
-        return(
+        return (
             <div className="min-h-screen bg-gray-50 flex">
                 <Menu />
-                <main className="ml-72 p-8 w-full">
+                <main className="ml-72 p-8 w-full transition-all duration-300">
                     <Outlet />
                 </main>
             </div>
         )
     }
 
-    return(
+    return (
         <Routes>
             <Route path='/' element={<Login />} />
             <Route path='/estado-cliente' element={
@@ -58,10 +62,14 @@ export const Direccionamiento = () => {
                 <Route path='Contabilidad' element={<Contabilidad />} />
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
+                <Route path='Egresos_Gastos' element={<Egresos_Gastos />} />
+                <Route path='servicios-rentables' element={<ServiciosRentables />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
                 <Route path='RegistroCliente' element={<RegistroCliente />} />
+                <Route path='Reporte-Inventario' element={<MovimientoValorInventario />} />
+                <Route path='Control-Productividad' element={<ControlProductividad />} />
             </Route>
         </Routes>
     )

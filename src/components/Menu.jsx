@@ -1,14 +1,31 @@
+<<<<<<< HEAD
 import { useState, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 
 export const Menu = () => {
     const [openMenu, setOpenMenu] = useState(null);
     const itemRefs = useRef({});
+=======
+import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+
+export const Menu = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleMenu = () => setIsOpen(!isOpen);
+    const closeMenu = () => setIsOpen(false);
+
+    // Esta función decide qué clases de Tailwind aplicar
+    // Dependiendo de si 'isActive' es verdadero o falso
+    const estilosDelEnlace = ({ isActive }) => {
+    // Estas clases siempre se aplican
+        const clasesBase = "block px-6 py-3 text-sm font-medium border-l-4 transition-all duration-300 ease-in-out";
+>>>>>>> reportes
 
     const toggleMenu = (menuName) => {
         const isOpening = openMenu !== menuName;
         setOpenMenu(isOpening ? menuName : null);
-        
+
         if (isOpening) {
             // Wait for the CSS expansion animation to finish, then scroll if necessary
             setTimeout(() => {
@@ -53,7 +70,8 @@ export const Menu = () => {
         {
             name: 'Control de Repuestos',
             subMenus: [
-                { label: 'Inventario General', path: '/panel/Inventario' }
+                { label: 'Inventario General', path: '/panel/Inventario' },
+                { label: 'Reporte de Inventario', path: '/panel/Reporte-Inventario' }
             ]
         },
         {
@@ -79,7 +97,8 @@ export const Menu = () => {
             name: 'Administración Financiera',
             subMenus: [
                 { label: 'Libro de Cuentas', path: '/panel/Contabilidad' },
-                { label: 'Balance General', path: '/panel/Resumen-Financiero' }
+                { label: 'Balance General', path: '/panel/Resumen-Financiero' },
+                { label: 'Egresos y Gastos', path: '/panel/Egresos_Gastos' }
             ]
         },
         {
@@ -87,14 +106,17 @@ export const Menu = () => {
             subMenus: [
                 { label: 'Panel de Estadísticas', path: '/panel/Reportes' },
                 { label: 'Estado de Ganancias', path: '/panel/ReporteGanancia' },
-                { label: 'Registro de Nóminas', path: '/panel/ReporteNominas' }
+                { label: 'Registro de Nóminas', path: '/panel/ReporteNominas' },
+                { label: 'Control de Productividad', path: '/panel/Control-Productividad' },
+                { label: 'Servicios Rentables', path: '/panel/servicios-rentables' }
             ]
         }
     ];
 
     return (
+<<<<<<< HEAD
         <aside className="fixed top-0 left-0 w-72 h-screen bg-[#0f172a] text-slate-50 shadow-2xl shadow-black/50 border-r border-slate-800/60 flex flex-col z-50 overflow-hidden font-sans">
-            
+
             <h1 className="text-center text-2xl font-bold mt-8 mb-6 text-sky-400 tracking-wide flex-shrink-0">
                 Taller App
             </h1>
@@ -103,48 +125,48 @@ export const Menu = () => {
                 <ul className="flex flex-col gap-1.5 w-full pb-6">
                     {menuItems.map((item, index) => {
                         const isOpen = openMenu === item.name;
-                        
+
                         return (
-                            <li 
-                                key={index} 
+                            <li
+                                key={index}
                                 className="w-full"
                                 ref={(el) => itemRefs.current[item.name] = el}
                             >
                                 <button
                                     onClick={() => toggleMenu(item.name)}
                                     className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex justify-between items-center group relative overflow-hidden
-                                        ${isOpen 
-                                            ? 'bg-slate-800/80 text-white shadow-sm ring-1 ring-white/5' 
+                                        ${isOpen
+                                            ? 'bg-slate-800/80 text-white shadow-sm ring-1 ring-white/5'
                                             : 'text-slate-300 hover:bg-slate-800/40 hover:text-white'
                                         }`}
                                 >
                                     {/* Subtle gradient background when active */}
                                     <div className={`absolute inset-0 bg-gradient-to-r from-sky-500/10 to-transparent opacity-0 transition-opacity duration-300 ${isOpen ? 'opacity-100' : ''}`}></div>
-                                    
+
                                     {/* Left active border indicator */}
                                     <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-sky-400 rounded-r-full transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 scale-y-0 group-hover:opacity-50 group-hover:scale-y-100 group-hover:bg-slate-500'}`}></div>
-                                    
+
                                     <span className="relative z-10 font-semibold tracking-wide flex items-center gap-3">
                                         <svg className={`w-4 h-4 transition-colors duration-300 ${isOpen ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                                         </svg>
                                         {item.name}
                                     </span>
-                                    
-                                    <svg 
-                                        className={`w-4 h-4 transform transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180 text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`} 
+
+                                    <svg
+                                        className={`w-4 h-4 transform transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180 text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`}
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     >
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
-                                
+
                                 <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                     <div className="overflow-hidden">
                                         <ul className="flex flex-col gap-0.5 py-1 px-2 mt-1 mb-2 relative">
                                             {/* Submenu connector line */}
                                             <div className="absolute left-6 top-0 bottom-3 w-px bg-slate-800"></div>
-                                            
+
                                             {item.subMenus.map((subItem, subIndex) => (
                                                 <li key={subIndex}>
                                                     <NavLink to={subItem.path} className={estilosDelEnlace}>
@@ -155,7 +177,7 @@ export const Menu = () => {
                                                                 ></span>
                                                                 {/* Horizontal connector line to the dot */}
                                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-px bg-slate-800 -z-10"></span>
-                                                                
+
                                                                 {subItem.label}
                                                             </>
                                                         )}
@@ -179,10 +201,75 @@ export const Menu = () => {
                         window.location.href = '/';
                     }}
                     className="cursor-pointer w-full bg-red-600/90 text-white py-2 px-4 rounded hover:bg-red-700 transition-all duration-300 font-medium"
+=======
+        <>
+            {/* Menú Superior solo para Móviles */}
+            <div className="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-800 text-sky-400 flex items-center justify-between px-4 z-40 shadow-md">
+                <h1 className="text-xl font-bold tracking-wide">Taller App</h1>
+                <button
+                    onClick={toggleMenu}
+                    className="text-sky-400 focus:outline-none p-2 rounded-md hover:bg-slate-700 transition"
+                    aria-label="Abrir menú"
+>>>>>>> reportes
                 >
-                    Cerrar Sesión
+                    {isOpen ? (
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    ) : (
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    )}
                 </button>
             </div>
-        </aside>
+
+            {/* Fondo oscuro cuando el menú está abierto en móvil */}
+            {isOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/60 z-30 backdrop-blur-sm transition-opacity"
+                    onClick={closeMenu}
+                ></div>
+            )}
+
+            {/* Contenedor principal del Menú Lateral */}
+            <aside className={`fixed top-0 left-0 w-64 h-full bg-slate-800 text-slate-50 shadow-2xl flex flex-col pt-6 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+
+                {/* Título del sistema - Oculto en móviles porque ya está en el navbar superior */}
+                <h1 className="hidden md:block text-center text-2xl font-bold mb-6 text-sky-400 tracking-wide">
+                    Taller App
+                </h1>
+
+                {/* Área con scroll por si hay muchas opciones */}
+                <nav className="flex-1 overflow-y-auto w-full custom-scrollbar">
+                    <ul className="flex flex-col gap-1 w-full pb-4">
+                        <li><NavLink to="/panel/Recepcion" onClick={closeMenu} className={estilosDelEnlace}>Recepción</NavLink></li>
+                        <li><NavLink to="/panel/Orden-Servicio" onClick={closeMenu} className={estilosDelEnlace}>Orden de Servicio</NavLink></li>
+                        <li><NavLink to="/panel/Inventario" onClick={closeMenu} className={estilosDelEnlace}>Inventario y Repuestos</NavLink></li>
+                        <li><NavLink to="/panel/GestionEmpleados" onClick={closeMenu} className={estilosDelEnlace}>Gestión de Empleados</NavLink></li>
+                        <li><NavLink to="/panel/Facturacion" onClick={closeMenu} className={estilosDelEnlace}>Facturación</NavLink></li>
+                        <li><NavLink to="/panel/Egresos_Gastos" onClick={closeMenu} className={estilosDelEnlace}>Egresos y Gastos</NavLink></li>
+                        <li><NavLink to="/panel/Reportes" onClick={closeMenu} className={estilosDelEnlace}>Reportes</NavLink></li>
+                    </ul>
+                </nav>
+
+                {/* Botón de cerrar sesión */}
+                <div className="p-4 border-t border-slate-700 bg-slate-900/50">
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem('isAuthenticated');
+                            localStorage.removeItem('userRole');
+                            window.location.href = '/';
+                        }}
+                        className="cursor-pointer flex items-center justify-center gap-2 w-full bg-red-600/90 text-white py-2.5 px-4 rounded-lg hover:bg-red-500 transition-all duration-300 font-medium shadow-md hover:shadow-red-500/20"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 };

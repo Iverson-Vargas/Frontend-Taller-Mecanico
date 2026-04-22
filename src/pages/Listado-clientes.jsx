@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import '../assets/tablas.css';
@@ -21,9 +22,15 @@ export const ListaClientes = () => {
         }
     };
 
-    const clientesFiltrados = clientes.filter(cliente => 
+    const clientesFiltrados = clientes.filter(cliente =>
         (cliente.cedula_rif || "").toLowerCase().includes(busqueda.toLowerCase())
     );
+=======
+import '../assets/tablas.css';
+import '../assets/tablas.css';
+
+export const ListaClientes = () => {
+>>>>>>> reportes
 
     return (
         <div className="tabla-container">
@@ -32,8 +39,8 @@ export const ListaClientes = () => {
             <div className="tabla-header">
                 <div className="busqueda-filtro">
                     <div className="campo-busqueda">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="Buscar cedula..."
                             className="busqueda-input"
                             value={busqueda}
