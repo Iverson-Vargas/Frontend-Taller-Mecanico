@@ -22,7 +22,6 @@ import { RegistroCliente } from './pages/RegistroCliente.jsx';
 import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
 import { ControlProductividad } from './pages/ControlProductividad.jsx';
 import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
-import { Egresos_Gastos } from './pages/Egresos_Gastos.jsx';
 
 export const Direccionamiento = () => {
 
@@ -62,7 +61,6 @@ export const Direccionamiento = () => {
                 <Route path='Contabilidad' element={<Contabilidad />} />
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
-                <Route path='Egresos_Gastos' element={<Egresos_Gastos />} />
                 <Route path='servicios-rentables' element={<ServiciosRentables />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />

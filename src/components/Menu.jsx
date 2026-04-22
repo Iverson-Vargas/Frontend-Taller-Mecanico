@@ -80,14 +80,12 @@ export const Menu = () => {
             name: 'Administración Financiera',
             subMenus: [
                 { label: 'Libro de Cuentas', path: '/panel/Contabilidad' },
-                { label: 'Balance General', path: '/panel/Resumen-Financiero' },
-                { label: 'Egresos y Gastos', path: '/panel/Egresos_Gastos' }
+                { label: 'Balance General', path: '/panel/Resumen-Financiero' }
             ]
         },
         {
             name: 'Análisis de Resultados',
             subMenus: [
-                { label: 'Panel de Estadísticas', path: '/panel/Reportes' },
                 { label: 'Estado de Ganancias', path: '/panel/ReporteGanancia' },
                 { label: 'Registro de Nóminas', path: '/panel/ReporteNominas' },
                 { label: 'Control de Productividad', path: '/panel/Control-Productividad' },
