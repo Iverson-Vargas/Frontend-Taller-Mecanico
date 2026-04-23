@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
     const navigate = useNavigate();
-    // Estado para saber si estamos en pestaña de Empleado o Cliente
     const [esEmpleado, setEsEmpleado] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [cedula, setCedula] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // URL del Backend
+    const API_BASE_URL = "http://localhost:3001/api";
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -28,35 +30,49 @@ export const Login = () => {
 
         try {
             if (esEmpleado) {
-                const res = await fetch('http://localhost:3000/api/auth/login', {
+                const res = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ usuario: username, password })
                 });
+                
                 const data = await res.json().catch(() => ({}));
                 
                 if (res.ok) {
+                    // --- CORRECCIÓN: Guardar el objeto de sesión completo ---
                     localStorage.setItem('isAuthenticated', 'true');
                     localStorage.setItem('userRole', 'empleado');
+                    
+                    // Guardamos la cédula y nombre en un objeto para que Egresos lo lea
+                    localStorage.setItem('usuario', JSON.stringify({
+                        cedula_rif: data.empleado.cedula_rif,
+                        nombre: data.empleado.nombre,
+                        rol: data.empleado.cargo
+                    }));
+
                     navigate('/panel/Recepcion');
                 } else {
                     setError(data.error || data.message || 'Credenciales inválidas');
                 }
             } else {
-                const res = await fetch(`http://localhost:3000/api/clientes/consulta/${cedula}`);
+                const res = await fetch(`${API_BASE_URL}/clientes/consulta/${cedula}`);
+                const data = await res.json().catch(() => ({}));
                 
                 if (res.ok) {
                     localStorage.setItem('isAuthenticated', 'true');
                     localStorage.setItem('userRole', 'cliente');
                     localStorage.setItem('clienteCedula', cedula);
+                    
+                    // También guardamos aquí por si el cliente necesita ver sus datos
+                    localStorage.setItem('usuario', JSON.stringify(data));
+
                     navigate('/estado-cliente');
                 } else {
-                    const data = await res.json().catch(() => ({}));
                     setError(data.error || data.message || 'Cédula no encontrada');
                 }
             }
         } catch (err) {
-            setError('Error de conexión con el servidor');
+            setError('Error de conexión con el servidor (Revisa el puerto 3001)');
         } finally {
             setLoading(false);
         }
@@ -138,7 +154,6 @@ export const Login = () => {
                             </div>
                         )}
 
-                        {/* Botón Principal */}
                         <button 
                             type="submit" 
                             disabled={loading}
