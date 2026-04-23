@@ -72,7 +72,7 @@ export const Contabilidad = () => {
         }
 
         try {
-            const url = `http://localhost:3001/api/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`;
+            const url = `http://localhost:3000/api/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`;
             const response = await axios.get(url);
 
             const dataGastos = response.data.gastos || [];
@@ -115,7 +115,7 @@ export const Contabilidad = () => {
 
     const fetchProveedores = async () => {
         try {
-            const res = await axios.get('http://localhost:3001/api/contabilidad/proveedores');
+            const res = await axios.get('http://localhost:3000/api/contabilidad/proveedores');
             // La respuesta ya trae el array directamente según el controlador
             setProveedoresDB(Array.isArray(res.data) ? res.data : []);
         } catch (error) { console.error("Error cargando proveedores", error); }
@@ -177,7 +177,7 @@ export const Contabilidad = () => {
 
             console.log("DEBUG - Enviando a Contabilidad:", data);
 
-            await axios.post('http://localhost:3001/api/contabilidad', data);
+            await axios.post('http://localhost:3000/api/contabilidad', data);
             alert(`✅ Registrado correctamente`);
             setNuevoRegistro({ ...nuevoRegistro, desc: '', montoUSD: '', id_proveedor: '' });
             fetchContabilidad();
@@ -191,7 +191,7 @@ export const Contabilidad = () => {
     const handleGuardarProveedor = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:3001/api/contabilidad/proveedores', nuevoProv);
+            const res = await axios.post('http://localhost:3000/api/contabilidad/proveedores', nuevoProv);
             alert(`✅ Proveedor "${nuevoProv.nombre_empresa}" registrado`);
             setShowModalProv(false); // No lo cerramos para que pueda ver la lista actualizada si quiere
             setNuevoProv({ rif: '', nombre_empresa: '', especialidad: '', nombre_contacto: '', apellido_contacto: '' });
@@ -205,7 +205,7 @@ export const Contabilidad = () => {
     const handleEliminarProveedor = async (id) => {
         if (window.confirm("¿Estás seguro de eliminar este proveedor?")) {
             try {
-                const res = await axios.delete(`http://localhost:3001/api/contabilidad/proveedores/${id}`);
+                const res = await axios.delete(`http://localhost:3000/api/contabilidad/proveedores/${id}`);
                 alert(`✅ ${res.data.message}`);
                 fetchProveedores();
             } catch (error) {
@@ -219,7 +219,7 @@ export const Contabilidad = () => {
     // 3. ACTUALIZAR ESTADO A PAGADO (PATCH)
     const handlePagar = async (id, tipo) => {
         try {
-            await axios.patch('http://localhost:3001/api/contabilidad/pagar', { id, tipo });
+            await axios.patch('http://localhost:3000/api/contabilidad/pagar', { id, tipo });
             fetchContabilidad();
         } catch (error) {
             console.error("Error al pagar:", error);
@@ -230,7 +230,7 @@ export const Contabilidad = () => {
     const handleEliminar = async (id, tipo) => {
         if (window.confirm("¿Estás seguro de eliminar este registro?")) {
             try {
-                await axios.delete(`http://localhost:3001/api/contabilidad/${id}?tipo=${tipo}`);
+                await axios.delete(`http://localhost:3000/api/contabilidad/${id}?tipo=${tipo}`);
                 fetchContabilidad();
             } catch (error) {
                 console.error("Error al eliminar:", error);
@@ -324,7 +324,7 @@ export const Contabilidad = () => {
     }, [cuentas, searchTerm]);
 
     return (
-        <div className="bg-slate-50 min-h-screen py-8 px-4 sm:px-10 font-sans">
+        <div className="bg-slate-50 min-h-screen py-8 px-4 sm:px-10 font-sans overflow-x-hidden">
             <div className="max-w-7xl mx-auto">
                 
                 {/* CABECERA */}
@@ -405,7 +405,7 @@ export const Contabilidad = () => {
 
                 {/* BARRA DE FILTROS */}
                 <div className="bg-white p-4 rounded-2xl border border-slate-200 mb-8 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {['Hoy', 'Semana', 'Mes'].map(p => (
                             <button
                                 key={p}
@@ -416,7 +416,7 @@ export const Contabilidad = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <input 
                             type="date" 
                             className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500"
@@ -436,7 +436,7 @@ export const Contabilidad = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8">
                     
                     {/* FORMULARIO */}
-                    <aside>
+                    <aside className="min-w-0">
                         <div className="bg-white p-6 rounded-[28px] border border-slate-200 shadow-sm sticky top-8">
                             <h2 className="text-xl font-black text-slate-800 mb-6">Nuevo Registro</h2>
                             <form className="space-y-4" onSubmit={handleAgregar}>
@@ -536,7 +536,7 @@ export const Contabilidad = () => {
                     </aside>
 
                     {/* TABLA */}
-                    <main>
+                    <main className="min-w-0">
                         <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
                             <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/30 gap-4">
                                 <div>

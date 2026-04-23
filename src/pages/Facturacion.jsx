@@ -30,8 +30,9 @@ export const Facturacion = () => {
       const response = await fetch('http://localhost:3000/api/facturas');
       if (response.ok) {
         const data = await response.json();
-        // Asumiendo que retorna un array de facturas
-        setFacturasGeneradas(data || []);
+        // El backend devuelve { message, status, data: [] }
+        const arr = data.data || data || [];
+        setFacturasGeneradas(Array.isArray(arr) ? arr : []);
       }
     } catch (error) {
       console.error('Error al obtener facturas:', error);
@@ -69,12 +70,12 @@ export const Facturacion = () => {
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
-        // Ajusta esta ruta según los endpoints de tu backend
         const response = await fetch('http://localhost:3000/api/ordenes/finalizadas');
         if (response.ok) {
           const data = await response.json();
-          // Se asume que la data viene en formato [{ id, descripcion }] o similar
-          setOrdenesFinalizadas(data);
+          // El backend devuelve { message, status, data: [] }
+          const arr = data.data || data || [];
+          setOrdenesFinalizadas(Array.isArray(arr) ? arr : []);
         } else {
           console.error('Error al obtener las órdenes finalizadas');
         }

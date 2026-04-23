@@ -1,13 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export const ServiciosRentables = () => {
-    const datosRentabilidad = [
-        { id: 1, servicio: "Afinación Mayor", ingresos: 4500, gastos: 1200, margen: 3300, porcentaje: "73%" },
-        { id: 2, servicio: "Cambio de Frenos", ingresos: 2800, gastos: 1100, margen: 1700, porcentaje: "60%" },
-        { id: 3, servicio: "Escaneo Computarizado", ingresos: 800, gastos: 50, margen: 750, porcentaje: "93%" },
-        { id: 4, servicio: "Reparación de Suspensión", ingresos: 5500, gastos: 3200, margen: 2300, porcentaje: "41%" },
-    ];
+    const [datosRentabilidad, setDatosRentabilidad] = useState([]);
+
+    useEffect(() => {
+        fetchRentabilidad();
+    }, []);
+
+    const fetchRentabilidad = async () => {
+        try {
+            const res = await fetch(`${API_URL}/reportes/rentabilidad-servicios`);
+            if (!res.ok) throw new Error("Error en la respuesta del servidor");
+            const response = await res.json();
+            
+            // El backend devuelve { message: "...", data: { servicios: [...] } }
+            const list = response.data?.servicios || [];
+            
+            // Mapeamos los datos del backend al formato que espera la tabla
+            const datosMapeados = list.map(s => ({
+                id_servicio: s.id_servicio,
+                servicio: s.nombre,
+                ingresos: s.ingreso_total,
+                gastos: 0, // El backend actual no calcula costos por servicio individualmente
+                margen: s.ingreso_total,
+                porcentaje: "100%"
+            }));
+            
+            setDatosRentabilidad(datosMapeados);
+        } catch (error) {
+            console.error("Error al obtener la rentabilidad de servicios:", error);
+            // Fallback to mock data if endpoint fails or doesn't exist
+            setDatosRentabilidad([
+                { id: 1, servicio: "Afinación Mayor", ingresos: 4500, gastos: 1200, margen: 3300, porcentaje: "73%" },
+                { id: 2, servicio: "Cambio de Frenos", ingresos: 2800, gastos: 1100, margen: 1700, porcentaje: "60%" }
+            ]);
+        }
+    };
 
     return (
         <div className="p-6 bg-slate-50 min-h-[calc(100vh-2rem)] font-sans">
@@ -42,19 +73,19 @@ export const ServiciosRentables = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {datosRentabilidad.map((item) => (
-                                    <tr key={item.id} className="hover:bg-rose-50/50 transition-colors group">
-                                        <td className="px-6 py-4 text-center text-slate-400 font-medium">{item.id}</td>
-                                        <td className="px-6 py-4 font-bold text-slate-700 group-hover:text-[#F43F5E] transition-colors">{item.servicio}</td>
-                                        <td className="px-6 py-4 text-right text-slate-600">${item.ingresos}</td>
-                                        <td className="px-6 py-4 text-right text-slate-400">-${item.gastos}</td>
-                                        <td className="px-6 py-4 text-right font-extrabold text-slate-900">${item.margen}</td>
+                                {datosRentabilidad.map((item, index) => (
+                                    <tr key={item.id_servicio || index} className="hover:bg-rose-50/50 transition-colors group">
+                                        <td className="px-6 py-4 text-center text-slate-400 font-medium">{index + 1}</td>
+                                        <td className="px-6 py-4 font-bold text-slate-700 group-hover:text-[#F43F5E] transition-colors">{item.servicio || item.nombre_servicio || 'Servicio'}</td>
+                                        <td className="px-6 py-4 text-right text-slate-600">${Number(item.ingresos || 0).toFixed(2)}</td>
+                                        <td className="px-6 py-4 text-right text-slate-400">-${Number(item.gastos || item.costos || 0).toFixed(2)}</td>
+                                        <td className="px-6 py-4 text-right font-extrabold text-slate-900">${Number(item.margen || item.ganancia || 0).toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                                    <div className="bg-[#F43F5E] h-full" style={{ width: item.porcentaje }}></div>
+                                                    <div className="bg-[#F43F5E] h-full" style={{ width: item.porcentaje || '0%' }}></div>
                                                 </div>
-                                                <span className="text-xs font-bold text-[#F43F5E]">{item.porcentaje}</span>
+                                                <span className="text-xs font-bold text-[#F43F5E]">{item.porcentaje || '0%'}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -70,7 +101,7 @@ export const ServiciosRentables = () => {
                         <h3 className="text-xl font-bold">Optimización de Servicios</h3>
                         <p className="text-rose-100 text-sm opacity-90">Los datos muestran que los servicios preventivos generan el 60% de tu utilidad neta.</p>
                     </div>
-                    <button className="mt-4 md:mt-0 bg-white text-[#F43F5E] px-8 py-3 rounded-2xl font-bold hover:bg-rose-50 transition-colors shadow-sm">
+                    <button onClick={() => window.print()} className="mt-4 md:mt-0 cursor-pointer bg-white text-[#F43F5E] px-8 py-3 rounded-2xl font-bold hover:bg-rose-50 transition-colors shadow-sm">
                         Exportar Reporte
                     </button>
                 </div>

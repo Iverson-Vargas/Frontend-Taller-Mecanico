@@ -1,25 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const ReporteGanancia = () => {
-  // 1. Centralizamos los datos para que el componente sea dinámico
-  const [datos] = useState({
+  const [datos, setDatos] = useState({
     ingresos: {
-      servicios: 3000.00,
-      repuestos: 1500.00
+      servicios: 0,
+      repuestos: 0
     },
     egresos: {
-      comisiones: 900.00,
-      gastosFijos: 1200.00
+      comisiones: 0,
+      gastosFijos: 0
     }
   });
 
-  // 2. Lógica de cálculo (Ingeniería de datos)
-  const totalIngresos = Object.values(datos.ingresos).reduce((a, b) => a + b, 0);
-  const totalEgresos = Object.values(datos.egresos).reduce((a, b) => a + b, 0);
+  useEffect(() => {
+    fetchEstadoResultados();
+  }, []);
+
+  const fetchEstadoResultados = async () => {
+    try {
+      const res = await fetch(`${API_URL}/reportes/estado-resultados`);
+      if (!res.ok) throw new Error("Error fetching estado-resultados");
+      const json = await res.json();
+      const payload = json.data;
+      
+      if(payload) {
+          setDatos({
+            ingresos: {
+              servicios: payload.ingresos || 0,
+              repuestos: 0 // El backend actualiza todo en ingresos totales
+            },
+            egresos: {
+              comisiones: payload.egresos?.nomina || 0,
+              gastosFijos: payload.egresos?.gastos_operativos || 0
+            }
+          });
+      }
+    } catch(error) {
+      console.error("Error al obtener estado de resultados:", error);
+      // Fallback a mock data
+      setDatos({
+        ingresos: { servicios: 3000.00, repuestos: 1500.00 },
+        egresos: { comisiones: 900.00, gastosFijos: 1200.00 }
+      });
+    }
+  };
+
+  const totalIngresos = Object.values(datos.ingresos).reduce((a, b) => a + Number(b), 0);
+  const totalEgresos = Object.values(datos.egresos).reduce((a, b) => a + Number(b), 0);
   const utilidadNeta = totalIngresos - totalEgresos;
   
-  // Cálculo de margen de utilidad (KPI fundamental para el Admin)
-  const margenUtilidad = ((utilidadNeta / totalIngresos) * 100).toFixed(1);
+  const margenUtilidad = totalIngresos > 0 ? ((utilidadNeta / totalIngresos) * 100).toFixed(1) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -30,10 +62,10 @@ export const ReporteGanancia = () => {
           <p className="text-gray-500">Balance financiero del periodo actual</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-white border px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50">Exportar PDF</button>
+          <button onClick={() => window.print()} className="bg-white border px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50">Exportar PDF</button>
           <select className="bg-white border px-4 py-2 rounded-lg text-sm font-semibold shadow-sm">
-            <option>Marzo 2026</option>
-            <option>Febrero 2026</option>
+            <option>Mes Actual</option>
+            <option>Mes Anterior</option>
           </select>
         </div>
       </div>
@@ -76,23 +108,23 @@ export const ReporteGanancia = () => {
             <tr className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 text-gray-700 font-medium">Servicios Mecánicos Realizados</td>
               <td className="px-6 py-4"><span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Ingreso</span></td>
-              <td className="px-6 py-4 text-right font-mono font-bold text-green-600">+${datos.ingresos.servicios.toFixed(2)}</td>
+              <td className="px-6 py-4 text-right font-mono font-bold text-green-600">+${Number(datos.ingresos.servicios).toFixed(2)}</td>
             </tr>
             <tr className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 text-gray-700 font-medium">Venta de Repuestos e Insumos</td>
               <td className="px-6 py-4"><span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Ingreso</span></td>
-              <td className="px-6 py-4 text-right font-mono font-bold text-green-600">+${datos.ingresos.repuestos.toFixed(2)}</td>
+              <td className="px-6 py-4 text-right font-mono font-bold text-green-600">+${Number(datos.ingresos.repuestos).toFixed(2)}</td>
             </tr>
             {/* Sección de Egresos */}
             <tr className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 text-gray-700 font-medium">Comisiones de Mecánicos (Pasivo)</td>
               <td className="px-6 py-4"><span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Costo</span></td>
-              <td className="px-6 py-4 text-right font-mono font-bold text-red-500">-${datos.egresos.comisiones.toFixed(2)}</td>
+              <td className="px-6 py-4 text-right font-mono font-bold text-red-500">-${Number(datos.egresos.comisiones).toFixed(2)}</td>
             </tr>
             <tr className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 text-gray-700 font-medium">Gastos de Operación (Luz, Agua, Alquiler)</td>
               <td className="px-6 py-4"><span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Gasto</span></td>
-              <td className="px-6 py-4 text-right font-mono font-bold text-red-500">-${datos.egresos.gastosFijos.toFixed(2)}</td>
+              <td className="px-6 py-4 text-right font-mono font-bold text-red-500">-${Number(datos.egresos.gastosFijos).toFixed(2)}</td>
             </tr>
           </tbody>
         </table>

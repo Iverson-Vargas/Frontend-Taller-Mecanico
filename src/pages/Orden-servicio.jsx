@@ -1,227 +1,162 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../assets/orden-servicio.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const OrdenServicio = () => {
     const navigate = useNavigate();
 
-    const handListaServicio = () => {
-        navigate('/panel/Lista-Servicio');
+    const [mecanicos, setMecanicos] = useState([]);
+    
+    const [form, setForm] = useState({
+        placa_carro: '',
+        id_mecanico: '',
+        diagnostico_inicial: '',
+        diagnostico_tecnico: '',
+        estado: 'recepcion',
+        prioridad: 'normal'
+    });
+
+    useEffect(() => {
+        fetchMecanicos();
+    }, []);
+
+    const fetchMecanicos = async () => {
+        try {
+            const res = await fetch(`${API_URL}/empleados`);
+            const data = await res.json();
+            const arr = data.data?.empleados || data.data || [];
+            setMecanicos(Array.isArray(arr) ? arr : []);
+        } catch(err) {
+            console.error("Error cargando mecanicos", err);
+        }
     };
 
-    const handListaClientes = () => {
-        navigate('/panel/Listado-Clientes');
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
     };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if(!form.placa_carro || !form.diagnostico_inicial) {
+            alert('Placa y Diagnóstico Inicial son obligatorios');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/ordenes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form)
+            });
+
+            if (response.ok) {
+                alert('Orden registrada correctamente');
+                navigate('/panel/Lista-Servicio');
+            } else {
+                const errData = await response.json();
+                alert(`Error al guardar: ${errData.message || 'Error desconocido'}`);
+            }
+        } catch(err) {
+            console.error("Error al registrar orden", err);
+            alert('Error de conexión al servidor');
+        }
+    };
+
+    const handListaServicio = () => navigate('/panel/Lista-Servicio');
+    const handListaClientes = () => navigate('/panel/Listado-Clientes');
 
     return (
-        <div className="orden-container">
+        <form className="orden-container" onSubmit={handleSubmit}>
             <div className="botones">
-                <button className="btn-2" onClick={handListaServicio}>
+                <button type="button" className="btn-2" onClick={handListaServicio}>
                     Listado de servicios
                 </button>
-                <button className="btn-2" onClick={handListaClientes}>
+                <button type="button" className="btn-2" onClick={handListaClientes}>
                     Listado de clientes
                 </button>
             </div>
 
-            <h1 className="titulo-principal">ORDEN DE SERVICIO</h1>
+            <h1 className="titulo-principal">NUEVA ORDEN DE SERVICIO</h1>
 
-            <div className="encabezado-orden">
-                <div className="numero-orden">
-                    <label>N° de Orden:</label>
-                    <input type="text" className="campo-lectura" />
+            <div className="estado-mecanico mt-6">
+                <div className="campo">
+                    <label>Placa del Vehículo:</label>
+                    <input 
+                        type="text" 
+                        name="placa_carro" 
+                        value={form.placa_carro} 
+                        onChange={handleChange} 
+                        placeholder="Ej: ABC12D" 
+                        required 
+                        maxLength={15} 
+                    />
                 </div>
-                <div className="fecha-hora">
-                    <div className="campo">
-                        <label>Fecha de ingreso:</label>
-                        <input type="date" />
-                    </div>
-                    <div className="campo">
-                        <label>Hora de ingreso:</label>
-                        <input type="time" />
-                    </div>
-                </div>
-            </div>
-
-            <div className="estado-mecanico">
                 <div className="campo">
                     <label>Estado de la orden:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Activa</option>
-                        <option>En espera</option>
-                        <option>En diagnóstico</option>
-                        <option>Espera de repuesto</option>
-                        <option>Reparación</option>
-                        <option>Finalizada</option>
-                        <option>Entregada</option>
+                    <select name="estado" value={form.estado} onChange={handleChange}>
+                        <option value="recepcion">Recepción</option>
+                        <option value="en_espera">En espera</option>
+                        <option value="diagnostico">En diagnóstico</option>
+                        <option value="espera_repuesto">Espera de repuesto</option>
+                        <option value="reparacion">Reparación</option>
+                        <option value="finalizada">Finalizada</option>
                     </select>
                 </div>
                 <div className="campo">
                     <label>Mecánico asignado:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Carlos Rodríguez</option>
-                        <option>Juan Pérez</option>
+                    <select name="id_mecanico" value={form.id_mecanico} onChange={handleChange}>
+                        <option value="">Seleccione un mecánico</option>
+                        {mecanicos.map(m => (
+                            <option key={m.id_empleado} value={m.id_empleado}>
+                                {m.nombre} {m.apellido} - {m.cargo}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="campo">
+                    <label>Prioridad:</label>
+                    <select name="prioridad" value={form.prioridad} onChange={handleChange}>
+                        <option value="baja">Baja</option>
+                        <option value="normal">Normal</option>
+                        <option value="alta">Alta</option>
+                        <option value="urgente">Urgente</option>
                     </select>
                 </div>
             </div>
 
-            <h2 className="subtitulo">DATOS DEL CLIENTE</h2>
-            <div className="seccion-grid">
-                <div className="campo">
-                    <label>Cédula:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Nombre:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Teléfono:</label>
-                    <input type="text" />
-                </div>
-            </div>
-
-            <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
-            <div className="seccion-grid">
-                <div className="campo">
-                    <label>Placa:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Marca:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Modelo:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Año:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Color:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Kilometraje actual:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Capacidad del tanque:</label>
-                    <input type="text" />
-                </div>
-            </div>
-
-            <h2 className="subtitulo">DIAGNÓSTICO INICIAL</h2>
+            <h2 className="subtitulo">DIAGNÓSTICOS</h2>
             <div className="diagnostico-inicial">
                 <div className="campo">
-                    <label>Motivo de visita:</label>
-                    <textarea rows="2"></textarea>
-                </div>
-
-                <h3 className="subtitulo-secundario">INVENTARIO INICIAL</h3>
-                <div className="checkboxes-grid">
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="caucho" />
-                        <label htmlFor="caucho">¿Caucho de repuesto?</label>
-                    </div>
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="radio" />
-                        <label htmlFor="radio">¿Radio?</label>
-                    </div>
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="herramientas" />
-                        <label htmlFor="herramientas">¿Herramientas?</label>
-                    </div>
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="rayones" />
-                        <label htmlFor="rayones">¿Rayones previos?</label>
-                    </div>
-                </div>
-
-                <div className="campo">
-                    <label>Falladas declaradas (descripción):</label>
-                    <textarea rows="3"></textarea>
+                    <label>Diagnóstico Inicial (Motivo de visita):</label>
+                    <textarea 
+                        rows="3" 
+                        name="diagnostico_inicial" 
+                        value={form.diagnostico_inicial} 
+                        onChange={handleChange} 
+                        required
+                    ></textarea>
                 </div>
             </div>
 
-            <h2 className="subtitulo">DIAGNÓSTICO TÉCNICO</h2>
-            <div className="diagnostico-tecnico">
+            <div className="diagnostico-tecnico mt-4">
                 <div className="campo">
-                    <label>Diagnóstico:</label>
-                    <input type="text" />
-                </div>
-                <div className="campo">
-                    <label>Observaciones:</label>
-                    <textarea rows="3"></textarea>
+                    <label>Diagnóstico Técnico (Opcional):</label>
+                    <textarea 
+                        rows="3" 
+                        name="diagnostico_tecnico" 
+                        value={form.diagnostico_tecnico} 
+                        onChange={handleChange}
+                    ></textarea>
                 </div>
             </div>
 
-            <h2 className="subtitulo">SERVICIO</h2>
-            <div className="servicio-grid">
-                <div className="campo">
-                    <label>Tipo de servicio:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Mantenimiento preventivo</option>
-                        <option>Reparación mecánica</option>
-                    </select>
-                </div>
-                <div className="campo">
-                    <label>Categoría del servicio:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Sencillo</option>
-                        <option>Pesado</option>
-                    </select>
-                </div>
+            <div className="botones-accion mt-8">
+                <button type="submit" className="btn-guardar">Guardar Orden</button>
             </div>
-
-            <div className="repuestos-seccion">
-                <div className="checkbox-item">
-                    <input type="checkbox" id="repuesto" />
-                    <label htmlFor="repuesto">¿Requiere repuesto?</label>
-                </div>
-                
-                <div className="campo">
-                    <label>Repuesto en inventario:</label>
-                    <select>
-                        <option value="">Seleccione un repuesto</option>
-                        <option>Filtro de aceite</option>
-                        <option>Pastillas de freno</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="costos-grid">
-                <div className="campo">
-                    <label>Costo ($):</label>
-                    <input type="text" className="campo-lectura" readOnly />
-                </div>
-                
-                <div className="mano-obra">
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="manoObra" />
-                        <label htmlFor="manoObra">¿Mano de obra especial?</label>
-                    </div>
-                    <div className="campo">
-                        <label>Costo mano de obra ($):</label>
-                        <input type="text" />
-                    </div>
-                </div>
-
-                <div className="campo subtotal">
-                    <label>Subtotal ($):</label>
-                    <input type="text" className="campo-lectura campo-destacado" readOnly />
-                </div>
-            </div>
-
-            <div className="botones-accion">
-                <button className="btn-imprimir">Imprimir Orden</button>
-                <button className="btn-guardar">Guardar Orden</button>
-            </div>
-        </div>
+        </form>
     );
 };

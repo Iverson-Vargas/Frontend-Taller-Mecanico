@@ -1,37 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const Inventario = () => {
-    const [repuestos, setRepuestos] = useState([
-        { id: 'REP-001', desc: 'Pastillas de Freno', ubicacion: 'A1', pCompra: 10, pVenta: 25, stock: 10, gananciaAcumulada: 0 }
-    ]);
+    const [repuestos, setRepuestos] = useState([]);
     const [form, setForm] = useState({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
     const [modalVenta, setModalVenta] = useState({ abierto: false, producto: null, cantidadVenta: 1 });
+
+    useEffect(() => {
+        fetchInventario();
+    }, []);
+
+    const fetchInventario = async () => {
+        try {
+            const response = await fetch(`${API_URL}/inventario`);
+            if (!response.ok) throw new Error('Error al obtener inventario');
+            const data = await response.json();
+            
+            // Extraer el arreglo de repuestos
+            const arr = data.data?.repuestos || data.data || [];
+            const repuestosArray = Array.isArray(arr) ? arr : [];
+            
+            setRepuestos(repuestosArray.map(r => ({
+                id_repuesto: r.id_repuesto,
+                id: r.codigo_barra || `REP-${r.id_repuesto}`,
+                desc: r.descripcion || '',
+                ubicacion: 'N/A',
+                pCompra: 0,
+                pVenta: Number(r.precio_venta_sugerido) || 0,
+                stock: Number(r.stock_actual) || 0,
+                gananciaAcumulada: 0
+            })));
+        } catch (error) {
+            console.error("Error cargando inventario:", error);
+        }
+    };
 
     const gananciaTotal = repuestos.reduce((acc, r) => acc + r.gananciaAcumulada, 0);
     const inversionStock = repuestos.reduce((acc, r) => acc + (r.pCompra * r.stock), 0);
 
-    const guardar = (e) => {
+    const guardar = async (e) => {
         e.preventDefault();
         if (!form.id) return alert("Por favor, ingresa el código del repuesto.");
-        setRepuestos([...repuestos, { ...form, stock: Number(form.stock), pCompra: Number(form.pCompra), pVenta: Number(form.pVenta), gananciaAcumulada: 0 }]);
-        setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+        
+        try {
+            const payload = {
+                codigo_barra: form.id,
+                descripcion: form.desc,
+                stock_actual: Number(form.stock),
+                precio_venta_sugerido: Number(form.pVenta)
+            };
+
+            const response = await fetch(`${API_URL}/inventario`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                fetchInventario();
+                setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+            } else {
+                const errData = await response.json();
+                alert(`Error al guardar: ${errData.message || 'Intente de nuevo'}`);
+            }
+        } catch(err) {
+            console.error("Error al registrar repuesto:", err);
+            alert("Error de conexión al servidor");
+        }
     };
 
-    const confirmarVenta = () => {
+    const confirmarVenta = async () => {
         const cant = Number(modalVenta.cantidadVenta);
         if (cant > modalVenta.producto.stock) return alert("Stock insuficiente para realizar esta venta.");
         
-        setRepuestos(repuestos.map(r => {
-            if (r.id === modalVenta.producto.id) {
-                return { 
-                    ...r, 
-                    stock: r.stock - cant, 
-                    gananciaAcumulada: r.gananciaAcumulada + (cant * (r.pVenta - r.pCompra)) 
-                };
+        // Simular la actualización de stock en el backend usando PUT
+        try {
+            const payload = {
+                stock_actual: modalVenta.producto.stock - cant
+            };
+            const response = await fetch(`${API_URL}/inventario/${modalVenta.producto.id_repuesto}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+                fetchInventario(); // Refrescar stock
+            } else {
+                alert("Error al procesar la venta en el backend.");
             }
-            return r;
-        }));
-        setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+        } catch(err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -141,7 +203,7 @@ export const Inventario = () => {
                         <table className="w-full border-collapse min-w-[800px]">
                             <thead>
                                 <tr>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tl-lg">ID</th>
+                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tl-lg">Código</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Descripción</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Ubicación</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">P. Compra</th>
@@ -153,7 +215,7 @@ export const Inventario = () => {
                             </thead>
                             <tbody>
                                 {repuestos.map(r => (
-                                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={r.id_repuesto} className="hover:bg-slate-50 transition-colors">
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-500 font-mono">{r.id}</td>
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-800 font-bold">{r.desc}</td>
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-600">{r.ubicacion}</td>

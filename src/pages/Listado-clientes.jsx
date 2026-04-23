@@ -16,18 +16,12 @@ export const ListaClientes = () => {
             const respuesta = await fetch('http://localhost:3000/api/clientes');
             const data = await respuesta.json();
             
-            // Si el backend devuelve un arreglo directamente
-            if (Array.isArray(data)) {
-                setClientes(data);
-            } 
-            // Si el backend devuelve un objeto como { data: [...] } o { clientes: [...] }
-            else if (data && Array.isArray(data.data)) {
-                setClientes(data.data);
-            } 
-            else if (data && Array.isArray(data.clientes)) {
-                setClientes(data.clientes);
-            } 
-            else {
+            // Extraer el arreglo de clientes de las posibles estructuras de respuesta
+            const arr = data.data?.clientes || data.data || data.clientes || data;
+            
+            if (Array.isArray(arr)) {
+                setClientes(arr);
+            } else {
                 console.error("Formato de datos inesperado:", data);
                 setClientes([]);
             }
