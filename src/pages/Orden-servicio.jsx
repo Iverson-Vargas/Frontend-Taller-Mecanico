@@ -26,8 +26,7 @@ export const OrdenServicio = () => {
         cedula: '',
         nombre: '',
         apellido: '',
-        telefono: '',
-        direccion: ''
+        telefono: ''
     });
 
     const [vehiculoData, setVehiculoData] = useState({
@@ -38,9 +37,6 @@ export const OrdenServicio = () => {
         kilometraje: ''
     });
 
-    const [vehiculosList, setVehiculosList] = useState([]);
-    const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState('');
-
     useEffect(() => {
         cargarMecanicos();
         cargarRepuestos();
@@ -48,9 +44,10 @@ export const OrdenServicio = () => {
 
     const cargarMecanicos = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/empleados');
-            const data = await response.json();
-            if (data.data) setMecanicos(data.data);
+            const response = await api.get('/empleados');
+            if (response.data && response.data.data) {
+                setMecanicos(response.data.data);
+            }
         } catch (error) {
             console.error('Error cargando mecánicos:', error);
         }
@@ -58,9 +55,10 @@ export const OrdenServicio = () => {
 
     const cargarRepuestos = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/inventario');
-            const data = await response.json();
-            if (data.data) setRepuestos(data.data);
+            const response = await api.get('/inventario');
+            if (response.data && response.data.data) {
+                setRepuestos(response.data.data);
+            }
         } catch (error) {
             console.error('Error cargando repuestos:', error);
         }
@@ -76,27 +74,51 @@ export const OrdenServicio = () => {
 
         setLoading(true);
         try {
-            // Buscar cliente por cédula usando el endpoint de consulta
-            const response = await api.get(`/clientes/consulta/${encodeURIComponent(cedula)}`);
+            // 1. Buscar cliente por cédula
+            const clienteResponse = await api.get(`/clientes/consulta/${cedula}`);
+            console.log('Cliente respuesta:', clienteResponse.data);
             
-            if (response.data && response.data.data) {
-                const cliente = response.data.data;
+            if (clienteResponse.data && clienteResponse.data.data) {
+                const cliente = clienteResponse.data.data;
                 
                 // Llenar datos del cliente
                 setClienteData({
                     cedula: cliente.cedula_rif || cedula,
                     nombre: cliente.nombre || '',
                     apellido: cliente.apellido || '',
-                    telefono: cliente.telefono || '',
-                    direccion: cliente.direccion || ''
+                    telefono: cliente.telefono || ''
                 });
 
-                // Buscar vehículos del cliente
-                await buscarVehiculosPorCliente(cliente.id_cliente);
+                // 2. Buscar vehículos del cliente usando la cédula
+                const vehiculosResponse = await api.get(`/carros/cliente/${cedula}`);
+                console.log('Vehículos respuesta:', vehiculosResponse.data);
                 
-                alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido}`);
+                if (vehiculosResponse.data && vehiculosResponse.data.data && vehiculosResponse.data.data.length > 0) {
+                    const vehiculo = vehiculosResponse.data.data[0];
+                    setVehiculoData({
+                        placa: vehiculo.placa || '',
+                        marca: vehiculo.marca || '',
+                        modelo: vehiculo.modelo || '',
+                        ano: vehiculo.ano || '',
+                        kilometraje: vehiculo.kilometraje || ''
+                    });
+                    setFormData(prev => ({
+                        ...prev,
+                        placa_carro: vehiculo.placa
+                    }));
+                    alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido} - Vehículo: ${vehiculo.placa}`);
+                } else {
+                    alert('Cliente encontrado pero no tiene vehículos registrados');
+                    setVehiculoData({
+                        placa: '',
+                        marca: '',
+                        modelo: '',
+                        ano: '',
+                        kilometraje: ''
+                    });
+                }
             } else {
-                alert('Cliente no encontrado. Debe registrarlo primero.');
+                alert('Cliente no encontrado');
                 limpiarDatosCliente();
             }
         } catch (error) {
@@ -104,55 +126,11 @@ export const OrdenServicio = () => {
             if (error.response?.status === 404) {
                 alert('Cliente no encontrado. Debe registrarlo primero.');
             } else {
-                alert('Error al buscar el cliente');
+                alert('Error al buscar el cliente: ' + (error.response?.data?.message || error.message));
             }
             limpiarDatosCliente();
         } finally {
             setLoading(false);
-        }
-    };
-
-    // Buscar vehículos por ID de cliente
-    const buscarVehiculosPorCliente = async (idCliente) => {
-        try {
-            // Intentar obtener vehículos del cliente
-            const response = await api.get(`/vehiculos/cliente/${idCliente}`);
-            if (response.data && response.data.data && response.data.data.length > 0) {
-                setVehiculosList(response.data.data);
-                setVehiculoSeleccionado('');
-                alert(`Cliente tiene ${response.data.data.length} vehículo(s) registrado(s)`);
-            } else {
-                setVehiculosList([]);
-                alert('El cliente no tiene vehículos registrados. Debe registrar uno.');
-            }
-        } catch (error) {
-            console.error('Error buscando vehículos:', error);
-            setVehiculosList([]);
-        }
-    };
-
-    // Cargar datos del vehículo seleccionado
-    const handleSeleccionarVehiculo = async (placa) => {
-        setVehiculoSeleccionado(placa);
-        try {
-            const response = await api.get(`/vehiculos/${placa}`);
-            if (response.data && response.data.data) {
-                const vehiculo = response.data.data;
-                setVehiculoData({
-                    placa: vehiculo.placa || '',
-                    marca: vehiculo.marca || '',
-                    modelo: vehiculo.modelo || '',
-                    ano: vehiculo.ano || '',
-                    kilometraje: vehiculo.kilometraje || ''
-                });
-                // Actualizar formData con la placa seleccionada
-                setFormData(prev => ({
-                    ...prev,
-                    placa_carro: vehiculo.placa
-                }));
-            }
-        } catch (error) {
-            console.error('Error cargando vehículo:', error);
         }
     };
 
@@ -161,10 +139,8 @@ export const OrdenServicio = () => {
             cedula: '',
             nombre: '',
             apellido: '',
-            telefono: '',
-            direccion: ''
+            telefono: ''
         });
-        setVehiculosList([]);
         setVehiculoData({
             placa: '',
             marca: '',
@@ -172,7 +148,10 @@ export const OrdenServicio = () => {
             ano: '',
             kilometraje: ''
         });
-        setVehiculoSeleccionado('');
+        setFormData(prev => ({
+            ...prev,
+            placa_carro: ''
+        }));
     };
 
     const handleInputChange = (e) => {
@@ -193,7 +172,7 @@ export const OrdenServicio = () => {
 
     const handleGuardarOrden = async () => {
         if (!formData.placa_carro) {
-            alert('Debe seleccionar un vehículo');
+            alert('Debe buscar un cliente con vehículo primero');
             return;
         }
         if (!formData.falla_declarada) {
@@ -203,10 +182,52 @@ export const OrdenServicio = () => {
 
         setLoading(true);
         try {
-            const response = await ordenService.create(formData);
-            if (response.status === 201 || response.status === 200) {
-                alert('Orden guardada exitosamente');
+            const ordenData = {
+                placa_carro: formData.placa_carro,
+                id_mecanico: formData.id_mecanico ? parseInt(formData.id_mecanico) : null,
+                motivo_visita: formData.motivo_visita || null,
+                falla_declarada: formData.falla_declarada,
+                tiene_caucho: formData.tiene_caucho,
+                tiene_radio: formData.tiene_radio,
+                tiene_rayones: formData.tiene_rayones,
+                observaciones: formData.observaciones || null,
+                estado: formData.estado
+            };
+
+            console.log('Guardando orden:', ordenData);
+            const response = await api.post('/ordenes', ordenData);
+            console.log('Respuesta:', response.data);
+            
+            if (response.data.status === 201 || response.status === 201) {
+                alert(`Orden guardada exitosamente. Número: ${response.data.data?.id_orden || 'generado'}`);
+                // Limpiar formulario
+                setFormData({
+                    placa_carro: '',
+                    id_mecanico: null,
+                    motivo_visita: '',
+                    falla_declarada: '',
+                    tiene_caucho: false,
+                    tiene_radio: false,
+                    tiene_rayones: false,
+                    observaciones: '',
+                    estado: 'recepcion'
+                });
+                setClienteData({
+                    cedula: '',
+                    nombre: '',
+                    apellido: '',
+                    telefono: ''
+                });
+                setVehiculoData({
+                    placa: '',
+                    marca: '',
+                    modelo: '',
+                    ano: '',
+                    kilometraje: ''
+                });
                 navigate('/panel/Lista-Servicio');
+            } else {
+                alert('Error al guardar la orden: ' + (response.data?.message || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error guardando orden:', error);
@@ -273,7 +294,7 @@ export const OrdenServicio = () => {
                         <option value="">Seleccione</option>
                         {mecanicos.map(mec => (
                             <option key={mec.id_empleado} value={mec.id_empleado}>
-                                {mec.nombre} {mec.apellido}
+                                {mec.nombre} {mec.apellido} - {mec.cargo}
                             </option>
                         ))}
                     </select>
@@ -290,7 +311,7 @@ export const OrdenServicio = () => {
                             name="cedula"
                             value={clienteData.cedula}
                             onChange={handleClienteInputChange}
-                            placeholder="V-12345678" 
+                            placeholder="Ingrese cédula (ej: 1234567)" 
                             style={{ flex: 1 }}
                         />
                         <button 
@@ -307,7 +328,6 @@ export const OrdenServicio = () => {
                     <label>Nombre:</label>
                     <input 
                         type="text" 
-                        name="nombre"
                         value={clienteData.nombre}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -317,7 +337,6 @@ export const OrdenServicio = () => {
                     <label>Teléfono:</label>
                     <input 
                         type="text" 
-                        name="telefono"
                         value={clienteData.telefono}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -326,27 +345,6 @@ export const OrdenServicio = () => {
             </div>
 
             <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
-            
-            {/* Mostrar selector de vehículos si hay varios */}
-            {vehiculosList.length > 0 && (
-                <div className="seccion-grid" style={{ marginBottom: '15px' }}>
-                    <div className="campo">
-                        <label>Seleccionar vehículo:</label>
-                        <select 
-                            value={vehiculoSeleccionado} 
-                            onChange={(e) => handleSeleccionarVehiculo(e.target.value)}
-                        >
-                            <option value="">Seleccione un vehículo</option>
-                            {vehiculosList.map(veh => (
-                                <option key={veh.placa} value={veh.placa}>
-                                    {veh.placa} - {veh.marca} {veh.modelo} ({veh.ano})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            )}
-
             <div className="seccion-grid">
                 <div className="campo">
                     <label>Placa:</label>
@@ -393,10 +391,6 @@ export const OrdenServicio = () => {
                         style={{ backgroundColor: '#f5f5f5' }}
                     />
                 </div>
-                <div className="campo">
-                    <label>Capacidad del tanque:</label>
-                    <input type="text" placeholder="Litros" />
-                </div>
             </div>
 
             <h2 className="subtitulo">DIAGNÓSTICO INICIAL</h2>
@@ -423,7 +417,7 @@ export const OrdenServicio = () => {
                 </div>
 
                 <div className="campo">
-                    <label>Falladas declaradas (descripción):</label>
+                    <label>Fallas declaradas (descripción):</label>
                     <textarea name="falla_declarada" value={formData.falla_declarada} onChange={handleInputChange} rows="3"></textarea>
                 </div>
             </div>
