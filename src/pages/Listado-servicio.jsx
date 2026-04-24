@@ -1,70 +1,99 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { ordenService } from '../services/apiService.js';
 import '../assets/tablas.css';
 
 export const ListaServicio = () => {
     const navigate = useNavigate();
+    const [ordenes, setOrdenes] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleGenerarOrden = () => {
-        navigate('/panel/Orden-Servicio');
+    useEffect(() => {
+        cargarOrdenes();
+    }, []);
+
+    const cargarOrdenes = async () => {
+        try {
+            setLoading(true);
+            const response = await ordenService.getAll();
+            // La respuesta tiene estructura: { message, status, data }
+            setOrdenes(response.data || []);
+        } catch (error) {
+            console.error("Error cargando órdenes", error);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const handleEliminar = async (id) => {
+        if (confirm('¿Está seguro de eliminar esta orden?')) {
+            try {
+                await ordenService.delete(id);
+                alert('Orden eliminada');
+                cargarOrdenes();
+            } catch (error) {
+                console.error('Error eliminando orden:', error);
+                alert('Error al eliminar la orden');
+            }
+        }
+    };
+
+    const handleVer = (id) => {
+        navigate(`/panel/Orden-Servicio/${id}`);
+    };
+
+    const getEstadoTexto = (estado) => {
+        const estados = {
+            'recepcion': 'Recepción',
+            'en_espera': 'En espera',
+            'en_reparacion': 'En reparación',
+            'esperando_repuestos': 'Esperando repuestos',
+            'finalizada': 'Finalizada',
+            'facturada': 'Facturada',
+            'entregada': 'Entregada'
+        };
+        return estados[estado] || estado;
+    };
+
+    if (loading) {
+        return <div className="tabla-container">Cargando órdenes...</div>;
+    }
 
     return (
         <div className="tabla-container">
             <h1 className="titulo-tabla">LISTADO DE ORDENES</h1>
-
             <div className="tabla-header">
-                <div className="busqueda-filtro">
-                    <div className="campo-busqueda">
-                        <input 
-                            type="text" 
-                            placeholder="Buscar orden..."
-                            className="busqueda-input"
-                        />
-                    </div>
-                    
-                    <div className="filtro-estado">
-                        <select className="estado-select">
-                            <option value="">Todos los estados</option>
-                            <option>Activa</option>
-                            <option>En espera</option>
-                            <option>En diagnóstico</option>
-                            <option>Espera de repuesto</option>
-                            <option>Reparación</option>
-                            <option>Finalizada</option>
-                            <option>Entregada</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button className="btn-generar" onClick={handleGenerarOrden}>
-                    + Generar Orden
-                </button>
+                <button className="btn-generar" onClick={() => navigate('/panel/Orden-Servicio')}>+ Generar Orden</button>
             </div>
-
             <table className="ordenes-tabla">
                 <thead>
                     <tr>
                         <th>N° de Orden</th>
-                        <th>Fecha de la Orden</th>
+                        <th>Placa</th>
                         <th>Cliente</th>
                         <th>Estado</th>
-                        <th>Mecánico</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                            <button className="btn-accion ver">👁</button>
-                            <button className="btn-accion editar">✎</button>
-                            <button className="btn-accion eliminar">🗑</button>
-                        </td>
-                    </tr>
+                    {ordenes.length === 0 ? (
+                        <tr>
+                            <td colSpan="5" style={{ textAlign: 'center' }}>No hay órdenes registradas</td>
+                        </tr>
+                    ) : (
+                        ordenes.map((orden) => (
+                            <tr key={orden.id_orden}>
+                                <td>{orden.id_orden}</td>
+                                <td>{orden.placa_carro}</td>
+                                <td>{orden.carro?.cliente ? `${orden.carro.cliente.nombre} ${orden.carro.cliente.apellido}` : 'N/A'}</td>
+                                <td><span className={`tag-${orden.estado}`}>{getEstadoTexto(orden.estado)}</span></td>
+                                <td>
+                                    <button className="btn-accion ver" onClick={() => handleVer(orden.id_orden)}>👁</button>
+                                    <button className="btn-accion eliminar" onClick={() => handleEliminar(orden.id_orden)}>🗑</button>
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
         </div>

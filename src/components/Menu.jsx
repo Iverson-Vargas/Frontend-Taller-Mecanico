@@ -21,8 +21,8 @@ export const Menu = () => {
         {
             name: 'Recepción y Diagnóstico',
             subMenus: [
-                { label: 'Registrar Nuevo Ingreso', path: '/panel/Recepcion' },
                 { label: 'Registro de Cliente', path: '/panel/RegistroCliente' },
+                { label: 'Registro de Vehículo', path: '/panel/RegistroVehiculo' },
                 { label: 'Lista de Clientes', path: '/panel/Listado-Clientes' },
                 { label: 'Registro de Nueva Orden', path: '/panel/Orden-Servicio' }
             ]
