@@ -19,64 +19,50 @@ export const Menu = () => {
 
     const menuItems = [
         {
-            name: 'Atención y Recepción',
+            name: 'Recepción y Diagnóstico',
             subMenus: [
-                { label: 'Registrar Nuevo Ingreso', path: '/panel/Recepcion' }
-            ]
-        },
-        {
-            name: 'Directorio de Clientes',
-            subMenus: [
+                { label: 'Registrar Nuevo Ingreso', path: '/panel/Recepcion' },
                 { label: 'Registro de Cliente', path: '/panel/RegistroCliente' },
-                { label: 'Lista de Clientes', path: '/panel/Listado-Clientes' }
+                { label: 'Lista de Clientes', path: '/panel/Listado-Clientes' },
+                { label: 'Registro de Nueva Orden', path: '/panel/Orden-Servicio' }
             ]
         },
         {
-            name: 'Operaciones de Taller',
+            name: 'Catálogo, Servicios y Precios',
             subMenus: [
-                { label: 'Registro de Nueva Orden', path: '/panel/Orden-Servicio' },
-                { label: 'Historial de Atenciones', path: '/panel/Lista-Servicio' }
+                { label: 'Historial de Servicios', path: '/panel/Lista-Servicio' }
             ]
         },
         {
-            name: 'Control de Repuestos',
+            name: 'Inventarios y Repuestos',
             subMenus: [
-                { label: 'Inventario General', path: '/panel/Inventario' }
-            ]
-        },
-        {
-            name: 'Red de Proveedores',
-            subMenus: [
+                { label: 'Inventario General', path: '/panel/Inventario' },
                 { label: 'Listado de Proveedores', path: '#' }
             ]
         },
         {
-            name: 'Gestión de Personal',
+            name: 'Gestión de Empleados y Nómina',
             subMenus: [
                 { label: 'Directorio de Empleados', path: '/panel/GestionEmpleados' },
                 { label: 'Registro de Empleado', path: '/panel/RegistroEmpleado' }
             ]
         },
         {
-            name: 'Cobranza y Pagos',
+            name: 'Facturación y Caja',
             subMenus: [
                 { label: 'Emisión de Recibos', path: '/panel/Facturacion' }
             ]
         },
         {
-            name: 'Administración Financiera',
+            name: 'Egresos y Gastos',
             subMenus: [
                 { label: 'Libro de Cuentas', path: '/panel/Contabilidad' },
                 { label: 'Balance General', path: '/panel/Resumen-Financiero' }
             ]
         },
         {
-            name: 'Análisis de Resultados',
-            subMenus: [
-                { label: 'Panel de Estadísticas', path: '/panel/Reportes' },
-                { label: 'Estado de Ganancias', path: '/panel/ReporteGanancia' },
-                { label: 'Registro de Nóminas', path: '/panel/ReporteNominas' }
-            ]
+            name: 'Reportes',
+            path: '/panel/Reportes'
         }
     ];
 
@@ -90,35 +76,54 @@ export const Menu = () => {
                 <ul className="flex flex-col gap-1 w-full pb-4">
                     {menuItems.map((item, index) => (
                         <li key={index} className="w-full">
-                            <button
-                                onClick={() => toggleMenu(item.name)}
-                                className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 flex justify-between items-center ${
-                                    openMenu === item.name ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                }`}
-                            >
-                                <span>{item.name}</span>
-                                <span className={`transform transition-transform duration-300 ${openMenu === item.name ? 'rotate-180' : ''}`}>
-                                    ▼
-                                </span>
-                            </button>
-                            
-                            <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-slate-800/50 ${openMenu === item.name ? 'max-h-60' : 'max-h-0'}`}>
-                                <ul className="flex flex-col py-1">
-                                    {item.subMenus.map((subItem, subIndex) => (
-                                        <li key={subIndex}>
-                                            <NavLink to={subItem.path} className={estilosDelEnlace}>
-                                                {subItem.label}
-                                            </NavLink>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            {item.subMenus ? (
+                                <>
+                                    <button
+                                        onClick={() => toggleMenu(item.name)}
+                                        className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 flex justify-between items-center ${
+                                            openMenu === item.name ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                                        }`}
+                                    >
+                                        <span>{item.name}</span>
+                                        <span className={`transform transition-transform duration-300 ${openMenu === item.name ? 'rotate-180' : ''}`}>
+                                            ▼
+                                        </span>
+                                    </button>
+                                    
+                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-slate-800/50 ${openMenu === item.name ? 'max-h-60' : 'max-h-0'}`}>
+                                        <ul className="flex flex-col py-1">
+                                            {item.subMenus.map((subItem, subIndex) => (
+                                                <li key={subIndex}>
+                                                    <NavLink to={subItem.path} className={estilosDelEnlace}>
+                                                        {subItem.label}
+                                                    </NavLink>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </>
+                            ) : (
+                                <NavLink
+                                    to={item.path}
+                                    onClick={() => setOpenMenu(null)} // Close any open accordion
+                                    className={({ isActive }) => `block w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 ${
+                                        isActive ? 'bg-slate-700 text-white border-l-4 border-sky-400' : 'text-slate-300 hover:bg-slate-700 hover:text-white border-l-4 border-transparent'
+                                    }`}
+                                >
+                                    <span>{item.name}</span>
+                                </NavLink>
+                            )}
                         </li>
                     ))}
                 </ul>
             </nav>
 
-            <div className="mt-auto px-6 py-4 bg-slate-800 border-t border-slate-700 flex-shrink-0">
+            <div className="mt-auto px-6 py-4 bg-slate-800 border-t border-slate-700 flex-shrink-0 flex flex-col gap-3">
+                <button
+                    className="cursor-pointer w-full bg-slate-700/50 text-slate-300 py-2 px-4 rounded hover:bg-slate-600 transition-all duration-300 font-medium"
+                >
+                    Ajustes
+                </button>
                 <button
                     onClick={() => {
                         localStorage.removeItem('isAuthenticated');
