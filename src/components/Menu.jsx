@@ -92,17 +92,17 @@ export const Menu = () => {
                             {item.subMenus ? (
                                 <>
                                     <button
+                                        ref={el => itemRefs.current[item.name] = el}
                                         onClick={() => toggleMenu(item.name)}
-                                        className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 flex justify-between items-center ${
-                                            openMenu === item.name ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                        }`}
+                                        className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 flex justify-between items-center ${openMenu === item.name ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                                            }`}
                                     >
                                         <span>{item.name}</span>
                                         <span className={`transform transition-transform duration-300 ${openMenu === item.name ? 'rotate-180' : ''}`}>
                                             ▼
                                         </span>
                                     </button>
-                                    
+
                                     <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-slate-800/50 ${openMenu === item.name ? 'max-h-60' : 'max-h-0'}`}>
                                         <ul className="flex flex-col py-1">
                                             {item.subMenus.map((subItem, subIndex) => (
@@ -119,9 +119,8 @@ export const Menu = () => {
                                 <NavLink
                                     to={item.path}
                                     onClick={() => setOpenMenu(null)} // Close any open accordion
-                                    className={({ isActive }) => `block w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 ${
-                                        isActive ? 'bg-slate-700 text-white border-l-4 border-sky-400' : 'text-slate-300 hover:bg-slate-700 hover:text-white border-l-4 border-transparent'
-                                    }`}
+                                    className={({ isActive }) => `block w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 ${isActive ? 'bg-slate-700 text-white border-l-4 border-sky-400' : 'text-slate-300 hover:bg-slate-700 hover:text-white border-l-4 border-transparent'
+                                        }`}
                                 >
                                     <span>{item.name}</span>
                                 </NavLink>

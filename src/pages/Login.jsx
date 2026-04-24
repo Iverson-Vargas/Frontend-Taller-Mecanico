@@ -50,7 +50,7 @@ export const Login = () => {
                         rol: data.empleado.cargo
                     }));
 
-                    navigate('/panel/Recepcion');
+                    navigate('/panel');
                 } else {
                     setError(data.error || data.message || 'Credenciales inválidas');
                 }

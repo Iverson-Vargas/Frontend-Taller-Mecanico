@@ -19,19 +19,20 @@ import { ReporteNominas } from './pages/Reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
 import { RegistroCliente } from './pages/RegistroCliente.jsx';
 import { RegistroVehiculo } from './pages/RegistroVehiculo.jsx';
+import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
+
+const PlantillaPrueba = () => {
+    return (
+        <div className="min-h-screen bg-gray-50 flex">
+            <Menu />
+            <main className="ml-72 p-8 w-full transition-all duration-300">
+                <Outlet />
+            </main>
+        </div>
+    )
+}
 
 export const Direccionamiento = () => {
-
-    function PlantillaPrueba() {
-        return (
-            <div className="min-h-screen bg-gray-50 flex">
-                <Menu />
-                <main className="ml-72 p-8 w-full transition-all duration-300">
-                    <Outlet />
-                </main>
-            </div>
-        )
-    }
 
     return (
         <Routes>

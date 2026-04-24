@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import { ordenService } from '../services/apiService.js';
 import api from '../services/axios.js';
 import '../assets/orden-servicio.css';
@@ -22,7 +21,8 @@ export const OrdenServicio = () => {
         tiene_radio: false,
         tiene_rayones: false,
         observaciones: '',
-        estado: 'recepcion'
+        estado: 'recepcion',
+        prioridad: 'normal'
     });
 
     const [clienteData, setClienteData] = useState({
@@ -171,6 +171,11 @@ export const OrdenServicio = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        handleGuardarOrden();
     };
 
     const handleGuardarOrden = async () => {
@@ -446,7 +451,7 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Prioridad:</label>
-                    <select name="prioridad" value={form.prioridad} onChange={handleChange}>
+                    <select name="prioridad" value={formData.prioridad} onChange={handleInputChange}>
                         <option value="baja">Baja</option>
                         <option value="normal">Normal</option>
                         <option value="alta">Alta</option>
