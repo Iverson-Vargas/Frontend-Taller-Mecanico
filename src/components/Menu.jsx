@@ -31,66 +31,50 @@ export const Menu = () => {
 
     const menuItems = [
         {
-            name: 'Atención y Recepción',
-            subMenus: [
-                { label: 'Registrar Nuevo Ingreso', path: '/panel/Recepcion' }
-            ]
-        },
-        {
-            name: 'Directorio de Clientes',
+            name: 'Recepción y Diagnóstico',
             subMenus: [
                 { label: 'Registro de Cliente', path: '/panel/RegistroCliente' },
-                { label: 'Lista de Clientes', path: '/panel/Listado-Clientes' }
+                { label: 'Registro de Vehículo', path: '/panel/RegistroVehiculo' },
+                { label: 'Lista de Clientes', path: '/panel/Listado-Clientes' },
+                { label: 'Registro de Nueva Orden', path: '/panel/Orden-Servicio' }
             ]
         },
         {
-            name: 'Operaciones de Taller',
+            name: 'Catálogo, Servicios y Precios',
             subMenus: [
-                { label: 'Registro de Nueva Orden', path: '/panel/Orden-Servicio' },
-                { label: 'Historial de Atenciones', path: '/panel/Lista-Servicio' }
+                { label: 'Historial de Servicios', path: '/panel/Lista-Servicio' }
             ]
         },
         {
-            name: 'Control de Repuestos',
+            name: 'Inventarios y Repuestos',
             subMenus: [
                 { label: 'Inventario General', path: '/panel/Inventario' },
-                { label: 'Reporte de Inventario', path: '/panel/Reporte-Inventario' }
-            ]
-        },
-        {
-            name: 'Red de Proveedores',
-            subMenus: [
                 { label: 'Listado de Proveedores', path: '#' }
             ]
         },
         {
-            name: 'Gestión de Personal',
+            name: 'Gestión de Empleados y Nómina',
             subMenus: [
                 { label: 'Directorio de Empleados', path: '/panel/GestionEmpleados' },
                 { label: 'Registro de Empleado', path: '/panel/RegistroEmpleado' }
             ]
         },
         {
-            name: 'Cobranza y Pagos',
+            name: 'Facturación y Caja',
             subMenus: [
                 { label: 'Emisión de Recibos', path: '/panel/Facturacion' }
             ]
         },
         {
-            name: 'Administración Financiera',
+            name: 'Egresos y Gastos',
             subMenus: [
                 { label: 'Libro de Cuentas', path: '/panel/Contabilidad' },
                 { label: 'Balance General', path: '/panel/Resumen-Financiero' }
             ]
         },
         {
-            name: 'Análisis de Resultados',
-            subMenus: [
-                { label: 'Estado de Ganancias', path: '/panel/ReporteGanancia' },
-                { label: 'Registro de Nóminas', path: '/panel/ReporteNominas' },
-                { label: 'Control de Productividad', path: '/panel/Control-Productividad' },
-                { label: 'Servicios Rentables', path: '/panel/servicios-rentables' }
-            ]
+            name: 'Reportes',
+            path: '/panel/Reportes'
         }
     ];
 
@@ -101,79 +85,58 @@ export const Menu = () => {
                 Taller App
             </h1>
 
-            <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-2">
-                <ul className="flex flex-col gap-1.5 w-full pb-6">
-                    {menuItems.map((item, index) => {
-                        const isOpen = openMenu === item.name;
-
-                        return (
-                            <li
-                                key={index}
-                                className="w-full"
-                                ref={(el) => itemRefs.current[item.name] = el}
-                            >
-                                <button
-                                    onClick={() => toggleMenu(item.name)}
-                                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex justify-between items-center group relative overflow-hidden
-                                        ${isOpen
-                                            ? 'bg-slate-800/80 text-white shadow-sm ring-1 ring-white/5'
-                                            : 'text-slate-300 hover:bg-slate-800/40 hover:text-white'
+            <nav className="flex-1 overflow-y-auto no-scrollbar custom-scrollbar">
+                <ul className="flex flex-col gap-1 w-full pb-4">
+                    {menuItems.map((item, index) => (
+                        <li key={index} className="w-full">
+                            {item.subMenus ? (
+                                <>
+                                    <button
+                                        onClick={() => toggleMenu(item.name)}
+                                        className={`w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 flex justify-between items-center ${
+                                            openMenu === item.name ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'
                                         }`}
-                                >
-                                    {/* Subtle gradient background when active */}
-                                    <div className={`absolute inset-0 bg-gradient-to-r from-sky-500/10 to-transparent opacity-0 transition-opacity duration-300 ${isOpen ? 'opacity-100' : ''}`}></div>
-
-                                    {/* Left active border indicator */}
-                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-sky-400 rounded-r-full transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 scale-y-0 group-hover:opacity-50 group-hover:scale-y-100 group-hover:bg-slate-500'}`}></div>
-
-                                    <span className="relative z-10 font-semibold tracking-wide flex items-center gap-3">
-                                        <svg className={`w-4 h-4 transition-colors duration-300 ${isOpen ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
-                                        </svg>
-                                        {item.name}
-                                    </span>
-
-                                    <svg
-                                        className={`w-4 h-4 transform transition-transform duration-300 relative z-10 ${isOpen ? 'rotate-180 text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`}
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                    <div className="overflow-hidden">
-                                        <ul className="flex flex-col gap-0.5 py-1 px-2 mt-1 mb-2 relative">
-                                            {/* Submenu connector line */}
-                                            <div className="absolute left-6 top-0 bottom-3 w-px bg-slate-800"></div>
-
+                                        <span>{item.name}</span>
+                                        <span className={`transform transition-transform duration-300 ${openMenu === item.name ? 'rotate-180' : ''}`}>
+                                            ▼
+                                        </span>
+                                    </button>
+                                    
+                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-slate-800/50 ${openMenu === item.name ? 'max-h-60' : 'max-h-0'}`}>
+                                        <ul className="flex flex-col py-1">
                                             {item.subMenus.map((subItem, subIndex) => (
                                                 <li key={subIndex}>
                                                     <NavLink to={subItem.path} className={estilosDelEnlace}>
-                                                        {({ isActive }) => (
-                                                            <>
-                                                                <span className={`absolute left-4 w-1.5 h-1.5 rounded-full transition-all duration-300 z-10 
-                                                                    ${isActive ? 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] scale-110' : 'bg-slate-600 group-hover:bg-slate-400 group-hover:scale-125'}`}
-                                                                ></span>
-                                                                {/* Horizontal connector line to the dot */}
-                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-px bg-slate-800 -z-10"></span>
-
-                                                                {subItem.label}
-                                                            </>
-                                                        )}
+                                                        {subItem.label}
                                                     </NavLink>
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
-                                </div>
-                            </li>
-                        );
-                    })}
+                                </>
+                            ) : (
+                                <NavLink
+                                    to={item.path}
+                                    onClick={() => setOpenMenu(null)} // Close any open accordion
+                                    className={({ isActive }) => `block w-full text-left px-6 py-3 text-sm font-medium transition-colors duration-300 ${
+                                        isActive ? 'bg-slate-700 text-white border-l-4 border-sky-400' : 'text-slate-300 hover:bg-slate-700 hover:text-white border-l-4 border-transparent'
+                                    }`}
+                                >
+                                    <span>{item.name}</span>
+                                </NavLink>
+                            )}
+                        </li>
+                    ))}
                 </ul>
             </nav>
 
-            <div className="mt-auto px-6 py-4 bg-[#0f172a] border-t border-slate-800/60 flex-shrink-0">
+            <div className="mt-auto px-6 py-4 bg-slate-800 border-t border-slate-700 flex-shrink-0 flex flex-col gap-3">
+                <button
+                    className="cursor-pointer w-full bg-slate-700/50 text-slate-300 py-2 px-4 rounded hover:bg-slate-600 transition-all duration-300 font-medium"
+                >
+                    Ajustes
+                </button>
                 <button
                     onClick={() => {
                         localStorage.removeItem('isAuthenticated');

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clienteService } from '../services/apiService';
 
 export const EstadoCliente = () => {
     const navigate = useNavigate();
@@ -17,11 +18,7 @@ export const EstadoCliente = () => {
 
         const fetchEstado = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/clientes/consulta/${cedula}`);
-                if (!res.ok) {
-                    throw new Error('No se pudo obtener la información de su vehículo');
-                }
-                const data = await res.json();
+                const data = await clienteService.consultarEstado(cedula);
                 setClienteData(data);
             } catch (err) {
                 setError(err.message || 'Error de conexión con el servidor');
@@ -84,9 +81,7 @@ export const EstadoCliente = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Renderizar dinámicamente todo lo que devuelva el back */}
                             {Object.entries(clienteData).map(([key, value]) => {
-                                // Evitar objetos internos, renderizamos sus propiedades si es necesario
                                 if (typeof value === 'object' && value !== null) {
                                   return (
                                     <div key={key} className="col-span-full bg-slate-50 p-6 rounded-xl border border-slate-100">
