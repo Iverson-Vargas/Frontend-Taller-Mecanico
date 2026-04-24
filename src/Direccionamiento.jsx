@@ -20,6 +20,8 @@ import { EstadoCliente } from './pages/EstadoCliente.jsx';
 import { RegistroCliente } from './pages/RegistroCliente.jsx';
 import { RegistroVehiculo } from './pages/RegistroVehiculo.jsx';
 import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
+import { ControlProductividad } from './pages/ControlProductividad.jsx';
+import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
 
 const PlantillaPrueba = () => {
     return (
@@ -62,6 +64,8 @@ export const Direccionamiento = () => {
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
                 <Route path='servicios-rentables' element={<ServiciosRentables />} />
+                <Route path='ControlProductividad' element={<ControlProductividad />} />
+                <Route path='MovimientoInventario' element={<MovimientoValorInventario />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
