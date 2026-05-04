@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clienteService } from '../services/apiService';
 
 export const EstadoCliente = () => {
     const navigate = useNavigate();
@@ -18,8 +17,10 @@ export const EstadoCliente = () => {
 
         const fetchEstado = async () => {
             try {
-                const data = await clienteService.consultarEstado(cedula);
-                setClienteData(data);
+                const res = await fetch(`http://localhost:3001/api/clientes/consulta/${cedula}`);
+                if (!res.ok) throw new Error('Error al consultar estado');
+                const result = await res.json();
+                setClienteData(result.data || result);
             } catch (err) {
                 setError(err.message || 'Error de conexión con el servidor');
             } finally {

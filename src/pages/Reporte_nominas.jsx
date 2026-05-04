@@ -9,7 +9,7 @@ export const ReporteNominas = () => {
   useEffect(() => {
     const fetchNominas = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/empleados`);
         if(response.ok) {
           const result = await response.json();
           // Mapeamos los datos de base de datos a estructura de nómina, extrayendo result.data.empleados
@@ -44,7 +44,7 @@ export const ReporteNominas = () => {
   const liquidarPago = async (empleado, neto) => {
     if(!window.confirm(`¿Seguro que deseas liquidar $${neto.toFixed(2)} a ${empleado.nombre}?`)) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/nomina/pagar`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/nomina/pagar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_empleado: empleado.id_empleado, monto_total: neto })

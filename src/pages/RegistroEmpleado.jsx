@@ -51,7 +51,7 @@ export const RegistroEmpleado = () => {
                 aplica_comision: parseFloat(formData.monto_comision_fija) > 0
             };
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/empleados`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyData)

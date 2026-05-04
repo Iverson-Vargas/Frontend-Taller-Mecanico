@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ordenService } from '../services/apiService.js';
 import '../assets/tablas.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -17,9 +16,10 @@ export const ListaServicio = () => {
     const cargarOrdenes = async () => {
         try {
             setLoading(true);
-            const response = await ordenService.getAll();
+            const res = await fetch('http://localhost:3001/api/ordenes');
+            const data = await res.json();
             // La respuesta tiene estructura: { message, status, data }
-            setOrdenes(response.data || []);
+            setOrdenes(data.data || []);
         } catch (error) {
             console.error("Error cargando órdenes", error);
         } finally {
@@ -30,7 +30,12 @@ export const ListaServicio = () => {
     const handleEliminar = async (id) => {
         if (confirm('¿Está seguro de eliminar esta orden?')) {
             try {
-                await ordenService.delete(id);
+                const res = await fetch(`http://localhost:3001/api/ordenes/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!res.ok) {
+                    throw new Error('No se pudo eliminar');
+                }
                 alert('Orden eliminada');
                 cargarOrdenes();
             } catch (error) {

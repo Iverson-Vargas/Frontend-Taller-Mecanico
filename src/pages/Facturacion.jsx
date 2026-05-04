@@ -27,7 +27,7 @@ export const Facturacion = () => {
 
   const fetchFacturas = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/facturas');
+      const response = await fetch('http://localhost:3001/api/facturas');
       if (response.ok) {
         const data = await response.json();
         // El backend devuelve { message, status, data: [] }
@@ -44,7 +44,7 @@ export const Facturacion = () => {
     setCargandoDetalles(true);
     setDetallesModal({ repuestos: [], servicios: [] });
     try {
-      const response = await fetch(`http://localhost:3000/api/ordenes/${factura.id_orden}`);
+      const response = await fetch(`http://localhost:3001/api/ordenes/${factura.id_orden}`);
       if (response.ok) {
         const ordenEncontrada = await response.json();
         const repuestos = ordenEncontrada.detalle_orden_repuestos?.map(req => ({
@@ -70,7 +70,8 @@ export const Facturacion = () => {
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/ordenes/finalizadas');
+        // Ajusta esta ruta según los endpoints de tu backend
+        const response = await fetch('http://localhost:3001/api/ordenes/finalizadas');
         if (response.ok) {
           const data = await response.json();
           // El backend devuelve { message, status, data: [] }
@@ -98,7 +99,7 @@ export const Facturacion = () => {
 
     try {
       // Ajusta esta ruta según la API de tu backend
-      const response = await fetch(`http://localhost:3000/api/ordenes/${ordenServicio}`);
+      const response = await fetch(`http://localhost:3001/api/ordenes/${ordenServicio}`);
       
       if (response.ok) {
         const ordenEncontrada = await response.json();
@@ -239,7 +240,7 @@ export const Facturacion = () => {
 
     try {
       // Ajusta la ruta y el método a los requeridos por tu backend
-      const response = await fetch('http://localhost:3000/api/facturas', {
+      const response = await fetch('http://localhost:3001/api/facturas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

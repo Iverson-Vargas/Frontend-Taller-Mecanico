@@ -27,7 +27,7 @@ export const GestionEmpleados = () => {
     useEffect(() => {
         const fetchEmpleados = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/empleados`);
                 if(response.ok) {
                     const result = await response.json();
                     // El backend devuelve los empleados dentro de data.empleados
