@@ -72,7 +72,7 @@ export const Contabilidad = () => {
         }
 
         try {
-            const url = `http://localhost:3000/api/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`;
+            const url = `http://localhost:3001/api/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`;
             const response = await axios.get(url);
 
             const dataGastos = response.data.gastos || [];
@@ -115,7 +115,7 @@ export const Contabilidad = () => {
 
     const fetchProveedores = async () => {
         try {
-            const res = await axios.get('http://localhost:3000/api/contabilidad/proveedores');
+            const res = await axios.get('http://localhost:3001/api/contabilidad/proveedores');
             // La respuesta ya trae el array directamente según el controlador
             setProveedoresDB(Array.isArray(res.data) ? res.data : []);
         } catch (error) { console.error("Error cargando proveedores", error); }
@@ -177,7 +177,7 @@ export const Contabilidad = () => {
 
             console.log("DEBUG - Enviando a Contabilidad:", data);
 
-            await axios.post('http://localhost:3000/api/contabilidad', data);
+            await axios.post('http://localhost:3001/api/contabilidad', data);
             alert(`✅ Registrado correctamente`);
             setNuevoRegistro({ ...nuevoRegistro, desc: '', montoUSD: '', id_proveedor: '' });
             fetchContabilidad();
@@ -191,7 +191,7 @@ export const Contabilidad = () => {
     const handleGuardarProveedor = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:3000/api/contabilidad/proveedores', nuevoProv);
+            const res = await axios.post('http://localhost:3001/api/contabilidad/proveedores', nuevoProv);
             alert(`✅ Proveedor "${nuevoProv.nombre_empresa}" registrado`);
             setShowModalProv(false); // No lo cerramos para que pueda ver la lista actualizada si quiere
             setNuevoProv({ rif: '', nombre_empresa: '', especialidad: '', nombre_contacto: '', apellido_contacto: '' });
@@ -205,7 +205,7 @@ export const Contabilidad = () => {
     const handleEliminarProveedor = async (id) => {
         if (window.confirm("¿Estás seguro de eliminar este proveedor?")) {
             try {
-                const res = await axios.delete(`http://localhost:3000/api/contabilidad/proveedores/${id}`);
+                const res = await axios.delete(`http://localhost:3001/api/contabilidad/proveedores/${id}`);
                 alert(`✅ ${res.data.message}`);
                 fetchProveedores();
             } catch (error) {
@@ -219,7 +219,7 @@ export const Contabilidad = () => {
     // 3. ACTUALIZAR ESTADO A PAGADO (PATCH)
     const handlePagar = async (id, tipo) => {
         try {
-            await axios.patch('http://localhost:3000/api/contabilidad/pagar', { id, tipo });
+            await axios.patch('http://localhost:3001/api/contabilidad/pagar', { id, tipo });
             fetchContabilidad();
         } catch (error) {
             console.error("Error al pagar:", error);
@@ -230,7 +230,7 @@ export const Contabilidad = () => {
     const handleEliminar = async (id, tipo) => {
         if (window.confirm("¿Estás seguro de eliminar este registro?")) {
             try {
-                await axios.delete(`http://localhost:3000/api/contabilidad/${id}?tipo=${tipo}`);
+                await axios.delete(`http://localhost:3001/api/contabilidad/${id}?tipo=${tipo}`);
                 fetchContabilidad();
             } catch (error) {
                 console.error("Error al eliminar:", error);
