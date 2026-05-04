@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import api from '../services/axios.js';
 import '../assets/recepcion.css';
 
 export const RegistroVehiculo = () => {
@@ -31,10 +30,14 @@ export const RegistroVehiculo = () => {
 
         setCargando(true);
         try {
-            const response = await api.get(`/clientes/consulta/${cedula}`);
-            if (response.data.data) {
-                setClienteEncontrado(response.data.data);
-                alert(`Cliente encontrado: ${response.data.data.nombre} ${response.data.data.apellido}`);
+            const response = await fetch(`http://localhost:3001/api/clientes/consulta/${cedula}`);
+            if (!response.ok) {
+                throw new Error('Cliente no encontrado');
+            }
+            const data = await response.json();
+            if (data.data) {
+                setClienteEncontrado(data.data);
+                alert(`Cliente encontrado: ${data.data.nombre} ${data.data.apellido}`);
             }
         } catch (error) {
             alert('Cliente no encontrado. Debe registrarlo primero.');
@@ -75,10 +78,17 @@ export const RegistroVehiculo = () => {
 
             console.log('Datos a enviar:', vehiculoData);
             
-            const response = await api.post('/carros', vehiculoData);
-            console.log('Respuesta:', response.data);
+            const response = await fetch('http://localhost:3001/api/carros', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(vehiculoData)
+            });
+            const data = await response.json();
+            console.log('Respuesta:', data);
             
-            if (response.status === 201 || response.data.status === 201) {
+            if (response.status === 201 || data.status === 201) {
                 alert('Vehículo registrado exitosamente');
                 setFormData({
                     cedula_rif: '',
@@ -91,15 +101,11 @@ export const RegistroVehiculo = () => {
                 });
                 setClienteEncontrado(null);
             } else {
-                alert('Error: ' + (response.data?.message || 'No se pudo guardar'));
+                alert('Error: ' + (data?.message || 'No se pudo guardar'));
             }
         } catch (error) {
             console.error('Error:', error);
-            if (error.response?.data?.message) {
-                alert('Error del servidor: ' + error.response.data.message);
-            } else {
-                alert('Error al guardar el vehículo');
-            }
+            alert('Error al guardar el vehículo');
         } finally {
             setCargando(false);
         }

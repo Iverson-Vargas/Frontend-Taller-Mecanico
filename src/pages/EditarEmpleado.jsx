@@ -36,7 +36,7 @@ export const EditarEmpleado = () => {
     useEffect(() => {
         const fetchEmpleado = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados/${id}`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/empleados/${id}`);
                 if(response.ok) {
                     const result = await response.json();
                     const emp = result.data.empleado;
@@ -85,7 +85,7 @@ export const EditarEmpleado = () => {
                 aplica_comision: parseFloat(formData.monto_comision_fija) > 0
             };
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/empleados/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyData)

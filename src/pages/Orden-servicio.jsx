@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ordenService } from '../services/apiService.js';
-import api from '../services/axios.js';
 import '../assets/orden-servicio.css';
 
 export const OrdenServicio = () => {
@@ -19,6 +17,7 @@ export const OrdenServicio = () => {
         tiene_radio: false,
         tiene_rayones: false,
         observaciones: '',
+        diagnostico_tecnico: '',
         estado: 'recepcion'
     });
 
@@ -36,6 +35,8 @@ export const OrdenServicio = () => {
         ano: '',
         kilometraje: ''
     });
+    
+    const [vehiculosCliente, setVehiculosCliente] = useState([]);
 
     useEffect(() => {
         cargarMecanicos();
@@ -44,9 +45,10 @@ export const OrdenServicio = () => {
 
     const cargarMecanicos = async () => {
         try {
-            const response = await api.get('/empleados');
-            if (response.data && response.data.data) {
-                setMecanicos(response.data.data);
+            const response = await fetch('http://localhost:3001/api/empleados');
+            const data = await response.json();
+            if (data && data.data) {
+                setMecanicos(data.data);
             }
         } catch (error) {
             console.error('Error cargando mecánicos:', error);
@@ -55,9 +57,10 @@ export const OrdenServicio = () => {
 
     const cargarRepuestos = async () => {
         try {
-            const response = await api.get('/inventario');
-            if (response.data && response.data.data) {
-                setRepuestos(response.data.data);
+            const response = await fetch('http://localhost:3001/api/inventario');
+            const data = await response.json();
+            if (data && data.data) {
+                setRepuestos(data.data);
             }
         } catch (error) {
             console.error('Error cargando repuestos:', error);
@@ -75,11 +78,23 @@ export const OrdenServicio = () => {
         setLoading(true);
         try {
             // 1. Buscar cliente por cédula
-            const clienteResponse = await api.get(`/clientes/consulta/${cedula}`);
-            console.log('Cliente respuesta:', clienteResponse.data);
+            const resCliente = await fetch(`http://localhost:3001/api/clientes/consulta/${cedula}`);
             
-            if (clienteResponse.data && clienteResponse.data.data) {
-                const cliente = clienteResponse.data.data;
+            if (!resCliente.ok) {
+                if (resCliente.status === 404) {
+                    alert('Cliente no encontrado. Debe registrarlo primero.');
+                } else {
+                    alert('Error al buscar el cliente');
+                }
+                limpiarDatosCliente();
+                return;
+            }
+
+            const dataCliente = await resCliente.json();
+            console.log('Cliente respuesta:', dataCliente);
+            
+            if (dataCliente && dataCliente.data) {
+                const cliente = dataCliente.data;
                 
                 // Llenar datos del cliente
                 setClienteData({
@@ -90,32 +105,39 @@ export const OrdenServicio = () => {
                 });
 
                 // 2. Buscar vehículos del cliente usando la cédula
-                const vehiculosResponse = await api.get(`/carros/cliente/${cedula}`);
-                console.log('Vehículos respuesta:', vehiculosResponse.data);
-                
-                if (vehiculosResponse.data && vehiculosResponse.data.data && vehiculosResponse.data.data.length > 0) {
-                    const vehiculo = vehiculosResponse.data.data[0];
-                    setVehiculoData({
-                        placa: vehiculo.placa || '',
-                        marca: vehiculo.marca || '',
-                        modelo: vehiculo.modelo || '',
-                        ano: vehiculo.ano || '',
-                        kilometraje: vehiculo.kilometraje || ''
-                    });
-                    setFormData(prev => ({
-                        ...prev,
-                        placa_carro: vehiculo.placa
-                    }));
-                    alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido} - Vehículo: ${vehiculo.placa}`);
+                const resVehiculos = await fetch(`http://localhost:3001/api/carros/cliente/${cedula}`);
+                if (resVehiculos.ok) {
+                    const dataVehiculos = await resVehiculos.json();
+                    console.log('Vehículos respuesta:', dataVehiculos);
+                    
+                    if (dataVehiculos && dataVehiculos.data && dataVehiculos.data.length > 0) {
+                        setVehiculosCliente(dataVehiculos.data);
+                        const vehiculo = dataVehiculos.data[0];
+                        setVehiculoData({
+                            placa: vehiculo.placa || '',
+                            marca: vehiculo.marca || '',
+                            modelo: vehiculo.modelo || '',
+                            ano: vehiculo.ano || '',
+                            kilometraje: vehiculo.kilometraje || ''
+                        });
+                        setFormData(prev => ({
+                            ...prev,
+                            placa_carro: vehiculo.placa
+                        }));
+                        alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido} - Vehículos encontrados: ${dataVehiculos.data.length}`);
+                    } else {
+                        alert('Cliente encontrado pero no tiene vehículos registrados');
+                        setVehiculosCliente([]);
+                        setVehiculoData({
+                            placa: '',
+                            marca: '',
+                            modelo: '',
+                            ano: '',
+                            kilometraje: ''
+                        });
+                    }
                 } else {
-                    alert('Cliente encontrado pero no tiene vehículos registrados');
-                    setVehiculoData({
-                        placa: '',
-                        marca: '',
-                        modelo: '',
-                        ano: '',
-                        kilometraje: ''
-                    });
+                    alert('Error al obtener vehículos del cliente');
                 }
             } else {
                 alert('Cliente no encontrado');
@@ -123,11 +145,7 @@ export const OrdenServicio = () => {
             }
         } catch (error) {
             console.error('Error buscando cliente:', error);
-            if (error.response?.status === 404) {
-                alert('Cliente no encontrado. Debe registrarlo primero.');
-            } else {
-                alert('Error al buscar el cliente: ' + (error.response?.data?.message || error.message));
-            }
+            alert('Error de red al buscar el cliente.');
             limpiarDatosCliente();
         } finally {
             setLoading(false);
@@ -148,10 +166,29 @@ export const OrdenServicio = () => {
             ano: '',
             kilometraje: ''
         });
+        setVehiculosCliente([]);
         setFormData(prev => ({
             ...prev,
             placa_carro: ''
         }));
+    };
+
+    const handleSeleccionarVehiculo = (e) => {
+        const placaSeleccionada = e.target.value;
+        const vehiculo = vehiculosCliente.find(v => v.placa === placaSeleccionada);
+        if (vehiculo) {
+            setVehiculoData({
+                placa: vehiculo.placa || '',
+                marca: vehiculo.marca || '',
+                modelo: vehiculo.modelo || '',
+                ano: vehiculo.ano || '',
+                kilometraje: vehiculo.kilometraje || ''
+            });
+            setFormData(prev => ({
+                ...prev,
+                placa_carro: vehiculo.placa
+            }));
+        }
     };
 
     const handleInputChange = (e) => {
@@ -184,22 +221,30 @@ export const OrdenServicio = () => {
         try {
             const ordenData = {
                 placa_carro: formData.placa_carro,
-                id_mecanico: formData.id_mecanico ? parseInt(formData.id_mecanico) : null,
+                id_mecanico: formData.id_mecanico || null,
                 motivo_visita: formData.motivo_visita || null,
                 falla_declarada: formData.falla_declarada,
                 tiene_caucho: formData.tiene_caucho,
                 tiene_radio: formData.tiene_radio,
                 tiene_rayones: formData.tiene_rayones,
                 observaciones: formData.observaciones || null,
+                diagnostico_tecnico: formData.diagnostico_tecnico || null,
                 estado: formData.estado
             };
 
             console.log('Guardando orden:', ordenData);
-            const response = await api.post('/ordenes', ordenData);
-            console.log('Respuesta:', response.data);
+            const response = await fetch('http://localhost:3001/api/ordenes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ordenData)
+            });
+            const data = await response.json();
+            console.log('Respuesta:', data);
             
-            if (response.data.status === 201 || response.status === 201) {
-                alert(`Orden guardada exitosamente. Número: ${response.data.data?.id_orden || 'generado'}`);
+            if (response.status === 201 || data.status === 201) {
+                alert(`Orden guardada exitosamente. Número: ${data.data?.id_orden || 'generado'}`);
                 // Limpiar formulario
                 setFormData({
                     placa_carro: '',
@@ -210,6 +255,7 @@ export const OrdenServicio = () => {
                     tiene_radio: false,
                     tiene_rayones: false,
                     observaciones: '',
+                    diagnostico_tecnico: '',
                     estado: 'recepcion'
                 });
                 setClienteData({
@@ -227,11 +273,11 @@ export const OrdenServicio = () => {
                 });
                 navigate('/panel/Lista-Servicio');
             } else {
-                alert('Error al guardar la orden: ' + (response.data?.message || 'Error desconocido'));
+                alert('Error al guardar la orden: ' + (data?.message || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error guardando orden:', error);
-            alert(error.response?.data?.message || 'Error al guardar la orden');
+            alert('Error de red al guardar la orden');
         } finally {
             setLoading(false);
         }
@@ -345,6 +391,24 @@ export const OrdenServicio = () => {
             </div>
 
             <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
+            
+            {vehiculosCliente.length > 1 && (
+                <div className="campo" style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Seleccionar Vehículo:</label>
+                    <select 
+                        onChange={handleSeleccionarVehiculo} 
+                        value={vehiculoData.placa} 
+                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#fff' }}
+                    >
+                        {vehiculosCliente.map(v => (
+                            <option key={v.placa} value={v.placa}>
+                                {v.placa} - {v.marca} {v.modelo}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
             <div className="seccion-grid">
                 <div className="campo">
                     <label>Placa:</label>
@@ -426,7 +490,7 @@ export const OrdenServicio = () => {
             <div className="diagnostico-tecnico">
                 <div className="campo">
                     <label>Diagnóstico:</label>
-                    <input type="text" name="diagnostico" onChange={handleInputChange} />
+                    <textarea name="diagnostico_tecnico" value={formData.diagnostico_tecnico} onChange={handleInputChange} rows="3"></textarea>
                 </div>
                 <div className="campo">
                     <label>Observaciones:</label>

@@ -27,8 +27,7 @@ export const RegistroCliente = () => {
 
     const handleGuardar = async () => {
         try {
-            // Asumimos que hay un endpoint para clientes, si no, lo ajustaremos más tarde.
-            const respuesta = await fetch('http://localhost:3000/api/clientes', {
+            const respuesta = await fetch('http://localhost:3001/api/clientes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
