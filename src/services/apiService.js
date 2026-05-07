@@ -144,4 +144,40 @@ export const ordenService = {
     }
 };
 
+export const mecanicoService = {
+    getAll: async () => {
+        try {
+            const response = await api.get('/empleados');
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener mecánicos:', error);
+            throw error;
+        }
+    }
+};
+
+export const inventarioService = {
+    getAll: async () => {
+        try {
+            const response = await api.get('/inventario');
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener inventario:', error);
+            throw error;
+        }
+    }
+};
+
+export const carroService = {
+    getByCliente: async (cedula) => {
+        try {
+            const response = await api.get(`/carros/cliente/${cedula}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener vehículos del cliente:', error);
+            throw error;
+        }
+    }
+};
+
 export default clienteService;

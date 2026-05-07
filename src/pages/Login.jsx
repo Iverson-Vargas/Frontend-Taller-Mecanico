@@ -16,7 +16,7 @@ export const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
-        
+
         if (esEmpleado && (!username || !password)) {
             setError("Por favor ingresa usuario y contraseña");
             return;
@@ -35,14 +35,14 @@ export const Login = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ usuario: username, password })
                 });
-                
+
                 const data = await res.json().catch(() => ({}));
-                
+
                 if (res.ok) {
                     // --- CORRECCIÓN: Guardar el objeto de sesión completo ---
                     localStorage.setItem('isAuthenticated', 'true');
                     localStorage.setItem('userRole', 'empleado');
-                    
+
                     // Guardamos la cédula y nombre en un objeto para que Egresos lo lea
                     localStorage.setItem('usuario', JSON.stringify({
                         cedula_rif: data.empleado.cedula_rif,
@@ -57,12 +57,12 @@ export const Login = () => {
             } else {
                 const res = await fetch(`${API_BASE_URL}/clientes/consulta/${cedula}`);
                 const data = await res.json().catch(() => ({}));
-                
+
                 if (res.ok) {
                     localStorage.setItem('isAuthenticated', 'true');
                     localStorage.setItem('userRole', 'cliente');
                     localStorage.setItem('clienteCedula', cedula);
-                    
+
                     // También guardamos aquí por si el cliente necesita ver sus datos
                     localStorage.setItem('usuario', JSON.stringify(data));
 
@@ -72,7 +72,7 @@ export const Login = () => {
                 }
             }
         } catch (err) {
-            setError('Error de conexión con el servidor (Revisa el puerto 3001)');
+            setError('Error de conexión con el servidor (Revisa el puerto 3000)');
         } finally {
             setLoading(false);
         }
@@ -81,19 +81,19 @@ export const Login = () => {
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-slate-100 p-4 font-sans">
             <div className="bg-white rounded-2xl shadow-lg w-full max-w-md overflow-hidden border border-slate-200">
-                
+
                 {/* PESTAÑAS (TABS) */}
                 <div className="flex border-b border-slate-100">
-                    <button 
+                    <button
                         type="button"
-                        onClick={() => setEsEmpleado(true)} 
+                        onClick={() => setEsEmpleado(true)}
                         className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         EMPLEADOS
                     </button>
-                    <button 
+                    <button
                         type="button"
-                        onClick={() => setEsEmpleado(false)} 
+                        onClick={() => setEsEmpleado(false)}
                         className={`cursor-pointer flex-1 py-4 text-sm font-bold transition-all outline-none ${!esEmpleado ? 'text-[#F43F5E] border-b-2 border-[#F43F5E] bg-rose-50' : 'text-slate-400 bg-white'}`}
                     >
                         CLIENTES
@@ -118,8 +118,8 @@ export const Login = () => {
                             <>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Usuario</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
@@ -129,8 +129,8 @@ export const Login = () => {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Contraseña</label>
-                                    <input 
-                                        type="password" 
+                                    <input
+                                        type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
@@ -142,8 +142,8 @@ export const Login = () => {
                         ) : (
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-600 uppercase ml-1 block">Número de Cédula</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={cedula}
                                     onChange={(e) => setCedula(e.target.value)}
                                     inputMode="numeric"
@@ -154,8 +154,8 @@ export const Login = () => {
                             </div>
                         )}
 
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={loading}
                             className={`cursor-pointer w-full mt-2 bg-[#F43F5E] hover:bg-rose-600 text-white font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] border-none p-3.5 text-center text-sm tracking-wide ${loading ? 'opacity-75 cursor-wait' : ''}`}
                         >

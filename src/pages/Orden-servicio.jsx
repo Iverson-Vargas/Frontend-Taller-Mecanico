@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ordenService } from '../services/apiService.js';
-import api from '../services/axios.js';
+import { ordenService, clienteService, mecanicoService, inventarioService, carroService } from '../services/apiService';
 import '../assets/orden-servicio.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -11,7 +10,7 @@ export const OrdenServicio = () => {
     const [mecanicos, setMecanicos] = useState([]);
     const [repuestos, setRepuestos] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     const [formData, setFormData] = useState({
         placa_carro: '',
         id_mecanico: null,
@@ -47,23 +46,34 @@ export const OrdenServicio = () => {
 
     const cargarMecanicos = async () => {
         try {
-            const response = await api.get('/empleados');
-            if (response.data && response.data.data) {
-                setMecanicos(response.data.data);
+            const response = await mecanicoService.getAll();
+            // Validar múltiples estructuras posibles de respuesta
+            let lista = [];
+            if (response && Array.isArray(response.data)) {
+                lista = response.data;
+            } else if (Array.isArray(response)) {
+                lista = response;
             }
+            setMecanicos(lista);
         } catch (error) {
             console.error('Error cargando mecánicos:', error);
+            setMecanicos([]); // Asegurar que sea array en caso de error
         }
     };
 
     const cargarRepuestos = async () => {
         try {
-            const response = await api.get('/inventario');
-            if (response.data && response.data.data) {
-                setRepuestos(response.data.data);
+            const response = await inventarioService.getAll();
+            let lista = [];
+            if (response && Array.isArray(response.data)) {
+                lista = response.data;
+            } else if (Array.isArray(response)) {
+                lista = response;
             }
+            setRepuestos(lista);
         } catch (error) {
             console.error('Error cargando repuestos:', error);
+            setRepuestos([]);
         }
     };
 
@@ -78,12 +88,12 @@ export const OrdenServicio = () => {
         setLoading(true);
         try {
             // 1. Buscar cliente por cédula
-            const clienteResponse = await api.get(`/clientes/consulta/${cedula}`);
-            console.log('Cliente respuesta:', clienteResponse.data);
-            
-            if (clienteResponse.data && clienteResponse.data.data) {
-                const cliente = clienteResponse.data.data;
-                
+            const clienteResponse = await clienteService.consultarEstado(cedula);
+            console.log('Cliente respuesta:', clienteResponse);
+
+            if (clienteResponse && clienteResponse.data) {
+                const cliente = clienteResponse.data;
+
                 // Llenar datos del cliente
                 setClienteData({
                     cedula: cliente.cedula_rif || cedula,
@@ -93,11 +103,11 @@ export const OrdenServicio = () => {
                 });
 
                 // 2. Buscar vehículos del cliente usando la cédula
-                const vehiculosResponse = await api.get(`/carros/cliente/${cedula}`);
-                console.log('Vehículos respuesta:', vehiculosResponse.data);
-                
-                if (vehiculosResponse.data && vehiculosResponse.data.data && vehiculosResponse.data.data.length > 0) {
-                    const vehiculo = vehiculosResponse.data.data[0];
+                const vehiculosResponse = await carroService.getByCliente(cedula);
+                console.log('Vehículos respuesta:', vehiculosResponse);
+
+                if (vehiculosResponse && vehiculosResponse.data && vehiculosResponse.data.length > 0) {
+                    const vehiculo = vehiculosResponse.data[0];
                     setVehiculoData({
                         placa: vehiculo.placa || '',
                         marca: vehiculo.marca || '',
@@ -203,11 +213,11 @@ export const OrdenServicio = () => {
             };
 
             console.log('Guardando orden:', ordenData);
-            const response = await api.post('/ordenes', ordenData);
-            console.log('Respuesta:', response.data);
-            
-            if (response.data.status === 201 || response.status === 201) {
-                alert(`Orden guardada exitosamente. Número: ${response.data.data?.id_orden || 'generado'}`);
+            const response = await ordenService.create(ordenData);
+            console.log('Respuesta:', response);
+
+            if (response.status === 201 || response.id_orden) {
+                alert(`Orden guardada exitosamente. Número: ${response.data?.id_orden || response.id_orden || 'generado'}`);
                 // Limpiar formulario
                 setFormData({
                     placa_carro: '',
@@ -297,7 +307,7 @@ export const OrdenServicio = () => {
                     <label>Mecánico asignado:</label>
                     <select name="id_mecanico" value={formData.id_mecanico || ''} onChange={handleInputChange}>
                         <option value="">Seleccione</option>
-                        {mecanicos.map(mec => (
+                        {Array.isArray(mecanicos) && mecanicos.map(mec => (
                             <option key={mec.id_empleado} value={mec.id_empleado}>
                                 {mec.nombre} {mec.apellido} - {mec.cargo}
                             </option>
@@ -311,16 +321,16 @@ export const OrdenServicio = () => {
                 <div className="campo">
                     <label>Cédula:</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="cedula"
                             value={clienteData.cedula}
                             onChange={handleClienteInputChange}
-                            placeholder="Ingrese cédula (ej: 1234567)" 
+                            placeholder="Ingrese cédula (ej: 1234567)"
                             style={{ flex: 1 }}
                         />
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={handleBuscarCliente}
                             disabled={loading}
                             style={{ padding: '5px 15px', cursor: 'pointer' }}
@@ -331,8 +341,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Nombre:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={clienteData.nombre}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -340,8 +350,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Teléfono:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={clienteData.telefono}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -353,8 +363,8 @@ export const OrdenServicio = () => {
             <div className="seccion-grid">
                 <div className="campo">
                     <label>Placa:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={vehiculoData.placa}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -362,8 +372,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Marca:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={vehiculoData.marca}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -371,8 +381,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Modelo:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={vehiculoData.modelo}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -380,8 +390,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Año:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={vehiculoData.ano}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -389,8 +399,8 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Kilometraje actual:</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={vehiculoData.kilometraje}
                         readOnly
                         style={{ backgroundColor: '#f5f5f5' }}
@@ -469,7 +479,7 @@ export const OrdenServicio = () => {
                     <label>Repuesto en inventario:</label>
                     <select>
                         <option value="">Seleccione un repuesto</option>
-                        {repuestos.map(rep => (
+                        {Array.isArray(repuestos) && repuestos.map(rep => (
                             <option key={rep.id_inventario} value={rep.id_inventario}>
                                 {rep.descripcion}
                             </option>

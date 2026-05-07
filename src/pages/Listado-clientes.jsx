@@ -10,7 +10,7 @@ export const ListaClientes = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
-    
+
     const [modalAbierto, setModalAbierto] = useState(false);
     const [clienteEditando, setClienteEditando] = useState(null);
     const [formEdit, setFormEdit] = useState({
@@ -34,7 +34,7 @@ export const ListaClientes = () => {
         if (busqueda.trim() === '') {
             setClientesFiltrados(clientes);
         } else {
-            const filtrados = clientes.filter(cliente => 
+            const filtrados = clientes.filter(cliente =>
                 cliente.cedula_rif && cliente.cedula_rif.toLowerCase().includes(busqueda.toLowerCase())
             );
             setClientesFiltrados(filtrados);
@@ -46,7 +46,7 @@ export const ListaClientes = () => {
             setLoading(true);
             const response = await clienteService.getAll();
             let datosClientes = [];
-            
+
             if (response && response.data && Array.isArray(response.data)) {
                 datosClientes = response.data;
             } else if (Array.isArray(response)) {
@@ -54,7 +54,7 @@ export const ListaClientes = () => {
             } else if (response && Array.isArray(response.clientes)) {
                 datosClientes = response.clientes;
             }
-            
+
             setClientes(datosClientes);
             setClientesFiltrados(datosClientes);
             setError('');
@@ -105,7 +105,7 @@ export const ListaClientes = () => {
 
     const handleGuardarEdicion = async () => {
         if (!clienteEditando) return;
-        
+
         if (!formEdit.cedula_rif || !formEdit.nombre || !formEdit.apellido) {
             alert('Los campos Cedula, Nombre y Apellido son obligatorios');
             return;
@@ -120,7 +120,7 @@ export const ListaClientes = () => {
                 direccion: formEdit.direccion || '',
                 correo: formEdit.correo || ''
             };
-            
+
             await clienteService.update(clienteEditando.id, datosActualizar);
             alert('Cliente actualizado exitosamente');
             handleCerrarModal();
@@ -134,9 +134,9 @@ export const ListaClientes = () => {
     const handleVerVehiculos = async (cliente) => {
         try {
             setClienteSeleccionado(cliente);
-            const response = await fetch(`http://localhost:3001/api/carros/cliente/${cliente.cedula_rif}`);
+            const response = await fetch(`http://localhost:3000/api/carros/cliente/${cliente.cedula_rif}`);
             const data = await response.json();
-            
+
             if (response.ok) {
                 let vehiculos = [];
                 if (data && Array.isArray(data.data)) {
@@ -183,7 +183,7 @@ export const ListaClientes = () => {
             <div className="tabla-header">
                 <div className="busqueda-filtro">
                     <div className="campo-busqueda">
-                        <input 
+                        <input
                             type="text"
                             className="busqueda-input"
                             placeholder="Buscar por cedula o rif..."
@@ -192,7 +192,7 @@ export const ListaClientes = () => {
                         />
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={handleRegresar}
                     className="btn-generar"
                 >
@@ -274,7 +274,7 @@ export const ListaClientes = () => {
                 <div className="modal-overlay" onClick={handleCerrarModal}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h2>Editar Cliente</h2>
-                        
+
                         <div className="modal-field">
                             <label>Cedula/RIF</label>
                             <input
