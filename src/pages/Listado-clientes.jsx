@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { clienteService } from "../services/apiService";
 import "../assets/tablas.css";
 
 export const ListaClientes = () => {
@@ -44,7 +43,8 @@ export const ListaClientes = () => {
     const cargarClientes = async () => {
         try {
             setLoading(true);
-            const response = await clienteService.getAll();
+            const res = await fetch('http://localhost:3000/api/clientes');
+            const response = await res.json();
             let datosClientes = [];
 
             if (response && response.data && Array.isArray(response.data)) {
@@ -120,14 +120,25 @@ export const ListaClientes = () => {
                 direccion: formEdit.direccion || '',
                 correo: formEdit.correo || ''
             };
-
-            await clienteService.update(clienteEditando.id, datosActualizar);
+            
+            const res = await fetch(`http://localhost:3000/api/clientes/${clienteEditando.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datosActualizar)
+            });
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Error al actualizar');
+            }
+            
             alert('Cliente actualizado exitosamente');
             handleCerrarModal();
             cargarClientes();
         } catch (err) {
             console.error('Error al actualizar cliente:', err);
-            alert('Error al actualizar el cliente: ' + (err.response?.data?.message || err.message));
+            alert('Error al actualizar el cliente: ' + err.message);
         }
     };
 

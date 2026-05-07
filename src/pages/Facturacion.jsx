@@ -70,6 +70,7 @@ export const Facturacion = () => {
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
+        // Ajusta esta ruta según los endpoints de tu backend
         const response = await fetch('http://localhost:3000/api/ordenes/finalizadas');
         if (response.ok) {
           const data = await response.json();

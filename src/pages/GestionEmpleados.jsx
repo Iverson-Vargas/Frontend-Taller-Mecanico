@@ -165,21 +165,25 @@ export const GestionEmpleados = () => {
                                             ${(emp.acumulado || 0).toFixed(2)}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6 text-center space-x-2">
-                                        <button 
-                                            onClick={() => navigate(`/panel/EditarEmpleado/${emp.id_empleado}`)}
-                                            className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
-                                            title="Editar Datos"
-                                        >
-                                            Editar
-                                        </button>
-                                        {(emp.acumulado || 0) > 0 ? (
-                                            <button onClick={() => liquidarPago(emp.id_empleado)} className="btn-liquidar-pink">
-                                                Liquidar Pago
+                                    <td className="px-8 py-6">
+                                        <div className="flex justify-center items-center gap-2">
+                                            <button 
+                                                onClick={() => navigate(`/panel/EditarEmpleado/${emp.id_empleado}`)}
+                                                className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+                                                title="Editar Datos"
+                                            >
+                                                Editar
                                             </button>
-                                        ) : (
-                                            <span className="text-green-success font-bold text-xs tracking-widest uppercase bg-green-50 px-3 py-1 rounded-full">Pagado</span>
-                                        )}
+                                            {(emp.acumulado || 0) > 0 ? (
+                                                <button onClick={() => liquidarPago(emp.id_empleado)} className="btn-liquidar-pink px-4 py-2 rounded-xl">
+                                                    Liquidar Pago
+                                                </button>
+                                            ) : (
+                                                <div className="bg-green-50 text-green-success border border-green-200 px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase flex items-center justify-center cursor-default">
+                                                    Pagado
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

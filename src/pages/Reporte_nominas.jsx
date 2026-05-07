@@ -15,7 +15,7 @@ export const ReporteNominas = () => {
     const fetchNominas = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados?startDate=${startDate}&endDate=${endDate}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
         if(response.ok) {
           const result = await response.json();
           const empleadosArray = result.data?.empleados || [];
