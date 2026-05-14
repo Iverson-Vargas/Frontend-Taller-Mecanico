@@ -150,7 +150,16 @@ export const ListaClientes = () => {
         try {
             setClienteSeleccionado(cliente);
             const response = await api.get(`/carros/cliente/${cliente.cedula_rif}`);
-            const vehiculos = response.data.data || [];
+            const dataPayload = response.data.data;
+            
+            let vehiculos = [];
+            if (Array.isArray(dataPayload)) {
+                vehiculos = dataPayload;
+            } else if (dataPayload && Array.isArray(dataPayload.carros)) {
+                vehiculos = dataPayload.carros;
+            } else if (dataPayload && Array.isArray(dataPayload.vehiculos)) {
+                vehiculos = dataPayload.vehiculos;
+            }
             
             setVehiculosCliente(vehiculos);
             setModalVehiculosAbierto(true);

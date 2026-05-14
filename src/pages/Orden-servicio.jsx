@@ -101,7 +101,16 @@ export const OrdenServicio = () => {
             // 2. GET /api/carros/cliente/:cedula → { success, message, data: [ ... ] }
             try {
                 const resVehiculos = await api.get(`/carros/cliente/${cedula}`);
-                const vehiculos = resVehiculos.data.data ?? [];
+                const dataPayload = resVehiculos.data.data;
+                
+                let vehiculos = [];
+                if (Array.isArray(dataPayload)) {
+                    vehiculos = dataPayload;
+                } else if (dataPayload && Array.isArray(dataPayload.carros)) {
+                    vehiculos = dataPayload.carros;
+                } else if (dataPayload && Array.isArray(dataPayload.vehiculos)) {
+                    vehiculos = dataPayload.vehiculos;
+                }
 
                 if (vehiculos.length > 0) {
                     setVehiculosCliente(vehiculos);
@@ -205,7 +214,7 @@ export const OrdenServicio = () => {
             // POST /api/ordenes → { success, message, data: { id_orden, ... } }
             const ordenData = {
                 placa_carro:         formData.placa_carro,
-                id_mecanico:         formData.id_mecanico  ? parseInt(formData.id_mecanico) : null,
+                id_mecanico:         formData.id_mecanico || null,
                 motivo_visita:       formData.motivo_visita       || null,
                 falla_declarada:     formData.falla_declarada,
                 tiene_caucho:        formData.tiene_caucho,
@@ -213,7 +222,8 @@ export const OrdenServicio = () => {
                 tiene_rayones:       formData.tiene_rayones,
                 observaciones:       formData.observaciones       || null,
                 diagnostico_tecnico: formData.diagnostico_tecnico || null,
-                estado:              formData.estado
+                estado:              formData.estado,
+                prioridad:           formData.prioridad           || 'normal'
             };
 
             const res = await api.post('/ordenes', ordenData);
@@ -319,8 +329,8 @@ export const OrdenServicio = () => {
                     <label>Mecánico asignado:</label>
                     <select name="id_mecanico" value={formData.id_mecanico || ''} onChange={handleInputChange}>
                         <option value="">Seleccione</option>
-                        {Array.isArray(mecanicos) && mecanicos.map(mec => (
-                            <option key={mec.id_empleado} value={mec.id_empleado}>
+                        {Array.isArray(mecanicos) && mecanicos.map((mec, index) => (
+                            <option key={mec.id_empleado || index} value={mec.id_empleado}>
                                 {mec.nombre} {mec.apellido} - {mec.cargo}
                             </option>
                         ))}
@@ -387,8 +397,8 @@ export const OrdenServicio = () => {
                         value={vehiculoData.placa}
                         style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#fff' }}
                     >
-                        {vehiculosCliente.map(v => (
-                            <option key={v.placa} value={v.placa}>
+                        {vehiculosCliente.map((v, index) => (
+                            <option key={v.placa || index} value={v.placa}>
                                 {v.placa} - {v.marca} {v.modelo}
                             </option>
                         ))}
@@ -494,8 +504,8 @@ export const OrdenServicio = () => {
                     <label>Repuesto en inventario:</label>
                     <select>
                         <option value="">Seleccione un repuesto</option>
-                        {Array.isArray(repuestos) && repuestos.map(rep => (
-                            <option key={rep.id_inventario} value={rep.id_inventario}>
+                        {Array.isArray(repuestos) && repuestos.map((rep, index) => (
+                            <option key={rep.id_inventario || index} value={rep.id_inventario}>
                                 {rep.descripcion}
                             </option>
                         ))}
