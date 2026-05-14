@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/axios.js';
 
 export const RegistroEmpleado = () => {
     const navigate = useNavigate();
@@ -14,6 +15,17 @@ export const RegistroEmpleado = () => {
     });
     const [loading, setLoading] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [feedback, setFeedback] = useState(null);
+
+    const mostrarFeedback = (mensaje, tipo = "ok") => {
+        setFeedback({ visible: true, mensaje, tipo });
+        setTimeout(() => setFeedback(null), 4500);
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }
+    };
 
     const especialidadesDisponibles = [
         "Mecánico General",
@@ -51,22 +63,21 @@ export const RegistroEmpleado = () => {
                 aplica_comision: parseFloat(formData.monto_comision_fija) > 0
             };
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyData)
-            });
-
-            if(response.ok) {
-                alert(`¡Empleado ${formData.nombre} registrado con éxito!`);
+            const response = await api.post('/empleados', bodyData);
+            
+            // Si el backend sigue el estándar { success: true, message, data }
+            const resData = response.data;
+            
+            mostrarFeedback(`¡Empleado ${formData.nombre} registrado con éxito!`, "ok");
+            
+            // Redirigir después de un momento para que vean el mensaje
+            setTimeout(() => {
                 navigate('/panel/GestionEmpleados');
-            } else {
-                const errorData = await response.json();
-                alert(`Error al registrar: ${errorData.message}`);
-            }
+            }, 2000);
         } catch (error) {
             console.error("Error:", error);
-            alert("No se pudo conectar con el servidor.");
+            const errorMsg = error.response?.data?.error || error.response?.data?.message || "No se pudo conectar con el servidor.";
+            mostrarFeedback(`Error al registrar: ${errorMsg}`, "error");
         } finally {
             setLoading(false);
         }
@@ -74,6 +85,14 @@ export const RegistroEmpleado = () => {
 
     return (
         <div className="p-8 max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl mt-10 border border-slate-100 relative">
+            
+            {/* Toast Notificación */}
+            {feedback && (
+                <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 z-[200]`} style={feedbackStyles[feedback.tipo]}>
+                    <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
+                </div>
+            )}
+
             {/* Botón de Ir Atrás */}
             <button 
                 type="button" 

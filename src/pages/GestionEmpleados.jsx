@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import '../assets/GestionEmpleados.css';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/axios.js';
 
 export const GestionEmpleados = () => {
     const navigate = useNavigate();
     const [empleados, setEmpleados] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [feedback, setFeedback] = useState(null);
 
     // Búsqueda y Ordenamiento
     const [searchTerm, setSearchTerm] = useState('');
@@ -27,16 +29,28 @@ export const GestionEmpleados = () => {
     useEffect(() => {
         const fetchEmpleados = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
-                if(response.ok) {
-                    const result = await response.json();
-                    // El backend devuelve los empleados dentro de data.empleados
-                    const empleadosArray = result.data?.empleados || [];
-                    const dataWithMock = empleadosArray.map(emp => ({ ...emp, acumulado: emp.acumulado || 0 }));
-                    setEmpleados(dataWithMock);
+                setLoading(true);
+                const response = await api.get('/empleados');
+                const dataPayload = response.data.data;
+
+                // Extracción Inteligente
+                let empleadosArray = [];
+                if (Array.isArray(dataPayload)) {
+                    empleadosArray = dataPayload;
+                } else if (dataPayload && Array.isArray(dataPayload.empleados)) {
+                    empleadosArray = dataPayload.empleados;
                 }
-            } catch (error) {
-                console.error("Error cargando empleados", error);
+
+                // Preservamos el acumulado mock si no viene de DB
+                const dataWithMock = empleadosArray.map(emp => ({ ...emp, acumulado: emp.acumulado || 0 }));
+                setEmpleados(dataWithMock);
+                setFeedback(null);
+            } catch (err) {
+                console.error("Error cargando empleados", err);
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al cargar la lista de empleados'
+                });
             } finally {
                 setLoading(false);
             }
@@ -46,9 +60,12 @@ export const GestionEmpleados = () => {
 
     const liquidarPago = (id) => {
         if(window.confirm("¿Confirmar liquidación de haberes?")) {
+            // Nota: Esto es un mock UI. Cuando haya endpoint se cambiará por api.post(...)
             setEmpleados(empleados.map(emp =>
                 emp.id_empleado === id ? { ...emp, acumulado: 0 } : emp
             ));
+            setFeedback({ tipo: 'ok', mensaje: 'Liquidación registrada exitosamente' });
+            setTimeout(() => setFeedback(null), 3000);
         }
     };
 
@@ -69,6 +86,12 @@ export const GestionEmpleados = () => {
 
     const totalPasivo = filteredEmpleados.reduce((acc, emp) => acc + (emp.acumulado || 0), 0);
 
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' },
+        info:  { backgroundColor: '#E0F2FE', color: '#0C4A6E', border: '1px solid #7DD3FC' }
+    };
+
     return (
         <div className="nomina-container p-8 text-slate-main">
             <header className='flex justify-between items-center mb-10'>
@@ -82,6 +105,20 @@ export const GestionEmpleados = () => {
                     Registrar Nuevo Empleado
                 </button>
             </header>
+
+            {/* FEEDBACK */}
+            {feedback && (
+                <div style={{
+                    ...feedbackStyles[feedback.tipo],
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    fontWeight: 'bold',
+                    fontSize: '15px'
+                }}>
+                    {feedback.mensaje}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl">
@@ -134,7 +171,7 @@ export const GestionEmpleados = () => {
                         <tbody className='divide-y divide-slate-50'>
                             {filteredEmpleados.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="text-center py-10 text-slate-400 font-medium">No se encontraron empleados.</td>
+                                    <td colSpan="5" className="text-center py-10 text-slate-400 font-medium">No se encontraron empleados.</td>
                                 </tr>
                             )}
                             {filteredEmpleados.map((emp) => (
@@ -194,3 +231,5 @@ export const GestionEmpleados = () => {
         </div>
     );
 };
+
+export default GestionEmpleados;

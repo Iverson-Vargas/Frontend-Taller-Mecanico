@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/axios.js';
 
 export const EstadoCliente = () => {
     const navigate = useNavigate();
@@ -17,12 +18,19 @@ export const EstadoCliente = () => {
 
         const fetchEstado = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/clientes/consulta/${cedula}`);
-                if (!res.ok) throw new Error('Error al consultar estado');
-                const result = await res.json();
-                setClienteData(result.data || result);
+                // GET /api/clientes/consulta/:cedula
+                const res = await api.get(`/clientes/consulta/${cedula}`);
+                
+                // Smart Extraction
+                const payload = res.data.data || res.data;
+                // Dependiendo de cómo lo envuelve el backend
+                const dataFinal = payload.cliente || payload.estado || payload;
+
+                setClienteData(dataFinal);
             } catch (err) {
-                setError(err.message || 'Error de conexión con el servidor');
+                console.error("Error consultando estado:", err);
+                const serverError = err.response?.data?.error || err.response?.data?.message;
+                setError(serverError || 'Error de conexión con el servidor. Intente más tarde.');
             } finally {
                 setLoading(false);
             }
@@ -39,7 +47,7 @@ export const EstadoCliente = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-100 p-6 font-sans flex flex-col items-center">
+        <div className="min-h-screen bg-slate-100 p-6 font-sans flex flex-col items-center relative">
             <header className="w-full max-w-4xl flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Taller App</h1>
@@ -47,7 +55,7 @@ export const EstadoCliente = () => {
                 </div>
                 <button 
                     onClick={handleLogout}
-                    className=" cursor-pointer bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                    className="cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
                 >
                     Cerrar Sesión
                 </button>
@@ -66,7 +74,7 @@ export const EstadoCliente = () => {
                         <p>{error}</p>
                     </div>
                 ) : clienteData ? (
-                    <div className="space-y-8 animate-fade-in">
+                    <div className="space-y-8 animate-in fade-in duration-500">
                         <div className="border-b border-slate-100 pb-6 flex justify-between items-end">
                             <div>
                                 <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Estado de su Vehículo</h2>
@@ -114,3 +122,5 @@ export const EstadoCliente = () => {
         </div>
     );
 };
+
+export default EstadoCliente;

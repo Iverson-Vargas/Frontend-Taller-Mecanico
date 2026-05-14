@@ -1,7 +1,6 @@
-import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import api from '../services/axios.js';
+import * as XLSX from 'xlsx';
 
 export const ControlProductividad = () => {
     const [mecanicos, setMecanicos] = useState([]);
@@ -14,7 +13,7 @@ export const ControlProductividad = () => {
     const [loading, setLoading] = useState(false);
     
     // KPIs Globales
-    const [eficienciaGlobal, setEficienciaGlobal] = useState("0%");
+    const [eficienciaGlobal, setEficienciaGlobal] = useState("0.0%");
     const [totalOrdenes, setTotalOrdenes] = useState(0);
 
     useEffect(() => {
@@ -24,51 +23,56 @@ export const ControlProductividad = () => {
     const fetchEmpleados = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/empleados?startDate=${startDate}&endDate=${endDate}`);
-            if (res.ok) {
-                const result = await res.json();
-                const list = result.data?.empleados || [];
+            // GET /api/empleados
+            const res = await api.get(`/empleados?startDate=${startDate}&endDate=${endDate}`);
+            const payload = res.data.data || res.data;
+            
+            // Extracción Inteligente
+            let list = [];
+            if (Array.isArray(payload)) list = payload;
+            else if (payload && Array.isArray(payload.empleados)) list = payload.empleados;
+            
+            // Consideramos mecánicos a aquellos que tienen un cargo y no son de atención/cajeros
+            const listaMecanicos = list.filter(emp => emp.cargo && !emp.cargo.toLowerCase().includes('atención') && !emp.cargo.toLowerCase().includes('recepción'));
+            
+            let sumEficiencia = 0;
+            let ordenesCompletadas = 0;
+
+            const mecanicosCalculados = listaMecanicos.map(m => {
+                const realOS = m._count?.ordenes || 0;
                 
-                // Filtramos solo los que son mecánicos
-                const listaMecanicos = list.filter(emp => emp.especialidad);
-                
-                let sumEficiencia = 0;
-                let ordenesCompletadas = 0;
+                // Ya no usamos mocks matemáticos. Datos reales:
+                const osCount = realOS;
+                ordenesCompletadas += osCount;
 
-                const mecanicosCalculados = listaMecanicos.map(m => {
-                    const realOS = m._count?.ordenes || 0;
-                    
-                    // Fallback para visualización si no hay datos reales (según petición)
-                    const osCount = realOS > 0 ? realOS : Math.floor(Math.random() * 8) + 2;
-                    ordenesCompletadas += osCount;
+                // Base de rendimiento: 5 órdenes es el 100% (según diseño original)
+                const baseRendimiento = osCount >= 5 ? 100 : (osCount / 5) * 100;
+                sumEficiencia += baseRendimiento;
 
-                    const baseRendimiento = realOS >= 5 ? 100 : realOS > 0 ? (realOS / 5) * 100 : (70 + Math.random() * 25);
-                    sumEficiencia += baseRendimiento;
+                return {
+                    id: m.id_empleado,
+                    nombre: `${m.nombre || ''} ${m.apellido || ''}`.trim() || 'Sin nombre',
+                    especialidad: m.cargo || 'Mecánico',
+                    eficiencia: `${baseRendimiento.toFixed(1)}%`,
+                    eficienciaRaw: baseRendimiento,
+                    estado: baseRendimiento >= 90 ? 'Excelente' : baseRendimiento >= 60 ? 'Estable' : 'Bajo Rendimiento',
+                    osCount
+                };
+            });
 
-                    return {
-                        id: m.id_empleado,
-                        nombre: `${m.nombre} ${m.apellido}`,
-                        especialidad: m.especialidad,
-                        eficiencia: `${baseRendimiento.toFixed(1)}%`,
-                        eficienciaRaw: baseRendimiento,
-                        estado: baseRendimiento >= 90 ? 'Excelente' : baseRendimiento >= 60 ? 'Estable' : 'Bajo Rendimiento',
-                        osCount
-                    };
-                });
-
-                if (mecanicosCalculados.length > 0) {
-                    setEficienciaGlobal(`${(sumEficiencia / mecanicosCalculados.length).toFixed(1)}%`);
-                } else {
-                    // Si no hay ningún mecánico en la BD, podrías mostrar 0 o fallbacks totales
-                    setEficienciaGlobal("85.5%"); // Fallback global
-                }
-                setTotalOrdenes(ordenesCompletadas || 45); // Fallback total
-                
-                mecanicosCalculados.sort((a, b) => b.eficienciaRaw - a.eficienciaRaw);
-                setMecanicos(mecanicosCalculados);
+            if (mecanicosCalculados.length > 0) {
+                setEficienciaGlobal(`${(sumEficiencia / mecanicosCalculados.length).toFixed(1)}%`);
+            } else {
+                setEficienciaGlobal("0.0%"); // Sin datos, eficiencia 0
             }
+            
+            setTotalOrdenes(ordenesCompletadas);
+            
+            mecanicosCalculados.sort((a, b) => b.eficienciaRaw - a.eficienciaRaw);
+            setMecanicos(mecanicosCalculados);
+            
         } catch (error) {
-            console.error("Error al obtener mecánicos:", error);
+            console.error("Error al obtener mecánicos y productividad:", error);
         } finally {
             setLoading(false);
         }
@@ -78,6 +82,27 @@ export const ControlProductividad = () => {
         m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
         m.especialidad.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const exportarExcel = () => {
+        const filas = [
+            ["Mecanico Tecnico", "Especialidad", "Ordenes", "Eficiencia", "Estatus"],
+            ...filtrados.map(m => [
+                m.nombre,
+                m.especialidad,
+                m.osCount,
+                m.eficiencia,
+                m.estado
+            ]),
+            ["", "", "", "", ""],
+            ["Eficiencia Promedio", "", "", "", eficienciaGlobal],
+            ["Total Ordenes", "", "", "", totalOrdenes]
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(filas);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Productividad");
+        XLSX.writeFile(wb, `Productividad_${startDate}_a_${endDate}.xlsx`);
+    };
 
     return (
         <div className="p-6 bg-slate-50 min-h-screen font-sans">
@@ -91,7 +116,7 @@ export const ControlProductividad = () => {
                         </h1>
                         <p className="text-slate-500 font-medium">Análisis de eficiencia técnica basado en órdenes de servicio finalizadas.</p>
                     </div>
-                    <button onClick={() => window.print()} className="px-6 py-3 bg-white border border-slate-200 text-slate-800 rounded-xl shadow-sm hover:bg-slate-50 font-bold text-sm transition-all flex items-center gap-2">
+                    <button onClick={exportarExcel} className="cursor-pointer px-6 py-3 bg-white border border-slate-200 text-slate-800 rounded-xl shadow-sm hover:bg-slate-50 font-bold text-sm transition-all flex items-center gap-2">
                         📄 Exportar Reporte
                     </button>
                 </div>
@@ -120,18 +145,20 @@ export const ControlProductividad = () => {
 
                 {/* KPIs */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Eficiencia Promedio del Taller</p>
-                        <h2 className="text-5xl font-black text-slate-800">{eficienciaGlobal}</h2>
-                        <div className="mt-4 flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100">
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest relative z-10">Eficiencia Promedio del Taller</p>
+                        <h2 className="text-5xl font-black text-slate-800 relative z-10">{eficienciaGlobal}</h2>
+                        <div className="mt-4 flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 relative z-10">
                             Cálculo basado en órdenes de servicio
                         </div>
                     </div>
 
-                    <div className="bg-slate-900 rounded-3xl p-8 shadow-xl text-white border-l-8 border-l-[#F43F5E]">
-                        <p className="text-[10px] font-black text-rose-300 uppercase mb-2 tracking-widest">Total Órdenes de Servicio (OS)</p>
-                        <h2 className="text-5xl font-black text-white">{totalOrdenes}</h2>
-                        <p className="text-slate-400 text-xs mt-3 font-medium">Trabajos asignados y ejecutados en el periodo seleccionado.</p>
+                    <div className="bg-slate-900 rounded-3xl p-8 shadow-xl text-white border-l-8 border-l-[#F43F5E] relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500 rounded-full blur-[60px] -mr-10 -mt-10 opacity-20"></div>
+                        <p className="text-[10px] font-black text-rose-300 uppercase mb-2 tracking-widest relative z-10">Total Órdenes de Servicio (OS)</p>
+                        <h2 className="text-5xl font-black text-white relative z-10">{totalOrdenes}</h2>
+                        <p className="text-slate-400 text-xs mt-3 font-medium relative z-10">Trabajos asignados y ejecutados en el periodo seleccionado.</p>
                     </div>
                 </div>
 
@@ -184,3 +211,5 @@ export const ControlProductividad = () => {
         </div>
     );
 };
+
+export default ControlProductividad;

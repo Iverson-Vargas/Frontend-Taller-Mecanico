@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/axios.js";
 
 export const Login = () => {
     const navigate = useNavigate();
@@ -9,9 +10,6 @@ export const Login = () => {
     const [cedula, setCedula] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
-    // URL del Backend
-    const API_BASE_URL = "http://localhost:3000/api";
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -30,49 +28,58 @@ export const Login = () => {
 
         try {
             if (esEmpleado) {
-                const res = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usuario: username, password })
+                // ── Flujo Empleado ──────────────────────────────────────────
+                // POST /api/auth/login → { success, message, data: { empleado: { ... } } }
+                const res = await api.post('/auth/login', {
+                    usuario: username,
+                    password
                 });
 
-                const data = await res.json().catch(() => ({}));
+                const { empleado } = res.data.data;
 
-                if (res.ok) {
-                    // --- CORRECCIÓN: Guardar el objeto de sesión completo ---
-                    localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userRole', 'empleado');
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('userRole', 'empleado');
+                // Objeto de sesión estándar usado por Contabilidad, Egresos y demás módulos
+                localStorage.setItem('usuario', JSON.stringify({
+                    cedula_rif: empleado.cedula_rif,
+                    nombre: `${empleado.nombre} ${empleado.apellido ?? ''}`.trim(),
+                    rol: empleado.cargo
+                }));
 
-                    // Guardamos la cédula y nombre en un objeto para que Egresos lo lea
-                    localStorage.setItem('usuario', JSON.stringify({
-                        cedula_rif: data.empleado.cedula_rif,
-                        nombre: data.empleado.nombre,
-                        rol: data.empleado.cargo
-                    }));
+                navigate('/panel');
 
-                    navigate('/panel');
-                } else {
-                    setError(data.error || data.message || 'Credenciales inválidas');
-                }
             } else {
-                const res = await fetch(`${API_BASE_URL}/clientes/consulta/${cedula}`);
-                const data = await res.json().catch(() => ({}));
+                // ── Flujo Cliente ───────────────────────────────────────────
+                // GET /api/clientes/consulta/:cedula → { success, message, data: { ... } }
+                const res = await api.get(`/clientes/consulta/${cedula.trim()}`);
 
-                if (res.ok) {
-                    localStorage.setItem('isAuthenticated', 'true');
-                    localStorage.setItem('userRole', 'cliente');
-                    localStorage.setItem('clienteCedula', cedula);
+                const clienteData = res.data.data;
 
-                    // También guardamos aquí por si el cliente necesita ver sus datos
-                    localStorage.setItem('usuario', JSON.stringify(data));
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('userRole', 'cliente');
+                localStorage.setItem('clienteCedula', cedula.trim());
+                // Objeto de sesión estándar (mismo esquema que el empleado)
+                localStorage.setItem('usuario', JSON.stringify({
+                    cedula_rif: clienteData.cedula_rif ?? cedula.trim(),
+                    nombre: clienteData.nombre ?? 'Cliente',
+                    rol: 'cliente'
+                }));
 
-                    navigate('/estado-cliente');
-                } else {
-                    setError(data.error || data.message || 'Cédula no encontrada');
-                }
+                navigate('/estado-cliente');
             }
+
         } catch (err) {
-            setError('Error de conexión con el servidor (Revisa el puerto 3000)');
+            // Errores de validación 400 con array de errores
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setError(msgs);
+            } else {
+                // Error de negocio estándar: { success: false, error: "..." }
+                setError(
+                    err.response?.data?.error ||
+                    'Error de conexión con el servidor (Revisa el puerto 3000)'
+                );
+            }
         } finally {
             setLoading(false);
         }
@@ -123,7 +130,7 @@ export const Login = () => {
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
-                                        placeholder="amaro@taller.com"
+                                        placeholder="admin@taller.com"
                                         required
                                     />
                                 </div>
@@ -134,7 +141,7 @@ export const Login = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] outline-none text-sm transition-all text-slate-800"
-                                        placeholder="••••••••"
+                                        placeholder="****"
                                         required
                                     />
                                 </div>

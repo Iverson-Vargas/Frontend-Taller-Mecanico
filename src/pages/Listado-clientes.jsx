@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "../assets/tablas.css";
+import api from "../services/axios.js";
 
 export const ListaClientes = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ export const ListaClientes = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
+    const [feedback, setFeedback] = useState(null); // { tipo: 'ok'|'error'|'info', mensaje: '' }
 
     const [modalAbierto, setModalAbierto] = useState(false);
     const [clienteEditando, setClienteEditando] = useState(null);
@@ -43,16 +45,16 @@ export const ListaClientes = () => {
     const cargarClientes = async () => {
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:3000/api/clientes');
-            const response = await res.json();
+            const res = await api.get('/clientes');
+            const dataPayload = res.data.data;
+            
+            // El backend devuelve { success, data: { clientes: [], total: ... } }
+            // Hacemos un fallback seguro por si en algún momento devuelve el array directo
             let datosClientes = [];
-
-            if (response && response.data && Array.isArray(response.data)) {
-                datosClientes = response.data;
-            } else if (Array.isArray(response)) {
-                datosClientes = response;
-            } else if (response && Array.isArray(response.clientes)) {
-                datosClientes = response.clientes;
+            if (Array.isArray(dataPayload)) {
+                datosClientes = dataPayload;
+            } else if (dataPayload && Array.isArray(dataPayload.clientes)) {
+                datosClientes = dataPayload.clientes;
             }
 
             setClientes(datosClientes);
@@ -71,6 +73,7 @@ export const ListaClientes = () => {
     };
 
     const handleAbrirModalEditar = (cliente) => {
+        setFeedback(null);
         setClienteEditando(cliente);
         setFormEdit({
             cedula_rif: cliente.cedula_rif || '',
@@ -101,13 +104,16 @@ export const ListaClientes = () => {
             ...formEdit,
             [e.target.name]: e.target.value
         });
+        if (feedback) setFeedback(null);
     };
 
     const handleGuardarEdicion = async () => {
         if (!clienteEditando) return;
 
+        setFeedback(null);
+
         if (!formEdit.cedula_rif || !formEdit.nombre || !formEdit.apellido) {
-            alert('Los campos Cedula, Nombre y Apellido son obligatorios');
+            setFeedback({ tipo: 'error', mensaje: 'Los campos Cedula, Nombre y Apellido son obligatorios' });
             return;
         }
 
@@ -121,46 +127,32 @@ export const ListaClientes = () => {
                 correo: formEdit.correo || ''
             };
             
-            const res = await fetch(`http://localhost:3000/api/clientes/${clienteEditando.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(datosActualizar)
-            });
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.message || 'Error al actualizar');
-            }
+            await api.put(`/clientes/${clienteEditando.id_cliente || clienteEditando.id}`, datosActualizar);
             
-            alert('Cliente actualizado exitosamente');
+            setFeedback({ tipo: 'ok', mensaje: 'Cliente actualizado exitosamente' });
             handleCerrarModal();
             cargarClientes();
+
         } catch (err) {
-            console.error('Error al actualizar cliente:', err);
-            alert('Error al actualizar el cliente: ' + err.message);
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
+            } else {
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al actualizar el cliente'
+                });
+            }
         }
     };
 
     const handleVerVehiculos = async (cliente) => {
         try {
             setClienteSeleccionado(cliente);
-            const response = await fetch(`http://localhost:3000/api/carros/cliente/${cliente.cedula_rif}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                let vehiculos = [];
-                if (data && Array.isArray(data.data)) {
-                    vehiculos = data.data;
-                } else if (Array.isArray(data)) {
-                    vehiculos = data;
-                } else if (data && Array.isArray(data.vehiculos)) {
-                    vehiculos = data.vehiculos;
-                }
-                setVehiculosCliente(vehiculos);
-            } else {
-                setVehiculosCliente([]);
-            }
+            const response = await api.get(`/carros/cliente/${cliente.cedula_rif}`);
+            const vehiculos = response.data.data || [];
+            
+            setVehiculosCliente(vehiculos);
             setModalVehiculosAbierto(true);
         } catch (err) {
             console.error('Error al cargar vehículos:', err);
@@ -175,10 +167,14 @@ export const ListaClientes = () => {
         setClienteSeleccionado(null);
     };
 
-    // Nueva función para navegar al registro de vehículo
     const handleAgregarVehiculo = (cliente) => {
-        // Navega a la página de registro de vehículo pasando la cédula del cliente
         navigate(`/panel/RegistroVehiculo?cedula=${cliente.cedula_rif}&nombre=${encodeURIComponent(cliente.nombre)}&apellido=${encodeURIComponent(cliente.apellido)}`);
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' },
+        info:  { backgroundColor: '#E0F2FE', color: '#0C4A6E', border: '1px solid #7DD3FC' }
     };
 
     if (loading) {
@@ -213,6 +209,20 @@ export const ListaClientes = () => {
 
             <h1 className="titulo-tabla">Listado de Clientes</h1>
 
+            {/* FEEDBACK */}
+            {feedback && (
+                <div style={{
+                    ...feedbackStyles[feedback.tipo],
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    fontWeight: 'bold',
+                    fontSize: '15px'
+                }}>
+                    {feedback.mensaje}
+                </div>
+            )}
+
             {error && (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
                     <p>{error}</p>
@@ -244,7 +254,7 @@ export const ListaClientes = () => {
                         </thead>
                         <tbody>
                             {clientesFiltrados.map((cliente, index) => (
-                                <tr key={cliente.id || index}>
+                                <tr key={cliente.id_cliente || index}>
                                     <td data-label="Cedula/RIF">{cliente.cedula_rif || cliente.cedula}</td>
                                     <td data-label="Nombre">{cliente.nombre}</td>
                                     <td data-label="Apellido">{cliente.apellido}</td>
@@ -281,10 +291,25 @@ export const ListaClientes = () => {
                 </div>
             )}
 
+            {/* MODAL EDITAR CLIENTE */}
             {modalAbierto && (
                 <div className="modal-overlay" onClick={handleCerrarModal}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h2>Editar Cliente</h2>
+
+                        {/* Mostrar feedback también dentro del modal si es pertinente */}
+                        {feedback && (
+                            <div style={{
+                                ...feedbackStyles[feedback.tipo],
+                                padding: '10px 16px',
+                                borderRadius: '8px',
+                                marginBottom: '16px',
+                                fontWeight: '600',
+                                fontSize: '14px'
+                            }}>
+                                {feedback.mensaje}
+                            </div>
+                        )}
 
                         <div className="modal-field">
                             <label>Cedula/RIF</label>
@@ -364,6 +389,7 @@ export const ListaClientes = () => {
                 </div>
             )}
 
+            {/* MODAL VER VEHICULOS */}
             {modalVehiculosAbierto && (
                 <div className="modal-overlay" onClick={handleCerrarModalVehiculos}>
                     <div className="modal-content vehiculos-modal" onClick={(e) => e.stopPropagation()}>

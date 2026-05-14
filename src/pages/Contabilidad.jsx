@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo } from 'react';
+import api from '../services/axios.js';
 
 export const Contabilidad = () => {
     // --- ESTADOS DE CONFIGURACIÓN ---
@@ -28,6 +28,7 @@ export const Contabilidad = () => {
     const [proveedoresDB, setProveedoresDB] = useState([]);
     const [resumenGlobal, setResumenGlobal] = useState({ totalMes: 0, pendiente: 0, pagado: 0 });
     const [resumenPersonal, setResumenPersonal] = useState({ totalMes: 0, pendiente: 0, pagado: 0 });
+    const [feedback, setFeedback] = useState(null);
     
     const [nuevoRegistro, setNuevoRegistro] = useState({
         tipo: 'Gasto',
@@ -60,26 +61,38 @@ export const Contabilidad = () => {
         "Otros Gastos"
     ];
 
+    const mostrarFeedback = (mensaje, tipo = "ok") => {
+        setFeedback({ visible: true, mensaje, tipo });
+        setTimeout(() => setFeedback(null), 4500);
+    };
+
+    const getUsuarioSesion = () => {
+        try {
+            return JSON.parse(localStorage.getItem('usuario') || '{}');
+        } catch {
+            return {};
+        }
+    };
+
     // 1. CARGAR DATOS (GET)
     const fetchContabilidad = async () => {
-        const rawUser = localStorage.getItem('usuario');
-        let cedulaActual = '';
-        if (rawUser && rawUser !== "undefined") {
-            try {
-                const storageUser = JSON.parse(rawUser);
-                cedulaActual = storageUser?.cedula_rif || '';
-            } catch (err) { console.error(err); }
-        }
+        const usuario = getUsuarioSesion();
+        // Si la vista es "Global", enviamos vacío para que el backend devuelva TODOS los registros del taller
+        const cedulaActual = viewMode === 'Personal' ? (usuario.cedula_rif || '') : '';
 
         try {
-            const url = `http://localhost:3000/api/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`;
-            const response = await axios.get(url);
+            const response = await api.get(`/contabilidad?usuarioLogueado=${cedulaActual}&startDate=${startDate}&endDate=${endDate}`);
+            const payload = response.data.data || response.data;
 
-            const dataGastos = response.data.gastos || [];
-            const dataCompras = response.data.compras || [];
+            // Extracción Inteligente
+            let dataGastos = [];
+            let dataCompras = [];
+
+            if (Array.isArray(payload.gastos)) dataGastos = payload.gastos;
+            if (Array.isArray(payload.compras)) dataCompras = payload.compras;
             
-            if (response.data.resumenGlobal) setResumenGlobal(response.data.resumenGlobal);
-            if (response.data.resumenPersonal) setResumenPersonal(response.data.resumenPersonal);
+            if (payload.resumenGlobal) setResumenGlobal(payload.resumenGlobal);
+            if (payload.resumenPersonal) setResumenPersonal(payload.resumenPersonal);
 
             const dataTransformada = [
                 ...dataGastos.map(g => ({
@@ -109,22 +122,29 @@ export const Contabilidad = () => {
             dataTransformada.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             setCuentas(dataTransformada);
         } catch (error) {
-            console.error("Error al cargar datos:", error);
+            console.error("Error al cargar datos contables:", error);
         }
     };
 
     const fetchProveedores = async () => {
         try {
-            const res = await axios.get('http://localhost:3000/api/contabilidad/proveedores');
-            // La respuesta ya trae el array directamente según el controlador
-            setProveedoresDB(Array.isArray(res.data) ? res.data : []);
-        } catch (error) { console.error("Error cargando proveedores", error); }
+            const res = await api.get('/contabilidad/proveedores');
+            const payload = res.data.data || res.data;
+            let provArray = [];
+            
+            if (Array.isArray(payload)) provArray = payload;
+            else if (payload && Array.isArray(payload.proveedores)) provArray = payload.proveedores;
+
+            setProveedoresDB(provArray);
+        } catch (error) { 
+            console.error("Error cargando proveedores", error); 
+        }
     };
 
     useEffect(() => {
         fetchContabilidad();
         fetchProveedores();
-    }, [startDate, endDate]);
+    }, [startDate, endDate, viewMode]);
 
     // HANDLERS DE FILTROS RÁPIDOS
     const handleFilterPreset = (preset) => {
@@ -149,18 +169,11 @@ export const Contabilidad = () => {
     // 2. REGISTRAR CONTABILIDAD (POST)
     const handleAgregar = async (e) => {
         e.preventDefault();
-        const rawUser = localStorage.getItem('usuario');
-        let cedulaActiva = null;
-
-        if (rawUser && rawUser !== "undefined") {
-            try {
-                const storageUser = JSON.parse(rawUser);
-                cedulaActiva = storageUser?.cedula_rif;
-            } catch (err) { console.error(err); }
-        }
+        const usuario = getUsuarioSesion();
+        const cedulaActiva = usuario.cedula_rif;
 
         if (!cedulaActiva) {
-            alert("⚠️ No hay una sesión activa. Por favor, inicia sesión de nuevo.");
+            mostrarFeedback("No hay una sesión activa. Por favor, inicia sesión de nuevo.", "error");
             return;
         }
 
@@ -168,50 +181,55 @@ export const Contabilidad = () => {
             const data = {
                 tipo: nuevoRegistro.tipo,
                 categoria: nuevoRegistro.tipo === 'Compra' ? 'Repuestos' : nuevoRegistro.categoria,
-                id_proveedor: nuevoRegistro.tipo === 'Compra' ? nuevoRegistro.id_proveedor : null,
+                id_proveedor: nuevoRegistro.tipo === 'Compra' ? parseInt(nuevoRegistro.id_proveedor) : null,
                 descripcion: nuevoRegistro.desc,
                 monto: parseFloat(nuevoRegistro.montoUSD),
                 estado: nuevoRegistro.estado,
                 usuarioLogueado: cedulaActiva
             };
 
-            console.log("DEBUG - Enviando a Contabilidad:", data);
-
-            await axios.post('http://localhost:3000/api/contabilidad', data);
-            alert(`✅ Registrado correctamente`);
+            await api.post('/contabilidad', data);
+            mostrarFeedback('Registrado correctamente', 'ok');
             setNuevoRegistro({ ...nuevoRegistro, desc: '', montoUSD: '', id_proveedor: '' });
             fetchContabilidad();
-        } catch (error) {
-            console.error("Error al guardar:", error);
-            const msg = error.response?.data?.message || "Error al guardar el registro";
-            alert(`❌ ${msg}`);
+        } catch (err) {
+            console.error("Error al guardar:", err);
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                mostrarFeedback(msgs, 'error');
+            } else {
+                mostrarFeedback(err.response?.data?.error || "Error al guardar el registro", "error");
+            }
         }
     };
 
     const handleGuardarProveedor = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:3000/api/contabilidad/proveedores', nuevoProv);
-            alert(`✅ Proveedor "${nuevoProv.nombre_empresa}" registrado`);
-            setShowModalProv(false); // No lo cerramos para que pueda ver la lista actualizada si quiere
+            await api.post('/contabilidad/proveedores', nuevoProv);
+            mostrarFeedback(`Proveedor "${nuevoProv.nombre_empresa}" registrado`, "ok");
             setNuevoProv({ rif: '', nombre_empresa: '', especialidad: '', nombre_contacto: '', apellido_contacto: '' });
             fetchProveedores(); // Refrescar lista
-        } catch (error) {
-            console.error(error);
-            alert("❌ Error al registrar proveedor");
+        } catch (err) {
+            console.error(err);
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                mostrarFeedback(msgs, 'error');
+            } else {
+                mostrarFeedback(err.response?.data?.error || "Error al registrar proveedor", "error");
+            }
         }
     };
 
     const handleEliminarProveedor = async (id) => {
         if (window.confirm("¿Estás seguro de eliminar este proveedor?")) {
             try {
-                const res = await axios.delete(`http://localhost:3000/api/contabilidad/proveedores/${id}`);
-                alert(`✅ ${res.data.message}`);
+                const res = await api.delete(`/contabilidad/proveedores/${id}`);
+                mostrarFeedback(res.data.message || "Proveedor eliminado", "ok");
                 fetchProveedores();
-            } catch (error) {
-                console.error(error);
-                const msg = error.response?.data?.message || "Error al eliminar proveedor";
-                alert(`❌ ${msg}`);
+            } catch (err) {
+                console.error(err);
+                mostrarFeedback(err.response?.data?.error || "Error al eliminar proveedor", "error");
             }
         }
     };
@@ -219,10 +237,12 @@ export const Contabilidad = () => {
     // 3. ACTUALIZAR ESTADO A PAGADO (PATCH)
     const handlePagar = async (id, tipo) => {
         try {
-            await axios.patch('http://localhost:3000/api/contabilidad/pagar', { id, tipo });
+            await api.patch('/contabilidad/pagar', { id, tipo });
             fetchContabilidad();
-        } catch (error) {
-            console.error("Error al pagar:", error);
+            mostrarFeedback("Pago registrado exitosamente", "ok");
+        } catch (err) {
+            console.error("Error al pagar:", err);
+            mostrarFeedback(err.response?.data?.error || "Error al registrar el pago", "error");
         }
     };
 
@@ -230,10 +250,12 @@ export const Contabilidad = () => {
     const handleEliminar = async (id, tipo) => {
         if (window.confirm("¿Estás seguro de eliminar este registro?")) {
             try {
-                await axios.delete(`http://localhost:3000/api/contabilidad/${id}?tipo=${tipo}`);
+                await api.delete(`/contabilidad/${id}?tipo=${tipo}`);
                 fetchContabilidad();
-            } catch (error) {
-                console.error("Error al eliminar:", error);
+                mostrarFeedback("Registro eliminado", "ok");
+            } catch (err) {
+                console.error("Error al eliminar:", err);
+                mostrarFeedback(err.response?.data?.error || "Error al eliminar registro", "error");
             }
         }
     };
@@ -311,7 +333,7 @@ export const Contabilidad = () => {
 
     const formatCurrency = (usd) => {
         if (isBs) return (usd * exchangeRate).toLocaleString('es-VE') + ' Bs';
-        return '$' + usd.toFixed(2);
+        return '$' + (usd || 0).toFixed(2);
     };
 
     // FILTRO DE BUSQUEDA EN TABLA
@@ -323,8 +345,21 @@ export const Contabilidad = () => {
         );
     }, [cuentas, searchTerm]);
 
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }
+    };
+
     return (
-        <div className="bg-slate-50 min-h-screen py-8 px-4 sm:px-10 font-sans overflow-x-hidden">
+        <div className="bg-slate-50 min-h-screen py-8 px-4 sm:px-10 font-sans overflow-x-hidden relative">
+            
+            {/* Toast Notificación */}
+            {feedback && (
+                <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 z-[200]`} style={feedbackStyles[feedback.tipo]}>
+                    <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto">
                 
                 {/* CABECERA */}
@@ -350,13 +385,13 @@ export const Contabilidad = () => {
 
                         <button 
                             onClick={handleExportPDF}
-                            className="bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2"
+                            className="cursor-pointer bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2"
                         >
                             📄 Generar Reporte
                         </button>
                         <button 
                             onClick={() => setIsBs(!isBs)}
-                            className="bg-[#F43F5E] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md hover:bg-rose-600 transition-all"
+                            className="cursor-pointer bg-[#F43F5E] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md hover:bg-rose-600 transition-all"
                         >
                             {isBs ? 'Ver en USD' : 'Ver en BS'}
                         </button>
@@ -368,13 +403,13 @@ export const Contabilidad = () => {
                     <div className="bg-slate-200 p-1 rounded-2xl flex gap-1 shadow-inner">
                         <button 
                             onClick={() => setViewMode('Global')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'Global' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`cursor-pointer px-6 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'Global' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             🌍 TODO EL TALLER
                         </button>
                         <button 
                             onClick={() => setViewMode('Personal')}
-                            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'Personal' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`cursor-pointer px-6 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'Personal' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             👤 MIS GASTOS
                         </button>
@@ -385,20 +420,20 @@ export const Contabilidad = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gastos del Periodo ({viewMode})</p>
-                        <h3 className="text-3xl font-black text-slate-800">{formatCurrency(viewMode === 'Global' ? resumenGlobal.totalMes : resumenPersonal.totalMes)}</h3>
+                        <h3 className="text-3xl font-black text-slate-800">{formatCurrency(resumenMostrar?.totalMes || 0)}</h3>
                         <div className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">Periodo seleccionado</div>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500 transition-all hover:shadow-md">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pendiente por Pagar</p>
-                        <h3 className="text-3xl font-black text-rose-600">{formatCurrency(viewMode === 'Global' ? resumenGlobal.pendiente : resumenPersonal.pendiente)}</h3>
+                        <h3 className="text-3xl font-black text-rose-600">{formatCurrency(resumenMostrar?.pendiente || 0)}</h3>
                         <p className="text-xs text-slate-400 mt-2">Cuentas por liquidar</p>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500 transition-all hover:shadow-md">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Pagado</p>
-                        <h3 className="text-3xl font-black text-emerald-600">{formatCurrency(viewMode === 'Global' ? resumenGlobal.pagado : resumenPersonal.pagado)}</h3>
+                        <h3 className="text-3xl font-black text-emerald-600">{formatCurrency(resumenMostrar?.pagado || 0)}</h3>
                         <p className="text-xs text-slate-400 mt-2 flex justify-between">
                             <span>Relación:</span>
-                            <span>{Math.round(((viewMode === 'Global' ? resumenGlobal.pagado : resumenPersonal.pagado)/(viewMode === 'Global' ? resumenGlobal.totalMes : resumenPersonal.totalMes))*100) || 0}% del total</span>
+                            <span>{Math.round(((resumenMostrar?.pagado || 0)/(resumenMostrar?.totalMes || 1))*100) || 0}% del total</span>
                         </p>
                     </div>
                 </div>
@@ -410,7 +445,7 @@ export const Contabilidad = () => {
                             <button
                                 key={p}
                                 onClick={() => handleFilterPreset(p)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterPeriod === p ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterPeriod === p ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                             >
                                 {p}
                             </button>
@@ -445,12 +480,12 @@ export const Contabilidad = () => {
                                     <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
                                         <button 
                                             type="button"
-                                            className={`py-2 rounded-lg text-xs font-bold transition-all ${nuevoRegistro.tipo === 'Gasto' ? 'bg-white shadow-sm text-rose-600' : 'text-slate-500'}`}
+                                            className={`cursor-pointer py-2 rounded-lg text-xs font-bold transition-all ${nuevoRegistro.tipo === 'Gasto' ? 'bg-white shadow-sm text-rose-600' : 'text-slate-500'}`}
                                             onClick={() => setNuevoRegistro({...nuevoRegistro, tipo: 'Gasto'})}
                                         >🏠 Gasto</button>
                                         <button 
                                             type="button"
-                                            className={`py-2 rounded-lg text-xs font-bold transition-all ${nuevoRegistro.tipo === 'Compra' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
+                                            className={`cursor-pointer py-2 rounded-lg text-xs font-bold transition-all ${nuevoRegistro.tipo === 'Compra' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
                                             onClick={() => setNuevoRegistro({...nuevoRegistro, tipo: 'Compra'})}
                                         >📦 Compra</button>
                                     </div>
@@ -475,7 +510,7 @@ export const Contabilidad = () => {
                                         <button 
                                             type="button" 
                                             onClick={() => setShowModalProv(true)}
-                                            className="w-full mt-2 bg-rose-50 border-2 border-dashed border-rose-200 text-rose-500 py-2.5 rounded-xl text-xs font-black hover:bg-rose-100 hover:border-rose-300 transition-all flex items-center justify-center gap-2"
+                                            className="cursor-pointer w-full mt-2 bg-rose-50 border-2 border-dashed border-rose-200 text-rose-500 py-2.5 rounded-xl text-xs font-black hover:bg-rose-100 hover:border-rose-300 transition-all flex items-center justify-center gap-2"
                                         >
                                             ➕ GESTIONAR PROVEEDORES
                                         </button>
@@ -528,7 +563,7 @@ export const Contabilidad = () => {
                                     </div>
                                 </div>
 
-                                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-xl transition-all shadow-lg active:scale-95 mt-4">
+                                <button type="submit" className="cursor-pointer w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-xl transition-all shadow-lg active:scale-95 mt-4">
                                     REGISTRAR MOVIMIENTO
                                 </button>
                             </form>
@@ -603,13 +638,13 @@ export const Contabilidad = () => {
                                                             {c.estado !== 'PAGADO' && (
                                                                 <button 
                                                                     onClick={() => handlePagar(c.id, c.tipo)}
-                                                                    className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                                                    className="cursor-pointer p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                                                                     title="Marcar como pagado"
                                                                 >✓</button>
                                                             )}
                                                             <button 
                                                                 onClick={() => handleEliminar(c.id, c.tipo)}
-                                                                className="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                                                className="cursor-pointer p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                                                                 title="Eliminar registro"
                                                             >🗑</button>
                                                         </div>
@@ -688,11 +723,11 @@ export const Contabilidad = () => {
                                     <button 
                                         type="button" 
                                         onClick={() => setShowModalProv(false)}
-                                        className="flex-1 bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-all"
+                                        className="cursor-pointer flex-1 bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-all"
                                     >CERRAR</button>
                                     <button 
                                         type="submit" 
-                                        className="flex-1 bg-slate-800 text-white font-black py-3.5 rounded-xl shadow-lg hover:bg-slate-900 transition-all"
+                                        className="cursor-pointer flex-1 bg-slate-800 text-white font-black py-3.5 rounded-xl shadow-lg hover:bg-slate-900 transition-all"
                                     >GUARDAR</button>
                                 </div>
                             </form>
@@ -716,7 +751,7 @@ export const Contabilidad = () => {
                                             </div>
                                             <button 
                                                 onClick={() => handleEliminarProveedor(p.id_proveedor)}
-                                                className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+                                                className="cursor-pointer p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm"
                                                 title="Eliminar proveedor"
                                             >
                                                 🗑️

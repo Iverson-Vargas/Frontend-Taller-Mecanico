@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import api from '../services/axios.js';
 
 export const Inventario = () => {
     const [repuestos, setRepuestos] = useState([]);
     const [form, setForm] = useState({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
     const [modalVenta, setModalVenta] = useState({ abierto: false, producto: null, cantidadVenta: 1 });
+    const [feedback, setFeedback] = useState(null);
 
     useEffect(() => {
         fetchInventario();
@@ -13,26 +13,29 @@ export const Inventario = () => {
 
     const fetchInventario = async () => {
         try {
-            const response = await fetch(`${API_URL}/inventario`);
-            if (!response.ok) throw new Error('Error al obtener inventario');
-            const data = await response.json();
+            const response = await api.get('/inventario');
+            const data = response.data.data || [];
             
             // Extraer el arreglo de repuestos
-            const arr = data.data?.repuestos || data.data || [];
-            const repuestosArray = Array.isArray(arr) ? arr : [];
+            const repuestosArray = Array.isArray(data) ? data : (data.repuestos || []);
             
-            setRepuestos(repuestosArray.map(r => ({
-                id_repuesto: r.id_repuesto,
-                id: r.codigo_barra || `REP-${r.id_repuesto}`,
-                desc: r.descripcion || '',
-                ubicacion: 'N/A',
-                pCompra: 0,
-                pVenta: Number(r.precio_venta_sugerido) || 0,
-                stock: Number(r.stock_actual) || 0,
-                gananciaAcumulada: 0
-            })));
+            setRepuestos(repuestosArray.map(r => {
+                const pVenta = Number(r.precio_venta_sugerido) || 0;
+                const pCompra = (r.precio_compra !== null && r.precio_compra !== undefined) ? Number(r.precio_compra) : (pVenta * 0.7);
+                return {
+                    id_repuesto: r.id_repuesto,
+                    id: r.codigo_barra || `REP-${r.id_repuesto}`,
+                    desc: r.descripcion || '',
+                    ubicacion: 'Almacén',
+                    pCompra: pCompra,
+                    pVenta: pVenta,
+                    stock: Number(r.stock_actual) || 0,
+                    gananciaAcumulada: (pVenta - pCompra) * (Number(r.stock_actual) || 0)
+                };
+            }));
         } catch (error) {
             console.error("Error cargando inventario:", error);
+            setFeedback({ tipo: 'error', mensaje: 'Error al cargar el inventario' });
         }
     };
 
@@ -41,59 +44,70 @@ export const Inventario = () => {
 
     const guardar = async (e) => {
         e.preventDefault();
-        if (!form.id) return alert("Por favor, ingresa el código del repuesto.");
+        setFeedback(null);
+        if (!form.id) {
+            setFeedback({ tipo: 'error', mensaje: 'Por favor, ingresa el código del repuesto.' });
+            return;
+        }
         
         try {
             const payload = {
                 codigo_barra: form.id,
                 descripcion: form.desc,
                 stock_actual: Number(form.stock),
-                precio_venta_sugerido: Number(form.pVenta)
+                precio_venta_sugerido: Number(form.pVenta),
+                precio_compra: Number(form.pCompra)
             };
 
-            const response = await fetch(`${API_URL}/inventario`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            await api.post('/inventario', payload);
 
-            if (response.ok) {
-                fetchInventario();
-                setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
-            } else {
-                const errData = await response.json();
-                alert(`Error al guardar: ${errData.message || 'Intente de nuevo'}`);
-            }
+            fetchInventario();
+            setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+            setFeedback({ tipo: 'ok', mensaje: 'Repuesto guardado exitosamente' });
+
         } catch(err) {
-            console.error("Error al registrar repuesto:", err);
-            alert("Error de conexión al servidor");
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
+            } else {
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al guardar el repuesto'
+                });
+            }
         }
     };
 
     const confirmarVenta = async () => {
         const cant = Number(modalVenta.cantidadVenta);
-        if (cant > modalVenta.producto.stock) return alert("Stock insuficiente para realizar esta venta.");
+        if (cant > modalVenta.producto.stock) {
+            setFeedback({ tipo: 'error', mensaje: 'Stock insuficiente para realizar esta venta.' });
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+            return;
+        }
         
-        // Simular la actualización de stock en el backend usando PUT
         try {
             const payload = {
                 stock_actual: modalVenta.producto.stock - cant
             };
-            const response = await fetch(`${API_URL}/inventario/${modalVenta.producto.id_repuesto}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            await api.put(`/inventario/${modalVenta.producto.id_repuesto}`, payload);
 
-            if (response.ok) {
-                setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
-                fetchInventario(); // Refrescar stock
-            } else {
-                alert("Error al procesar la venta en el backend.");
-            }
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+            fetchInventario(); // Refrescar stock
+            setFeedback({ tipo: 'ok', mensaje: 'Venta procesada exitosamente' });
+
         } catch(err) {
-            console.error(err);
+            setFeedback({
+                tipo: 'error',
+                mensaje: err.response?.data?.error || 'Error al procesar la venta en el backend.'
+            });
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
         }
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' },
     };
 
     return (
@@ -149,6 +163,20 @@ export const Inventario = () => {
                         Gestión de repuestos, stock y cálculo de ganancias.
                     </p>
                 </header>
+
+                {/* FEEDBACK DE OPERACIÓN */}
+                {feedback && (
+                    <div style={{
+                        ...feedbackStyles[feedback.tipo],
+                        padding: '12px 20px',
+                        borderRadius: '12px',
+                        marginBottom: '20px',
+                        fontWeight: 'bold',
+                        fontSize: '15px'
+                    }}>
+                        {feedback.mensaje}
+                    </div>
+                )}
 
                 {/* DASHBOARD (Tarjetas de resumen) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">

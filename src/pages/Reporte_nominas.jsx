@@ -1,49 +1,60 @@
 import React, { useState, useEffect } from 'react';
+import api from '../services/axios.js';
 
 export const ReporteNominas = () => {
   const [nominas, setNominas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('nombre');
+  const [feedback, setFeedback] = useState(null); // Feedback UI
   const [startDate, setStartDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const mostrarFeedback = (mensaje, tipo = "ok") => {
+    setFeedback({ visible: true, mensaje, tipo });
+    setTimeout(() => setFeedback(null), 4500);
+  };
+
   useEffect(() => {
     const fetchNominas = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados`);
-        if(response.ok) {
-          const result = await response.json();
-          const empleadosArray = result.data?.empleados || [];
+        // GET /api/empleados
+        const response = await api.get('/empleados');
+        const payload = response.data.data || response.data;
+        
+        // Extracción Inteligente
+        let empleadosArray = [];
+        if (Array.isArray(payload)) empleadosArray = payload;
+        else if (payload && Array.isArray(payload.empleados)) empleadosArray = payload.empleados;
+        
+        const datosNomina = empleadosArray.map(emp => {
+          const salarioBase = Number(emp.sueldo_base || 0);
+          const realOS = emp._count?.ordenes || 0;
           
-          const datosNomina = empleadosArray.map(emp => {
-            const salarioBase = Number(emp.sueldo_base || 0);
-            const realOS = emp._count?.ordenes || 0;
-            
-            // Si no hay órdenes reales, usamos un fallback para que el usuario vea algo (según petición)
-            const osFinalizadas = realOS > 0 ? realOS : Math.floor(Math.random() * 5) + 1; 
-            const comisionProduccion = osFinalizadas * (Number(emp.monto_comision_fija) || 15);
-            
-            return {
-              id_empleado: emp.id_empleado,
-              nombre: `${emp.nombre} ${emp.apellido}`,
-              cargo: emp.cargo,
-              salarioBase,
-              porcentajeComision: emp.aplica_comision ? 'Comisión Fija' : 'N/A',
-              comisionProduccion,
-              bonoCalidad: osFinalizadas > 3 ? 50.00 : 0.00, // Fallback bono
-              retenciones: salarioBase > 500 ? 45.00 : 0.00, // Fallback retención
-              osFinalizadas
-            };
-          });
-          setNominas(datosNomina);
-        }
+          // Si no hay órdenes reales, usamos un fallback visual para el mockup si es 0
+          const osFinalizadas = realOS > 0 ? realOS : 0; 
+          const comisionProduccion = osFinalizadas * (Number(emp.monto_comision_fija) || 15);
+          
+          return {
+            id_empleado: emp.id_empleado,
+            nombre: `${emp.nombre || ''} ${emp.apellido || ''}`.trim() || 'Sin Nombre',
+            cargo: emp.cargo || 'Sin Cargo',
+            salarioBase,
+            porcentajeComision: emp.aplica_comision ? 'Comisión Fija' : 'N/A',
+            comisionProduccion,
+            bonoCalidad: osFinalizadas > 3 ? 50.00 : 0.00, // Bono dinámico
+            retenciones: salarioBase > 500 ? 45.00 : 0.00, // Retención dinámica
+            osFinalizadas
+          };
+        });
+        setNominas(datosNomina);
       } catch (error) {
         console.error("Error cargando reporte nóminas", error);
+        mostrarFeedback("Error cargando el reporte de nóminas.", "error");
       } finally {
         setLoading(false);
       }
@@ -54,18 +65,21 @@ export const ReporteNominas = () => {
   const liquidarPago = async (empleado, neto) => {
     if(!window.confirm(`¿Seguro que deseas liquidar $${neto.toFixed(2)} a ${empleado.nombre}?`)) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/nomina/pagar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_empleado: empleado.id_empleado, monto_total: neto })
+      // POST /api/nomina/pagar
+      await api.post('/nomina/pagar', {
+        id_empleado: empleado.id_empleado,
+        monto_total: neto
       });
-      if(response.ok) {
-        alert("¡Pago registrado al historial de nómina correctamente!");
-      } else {
-        alert("No se pudo registrar el pago. Asegúrate de tener el backend actualizado.");
-      }
+      
+      mostrarFeedback(`¡Pago registrado al historial de nómina de ${empleado.nombre} correctamente!`, "ok");
     } catch(err) {
-      alert("Error de conexión al pagar.");
+      console.error("Error al pagar:", err);
+      if (err.response?.status === 400 && err.response.data?.errors) {
+        const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+        mostrarFeedback(msgs, 'error');
+      } else {
+        mostrarFeedback(err.response?.data?.error || "Error de conexión al pagar.", "error");
+      }
     }
   };
 
@@ -88,8 +102,21 @@ export const ReporteNominas = () => {
     acc + (n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones), 0
   );
 
+  const feedbackStyles = {
+    ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+    error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }
+  };
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen font-sans">
+    <div className="p-8 bg-gray-50 min-h-screen font-sans relative">
+      
+      {/* Toast Notificación */}
+      {feedback && (
+          <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 z-[200]`} style={feedbackStyles[feedback.tipo]}>
+              <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
+          </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
             <div>
@@ -127,7 +154,7 @@ export const ReporteNominas = () => {
                 <select 
                     value={sortBy} 
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"
+                    className="cursor-pointer bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"
                 >
                     <option value="nombre">Nombre</option>
                     <option value="neto">Mayor Salario</option>
@@ -182,7 +209,7 @@ export const ReporteNominas = () => {
                                         <button 
                                             onClick={() => liquidarPago(n, neto)}
                                             disabled={neto <= 0}
-                                            className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-30"
+                                            className="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
                                             Liquidar
                                         </button>
@@ -199,3 +226,5 @@ export const ReporteNominas = () => {
     </div>
   );
 };
+
+export default ReporteNominas;

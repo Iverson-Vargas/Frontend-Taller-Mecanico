@@ -8,30 +8,10 @@ export const Menu = () => {
     const toggleMenu = (menuName) => {
         const isOpening = openMenu !== menuName;
         setOpenMenu(isOpening ? menuName : null);
-
-        if (isOpening) {
-            setTimeout(() => {
-                const element = itemRefs.current[menuName];
-                if (element) {
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            }, 350);
-        } else {
-            // Si cerramos el menú y no queda ninguno abierto, volvemos arriba para una vista limpia
-            setTimeout(() => {
-                const nav = document.querySelector('.no-scrollbar');
-                if (nav) {
-                    nav.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }, 300);
-        }
     };
 
     const estilosDelEnlace = ({ isActive }) => {
-        const clasesBase = "flex items-center pl-12 pr-4 py-2 text-[12.5px] transition-all duration-300 ease-in-out rounded-xl relative group my-0.5 mx-2";
+        const clasesBase = "flex items-center pl-12 pr-4 py-1.5 text-[12.5px] transition-all duration-300 ease-in-out rounded-lg relative group my-0 mx-2";
         if (isActive) {
             return `${clasesBase} bg-rose-500/10 text-rose-400 font-bold shadow-[inset_3px_0_0_0_#f43f5e]`;
         } else {
@@ -104,17 +84,18 @@ export const Menu = () => {
     return (
         <aside className="fixed top-0 left-0 w-72 h-screen bg-[#0f172a] text-slate-50 shadow-2xl flex flex-col z-50 overflow-hidden font-sans border-r border-slate-800/40">
 
-            <div className="p-8 flex items-center justify-center gap-3">
-                <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center shadow-lg shadow-rose-500/20">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <div className="py-4 px-6 flex items-center justify-center gap-3 border-b border-slate-800/40 mb-2">
+                <div className="w-9 h-9 bg-rose-500 rounded-xl flex items-center justify-center shadow-lg shadow-rose-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </div>
                 <h1 className="text-xl font-black text-white tracking-tighter uppercase">
                     Taller<span className="text-rose-500">App</span>
                 </h1>
             </div>
 
+            {/* Se restauró 'no-scrollbar' para mantener el diseño limpio como solicitó el usuario */}
             <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
-                <ul className="flex flex-col gap-1.5 w-full pb-8">
+                <ul className="flex flex-col gap-0.5 w-full pb-4">
                     {menuItems.map((item, index) => (
                         <li key={index} className="w-full">
                             {item.subMenus ? (
@@ -122,7 +103,7 @@ export const Menu = () => {
                                     <button
                                         ref={el => itemRefs.current[item.name] = el}
                                         onClick={() => toggleMenu(item.name)}
-                                        className={`w-full text-left px-4 py-3 text-[13px] font-bold transition-all duration-300 flex justify-between items-center rounded-xl group ${openMenu === item.name 
+                                        className={`w-full text-left px-4 py-2 text-[13px] font-bold transition-all duration-300 flex justify-between items-center rounded-lg group ${openMenu === item.name 
                                             ? 'bg-slate-800 text-white shadow-sm' 
                                             : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
                                     >
@@ -137,15 +118,18 @@ export const Menu = () => {
                                         </svg>
                                     </button>
 
-                                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openMenu === item.name ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
-                                        <ul className="flex flex-col space-y-0.5 border-l border-slate-800 ml-6 py-1">
-                                            {item.subMenus.map((subItem, subIndex) => (
-                                                <li key={subIndex}>
-                                                    <NavLink to={subItem.path} className={estilosDelEnlace}>
-                                                        {subItem.label}
-                                                    </NavLink>
-                                                </li>
-                                            ))}
+                                    <div 
+                                        style={{ maxHeight: openMenu === item.name ? '600px' : '0px' }}
+                                        className={`overflow-hidden transition-all duration-500 ease-in-out ${openMenu === item.name ? 'opacity-100 mt-0.5' : 'opacity-0'}`}
+                                    >
+                                        <ul className="flex flex-col space-y-0 border-l border-slate-800 ml-6 py-0.5">
+                                        {item.subMenus.map((subItem, subIndex) => (
+                                            <li key={subIndex}>
+                                                <NavLink to={subItem.path} className={estilosDelEnlace}>
+                                                    {subItem.label}
+                                                </NavLink>
+                                            </li>
+                                        ))}
                                         </ul>
                                     </div>
                                 </div>
@@ -153,7 +137,7 @@ export const Menu = () => {
                                 <NavLink
                                     to={item.path}
                                     onClick={() => setOpenMenu(null)}
-                                    className={({ isActive }) => `flex items-center gap-3 w-full text-left px-4 py-3 text-[13px] font-bold transition-all duration-300 rounded-xl mb-1 ${isActive 
+                                    className={({ isActive }) => `flex items-center gap-3 w-full text-left px-4 py-2 text-[13px] font-bold transition-all duration-300 rounded-lg mb-0.5 ${isActive 
                                         ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' 
                                         : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
                                 >
@@ -166,13 +150,13 @@ export const Menu = () => {
                 </ul>
             </nav>
 
-            <div className="p-4 mt-auto border-t border-slate-800/40 bg-slate-900/50 flex flex-col gap-2">
+            <div className="p-3 mt-auto border-t border-slate-800/40 bg-slate-900/50 flex flex-col gap-2">
                 <button
                     onClick={() => {
                         localStorage.clear();
                         window.location.href = '/';
                     }}
-                    className="flex items-center justify-center gap-2 w-full bg-rose-500/10 text-rose-500 py-2.5 rounded-xl hover:bg-rose-500 hover:text-white transition-all duration-300 font-bold text-xs uppercase tracking-widest border border-rose-500/20"
+                    className="flex items-center justify-center gap-2 w-full bg-rose-500/10 text-rose-500 py-2 rounded-lg hover:bg-rose-500 hover:text-white transition-all duration-300 font-bold text-[11px] uppercase tracking-widest border border-rose-500/20"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Cerrar Sesión
