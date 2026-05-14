@@ -1,47 +1,54 @@
 import { useState } from 'react';
 import '../assets/recepcion.css';
+import api from '../services/axios.js';
+
+const FORM_INICIAL = {
+    cedula_rif: '',
+    placa: '',
+    marca: '',
+    modelo: '',
+    ano: '',
+    kilometraje: '',
+    capacidad_tanque: ''
+};
 
 export const RegistroVehiculo = () => {
-    const [formData, setFormData] = useState({
-        cedula_rif: '',
-        placa: '',
-        marca: '',
-        modelo: '',
-        ano: '',
-        kilometraje: '',
-        capacidad_tanque: ''
-    });
+    const [formData, setFormData] = useState(FORM_INICIAL);
     const [clienteEncontrado, setClienteEncontrado] = useState(null);
     const [cargando, setCargando] = useState(false);
+    const [feedback, setFeedback] = useState(null); // { tipo: 'ok' | 'error' | 'info', mensaje: '' }
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleBuscarCliente = async () => {
         const cedula = formData.cedula_rif.trim();
         if (!cedula) {
-            alert('Ingrese la cédula del cliente');
+            setFeedback({ tipo: 'error', mensaje: 'Ingrese la cédula del cliente' });
             return;
         }
 
+        setFeedback(null);
+        setClienteEncontrado(null);
         setCargando(true);
+
         try {
-            const response = await fetch(`http://localhost:3000/api/clientes/consulta/${cedula}`);
-            if (!response.ok) {
-                throw new Error('Cliente no encontrado');
-            }
-            const data = await response.json();
-            if (data.data) {
-                setClienteEncontrado(data.data);
-                alert(`Cliente encontrado: ${data.data.nombre} ${data.data.apellido}`);
-            }
-        } catch (error) {
-            alert('Cliente no encontrado. Debe registrarlo primero.');
-            setClienteEncontrado(null);
+            // GET /api/clientes/consulta/:cedula → { success, message, data: { cliente: { ... } } }
+            const res = await api.get(`/clientes/consulta/${cedula}`);
+            const cliente = res.data.data.cliente || res.data.data;
+
+            setClienteEncontrado(cliente);
+            setFeedback({
+                tipo: 'info',
+                mensaje: `Cliente encontrado: ${cliente.nombre} ${cliente.apellido ?? ''}`
+            });
+
+        } catch (err) {
+            setFeedback({
+                tipo: 'error',
+                mensaje: err.response?.data?.error || 'Cliente no encontrado. Debe registrarlo primero.'
+            });
         } finally {
             setCargando(false);
         }
@@ -53,62 +60,57 @@ export const RegistroVehiculo = () => {
 
     const handleGuardar = async () => {
         if (!clienteEncontrado) {
-            alert('Debe buscar un cliente existente primero');
+            setFeedback({ tipo: 'error', mensaje: 'Debe buscar un cliente existente primero' });
             return;
         }
         if (!formData.placa) {
-            alert('La placa es obligatoria');
+            setFeedback({ tipo: 'error', mensaje: 'La placa es obligatoria' });
             return;
         }
 
+        setFeedback(null);
         setCargando(true);
+
         try {
-            const placaNormalizada = normalizarPlaca(formData.placa);
-            
-            // Solo enviar los campos que existen en el modelo Carro
+            // POST /api/carros → { success, message, data: { ... } }
+            // Solo enviar los campos que existen en el modelo Carro (snake_case)
             const vehiculoData = {
-                placa: placaNormalizada,
+                placa: normalizarPlaca(formData.placa),
                 marca: formData.marca || '',
                 modelo: formData.modelo || '',
                 ano: formData.ano ? parseInt(formData.ano) : null,
                 kilometraje: formData.kilometraje ? parseInt(formData.kilometraje) : null,
                 capacidad_tanque: formData.capacidad_tanque || '',
-                id_cliente: clienteEncontrado.id_cliente  // ← Solo id_cliente, no cedula_rif
+                id_cliente: clienteEncontrado.id_cliente   // ← Solo id_cliente, no cedula_rif
             };
 
-            console.log('Datos a enviar:', vehiculoData);
-            
-            const response = await fetch('http://localhost:3000/api/carros', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(vehiculoData)
-            });
-            const data = await response.json();
-            console.log('Respuesta:', data);
-            
-            if (response.status === 201 || data.status === 201) {
-                alert('Vehículo registrado exitosamente');
-                setFormData({
-                    cedula_rif: '',
-                    placa: '',
-                    marca: '',
-                    modelo: '',
-                    ano: '',
-                    kilometraje: '',
-                    capacidad_tanque: ''
-                });
-                setClienteEncontrado(null);
+            await api.post('/carros', vehiculoData);
+
+            setFeedback({ tipo: 'ok', mensaje: 'Vehículo registrado exitosamente' });
+            setFormData(FORM_INICIAL);
+            setClienteEncontrado(null);
+
+        } catch (err) {
+            // Errores de validación 400 con array errors[].msg
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
             } else {
-                alert('Error: ' + (data?.message || 'No se pudo guardar'));
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al guardar el vehículo'
+                });
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al guardar el vehículo');
         } finally {
             setCargando(false);
         }
+    };
+
+    // Colores según tipo de feedback
+    const feedbackStyles = {
+        ok:    { bg: '#D1FAE5', color: '#065F46', border: '#6EE7B7' },
+        error: { bg: '#FEE2E2', color: '#991B1B', border: '#FCA5A5' },
+        info:  { bg: '#E0F2FE', color: '#0C4A6E', border: '#7DD3FC' }
     };
 
     return (
@@ -116,19 +118,38 @@ export const RegistroVehiculo = () => {
             <div className="form-cliente" style={{ maxWidth: '600px', margin: '0 auto' }}>
                 <h3>Registro de Vehículo</h3>
 
+                {/* ── Feedback de operación ── */}
+                {feedback && (() => {
+                    const s = feedbackStyles[feedback.tipo];
+                    return (
+                        <div style={{
+                            backgroundColor: s.bg,
+                            color: s.color,
+                            border: `1px solid ${s.border}`,
+                            padding: '10px 16px',
+                            borderRadius: '8px',
+                            marginBottom: '14px',
+                            fontWeight: '600',
+                            fontSize: '14px'
+                        }}>
+                            {feedback.mensaje}
+                        </div>
+                    );
+                })()}
+
                 <div className="campo">
                     <label>Cédula del Cliente:*</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <input 
-                            type="text" 
-                            name="cedula_rif" 
-                            value={formData.cedula_rif} 
-                            onChange={handleChange} 
-                            placeholder="Ingrese cédula del cliente" 
+                        <input
+                            type="text"
+                            name="cedula_rif"
+                            value={formData.cedula_rif}
+                            onChange={handleChange}
+                            placeholder="Ingrese cédula del cliente"
                         />
-                        <button 
-                            className="btn-1" 
-                            onClick={handleBuscarCliente} 
+                        <button
+                            className="btn-1"
+                            onClick={handleBuscarCliente}
                             disabled={cargando}
                             style={{ margin: 0, whiteSpace: 'nowrap' }}
                         >
@@ -149,74 +170,74 @@ export const RegistroVehiculo = () => {
 
                 <div className="campo">
                     <label>Placa:*</label>
-                    <input 
-                        type="text" 
-                        name="placa" 
-                        value={formData.placa} 
-                        onChange={handleChange} 
-                        placeholder="Ej: BBL32X" 
+                    <input
+                        type="text"
+                        name="placa"
+                        value={formData.placa}
+                        onChange={handleChange}
+                        placeholder="Ej: BBL32X"
                     />
                 </div>
 
                 <div className="campo">
                     <label>Marca:</label>
-                    <input 
-                        type="text" 
-                        name="marca" 
-                        value={formData.marca} 
-                        onChange={handleChange} 
-                        placeholder="Ej: Renault" 
+                    <input
+                        type="text"
+                        name="marca"
+                        value={formData.marca}
+                        onChange={handleChange}
+                        placeholder="Ej: Renault"
                     />
                 </div>
 
                 <div className="campo">
                     <label>Modelo:</label>
-                    <input 
-                        type="text" 
-                        name="modelo" 
-                        value={formData.modelo} 
-                        onChange={handleChange} 
-                        placeholder="Ej: Celio" 
+                    <input
+                        type="text"
+                        name="modelo"
+                        value={formData.modelo}
+                        onChange={handleChange}
+                        placeholder="Ej: Celio"
                     />
                 </div>
 
                 <div className="campo">
                     <label>Año:</label>
-                    <input 
-                        type="number" 
-                        name="ano" 
-                        value={formData.ano} 
-                        onChange={handleChange} 
-                        placeholder="Ej: 2015" 
+                    <input
+                        type="number"
+                        name="ano"
+                        value={formData.ano}
+                        onChange={handleChange}
+                        placeholder="Ej: 2015"
                     />
                 </div>
 
                 <div className="campo">
                     <label>Kilometraje:</label>
-                    <input 
-                        type="number" 
-                        name="kilometraje" 
-                        value={formData.kilometraje} 
-                        onChange={handleChange} 
-                        placeholder="Ej: 1000" 
+                    <input
+                        type="number"
+                        name="kilometraje"
+                        value={formData.kilometraje}
+                        onChange={handleChange}
+                        placeholder="Ej: 1000"
                     />
                 </div>
 
                 <div className="campo">
                     <label>Capacidad del tanque:</label>
-                    <input 
-                        type="text" 
-                        name="capacidad_tanque" 
-                        value={formData.capacidad_tanque} 
-                        onChange={handleChange} 
-                        placeholder="Ej: 20 litros" 
+                    <input
+                        type="text"
+                        name="capacidad_tanque"
+                        value={formData.capacidad_tanque}
+                        onChange={handleChange}
+                        placeholder="Ej: 20 litros"
                     />
                 </div>
 
                 <div className="botones-container" style={{ justifyContent: 'center', marginTop: '20px' }}>
-                    <button 
-                        className="btn-guardar" 
-                        onClick={handleGuardar} 
+                    <button
+                        className="btn-guardar"
+                        onClick={handleGuardar}
                         disabled={cargando || !clienteEncontrado}
                     >
                         {cargando ? 'Guardando...' : 'Registrar Vehículo'}
@@ -226,3 +247,4 @@ export const RegistroVehiculo = () => {
         </div>
     );
 };
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../services/axios.js';
 
 export const Facturacion = () => {
   const [ordenServicio, setOrdenServicio] = useState("");
@@ -18,6 +19,9 @@ export const Facturacion = () => {
   const [detallesModal, setDetallesModal] = useState({ repuestos: [], servicios: [] });
   const [cargandoDetalles, setCargandoDetalles] = useState(false);
 
+  // Obtener usuario en sesión
+  const usuarioSesion = JSON.parse(localStorage.getItem('usuario') || '{}');
+
   const mostrarNotificacion = (mensaje, tipo = "success") => {
     setNotificacion({ visible: true, mensaje, tipo });
     setTimeout(() => {
@@ -27,13 +31,17 @@ export const Facturacion = () => {
 
   const fetchFacturas = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/facturas');
-      if (response.ok) {
-        const data = await response.json();
-        // El backend devuelve { message, status, data: [] }
-        const arr = data.data || data || [];
-        setFacturasGeneradas(Array.isArray(arr) ? arr : []);
+      const response = await api.get('/facturas');
+      const dataPayload = response.data.data;
+      
+      // Extracción inteligente
+      let facturasArray = [];
+      if (Array.isArray(dataPayload)) {
+        facturasArray = dataPayload;
+      } else if (dataPayload && Array.isArray(dataPayload.facturas)) {
+        facturasArray = dataPayload.facturas;
       }
+      setFacturasGeneradas(facturasArray);
     } catch (error) {
       console.error('Error al obtener facturas:', error);
     }
@@ -44,22 +52,21 @@ export const Facturacion = () => {
     setCargandoDetalles(true);
     setDetallesModal({ repuestos: [], servicios: [] });
     try {
-      const response = await fetch(`http://localhost:3000/api/ordenes/${factura.id_orden}`);
-      if (response.ok) {
-        const ordenEncontrada = await response.json();
-        const repuestos = ordenEncontrada.detalle_orden_repuestos?.map(req => ({
-             descripcion: req.repuesto?.descripcion || 'Repuesto',
-             precio: Number(req.repuesto?.precio_venta_sugerido || 0) * req.cantidad,
-             cantidad: req.cantidad
-        })) || ordenEncontrada.detalles?.repuestos || [];
+      const response = await api.get(`/ordenes/${factura.id_orden}`);
+      const ordenEncontrada = response.data.data.orden || response.data.data;
 
-        const servicios = ordenEncontrada.detalle_orden_servicios?.map(serv => ({
-             descripcion: serv.servicio?.nombre_servicio || 'Servicio',
-             precio: Number(serv.precio_aplicado || serv.servicio?.precio_base || 0)
-        })) || ordenEncontrada.detalles?.servicios || [];
-        
-        setDetallesModal({ repuestos, servicios });
-      }
+      const repuestos = ordenEncontrada.detalles_repuestos?.map(req => ({
+           descripcion: req.repuesto?.descripcion || 'Repuesto',
+           precio: Number(req.repuesto?.precio_venta_sugerido || 0) * req.cantidad,
+           cantidad: req.cantidad
+      })) || ordenEncontrada.detalles?.repuestos || [];
+
+      const servicios = ordenEncontrada.detalles_servicios?.map(serv => ({
+           descripcion: serv.servicio?.nombre_servicio || 'Servicio',
+           precio: Number(serv.precio_aplicado || serv.servicio?.precio_base || 0)
+      })) || ordenEncontrada.detalles?.servicios || [];
+      
+      setDetallesModal({ repuestos, servicios });
     } catch (error) {
       console.error('Error obteniendo detalles:', error);
     } finally {
@@ -70,16 +77,17 @@ export const Facturacion = () => {
   useEffect(() => {
     const fetchOrdenes = async () => {
       try {
-        // Ajusta esta ruta según los endpoints de tu backend
-        const response = await fetch('http://localhost:3000/api/ordenes/finalizadas');
-        if (response.ok) {
-          const data = await response.json();
-          // El backend devuelve { message, status, data: [] }
-          const arr = data.data || data || [];
-          setOrdenesFinalizadas(Array.isArray(arr) ? arr : []);
-        } else {
-          console.error('Error al obtener las órdenes finalizadas');
+        const response = await api.get('/ordenes/finalizadas');
+        const dataPayload = response.data.data;
+
+        // Extracción inteligente
+        let ordenesArray = [];
+        if (Array.isArray(dataPayload)) {
+          ordenesArray = dataPayload;
+        } else if (dataPayload && Array.isArray(dataPayload.ordenes)) {
+          ordenesArray = dataPayload.ordenes;
         }
+        setOrdenesFinalizadas(ordenesArray);
       } catch (error) {
         console.error('Error de red al obtener órdenes:', error);
       }
@@ -98,39 +106,33 @@ export const Facturacion = () => {
     }
 
     try {
-      // Ajusta esta ruta según la API de tu backend
-      const response = await fetch(`http://localhost:3000/api/ordenes/${ordenServicio}`);
-      
-      if (response.ok) {
-        const ordenEncontrada = await response.json();
-        // Mapeo adaptado al schema Prisma (detalle_orden_repuestos y detalle_orden_servicios)
-        // Se asume que el backend hace "include" de repuesto y servicio para tener descripcion/nombre y precios
-        const repuestos = ordenEncontrada.detalle_orden_repuestos?.map(req => ({
-             descripcion: req.repuesto?.descripcion || 'Repuesto',
-             precio: Number(req.repuesto?.precio_venta_sugerido || 0) * req.cantidad
-        })) || ordenEncontrada.detalles?.repuestos || [];
+      const response = await api.get(`/ordenes/${ordenServicio}`);
+      const ordenEncontrada = response.data.data.orden || response.data.data;
 
-        const servicios = ordenEncontrada.detalle_orden_servicios?.map(serv => ({
-             descripcion: serv.servicio?.nombre_servicio || 'Servicio',
-             precio: Number(serv.precio_aplicado || serv.servicio?.precio_base || 0)
-        })) || ordenEncontrada.detalles?.servicios || [];
+      const repuestos = ordenEncontrada.detalles_repuestos?.map(req => ({
+           descripcion: req.repuesto?.descripcion || 'Repuesto',
+           precio: Number(req.repuesto?.precio_venta_sugerido || 0) * req.cantidad
+      })) || ordenEncontrada.detalles?.repuestos || [];
 
-        const detallesMapeados = { repuestos, servicios };
-        setDetalles(detallesMapeados);
-        calcularTotales(detallesMapeados);
-        setOrdenCargada(true);
-      } else {
-        mostrarNotificacion("Orden de Servicio no encontrada o no está finalizada.", "error");
-        setOrdenCargada(false);
-        setDetalles({ repuestos: [], servicios: [] });
-        setSubtotalUSD(0);
-        setSubtotalBs(0);
-        setIva(0);
-        setIgtf(0);
-      }
+      const servicios = ordenEncontrada.detalles_servicios?.map(serv => ({
+           descripcion: serv.servicio?.nombre_servicio || 'Servicio',
+           precio: Number(serv.precio_aplicado || serv.servicio?.precio_base || 0)
+      })) || ordenEncontrada.detalles?.servicios || [];
+
+      const detallesMapeados = { repuestos, servicios };
+      setDetalles(detallesMapeados);
+      calcularTotales(detallesMapeados);
+      setOrdenCargada(true);
+
     } catch (error) {
       console.error('Error al buscar la orden de servicio:', error);
-      mostrarNotificacion("Error de conexión con el servidor.", "error");
+      mostrarNotificacion("Orden de Servicio no encontrada o no está finalizada.", "error");
+      setOrdenCargada(false);
+      setDetalles({ repuestos: [], servicios: [] });
+      setSubtotalUSD(0);
+      setSubtotalBs(0);
+      setIva(0);
+      setIgtf(0);
     }
   };
 
@@ -224,50 +226,46 @@ export const Facturacion = () => {
     // Preparar el objeto asegurando los campos exactos del schema Factura
     const facturaData = {
       id_orden: parseInt(ordenServicio), // Int según Prisma (id_orden)
-      monto_total: totalUSDCalculado,    // Decimal según Prisma (Usando total final, ajústalo a Bs si guardas en Bs)
+      monto_total: totalUSDCalculado,    // Decimal según Prisma
       metodo_pago: pagos[0]?.metodo || "Efectivo", // String según Prisma (metodo_pago)
+      cedula_cajero: usuarioSesion.cedula_rif || null, // Guardamos la identidad de quien opera
       
-      // Campos extra por si tu controlador los necesita calcular, auditar o detallar
-      tasaCambio: Number(tasaCambio),
-      subtotalUSD,
-      subtotalBs,
-      iva,
-      igtf,
-      totalUSD: totalUSDCalculado,
-      totalBs: totalBsCalculado,
-      pagos
+      // Campos extra opcionales para control
+      tasa_cambio: Number(tasaCambio),
+      subtotal_usd: subtotalUSD,
+      subtotal_bs: subtotalBs,
+      iva: iva,
+      igtf: igtf,
+      total_usd: totalUSDCalculado,
+      total_bs: totalBsCalculado,
+      pagos: pagos
     };
 
     try {
-      // Ajusta la ruta y el método a los requeridos por tu backend
-      const response = await fetch('http://localhost:3000/api/facturas', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(facturaData)
-      });
+      await api.post('/facturas', facturaData);
 
-      if (response.ok) {
-        mostrarNotificacion('¡Factura generada con éxito!', 'success');
-        // Opcional: Limpiar los campos o refrescar datos
-        setOrdenServicio("");
-        setOrdenCargada(false);
-        setDetalles({ repuestos: [], servicios: [] });
-        setSubtotalUSD(0);
-        setSubtotalBs(0);
-        setIva(0);
-        setIgtf(0);
-        setTasaCambio(0);
-        setPagos([{ metodo: "", moneda: "", monto: 0 }]);
-        fetchFacturas();
+      mostrarNotificacion('¡Factura generada con éxito!', 'success');
+      // Limpiar los campos o refrescar datos
+      setOrdenServicio("");
+      setOrdenCargada(false);
+      setDetalles({ repuestos: [], servicios: [] });
+      setSubtotalUSD(0);
+      setSubtotalBs(0);
+      setIva(0);
+      setIgtf(0);
+      setTasaCambio(0);
+      setPagos([{ metodo: "", moneda: "", monto: 0 }]);
+      fetchFacturas();
+      
+    } catch (err) {
+      console.error('Error al enviar la factura:', err);
+      // Validaciones de status 400
+      if (err.response?.status === 400 && err.response.data?.errors) {
+        const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+        mostrarNotificacion(msgs, 'error');
       } else {
-        const errorData = await response.json().catch(() => null);
-        mostrarNotificacion(errorData?.error || 'Error al generar la factura en el servidor', 'error');
+        mostrarNotificacion(err.response?.data?.error || "Error al generar la factura en el servidor.", "error");
       }
-    } catch (error) {
-      console.error('Error al enviar la factura:', error);
-      mostrarNotificacion("Error de conexión con el servidor.", "error");
     }
   };
 
@@ -277,6 +275,16 @@ export const Facturacion = () => {
         <h1 className="text-3xl font-extrabold text-slate-800 mb-6">
             Módulo de <span className="text-[#F43F5E]">Facturación</span>
         </h1>
+
+        {/* ── Info del Usuario ── */}
+        {usuarioSesion.nombre && (
+            <div className="mb-6 bg-white px-5 py-3 rounded-xl border border-slate-200 inline-flex items-center gap-2 shadow-sm">
+              <span className="text-slate-400">👤</span>
+              <span className="text-sm text-slate-600 font-semibold">Operador actual: </span>
+              <span className="text-sm text-slate-800 font-bold">{usuarioSesion.nombre}</span>
+              <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 font-medium ml-2">{usuarioSesion.rol}</span>
+            </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Columna Izquierda */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../services/axios.js';
 
 export const EditarEmpleado = () => {
     const { id } = useParams();
@@ -17,6 +18,7 @@ export const EditarEmpleado = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [feedback, setFeedback] = useState(null); // { tipo: 'ok'|'error', mensaje: '' }
 
     const especialidadesDisponibles = [
         "Mecánico General",
@@ -36,28 +38,28 @@ export const EditarEmpleado = () => {
     useEffect(() => {
         const fetchEmpleado = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados/${id}`);
-                if(response.ok) {
-                    const result = await response.json();
-                    const emp = result.data.empleado;
-                    if(emp) {
-                        setFormData({
-                            id_empleado: emp.id_empleado,
-                            nombre: emp.nombre,
-                            apellido: emp.apellido,
-                            cargo: emp.cargo || "",
-                            telefono: emp.telefono || "",
-                            sueldo_base: emp.sueldo_base || 0,
-                            monto_comision_fija: emp.monto_comision_fija || 0
-                        });
-                    }
+                // GET /api/empleados/:id
+                const response = await api.get(`/empleados/${id}`);
+                const emp = response.data.data.empleado || response.data.data;
+                
+                if (emp) {
+                    setFormData({
+                        id_empleado: emp.id_empleado || emp.cedula_rif || id,
+                        nombre: emp.nombre || "",
+                        apellido: emp.apellido || "",
+                        cargo: emp.cargo || "",
+                        telefono: emp.telefono || "",
+                        sueldo_base: emp.sueldo_base || 0,
+                        monto_comision_fija: emp.monto_comision_fija || 0
+                    });
                 } else {
-                    alert("No se encontró el empleado con ese ID.");
-                    navigate('/panel/GestionEmpleados');
+                    setFeedback({ tipo: 'error', mensaje: "No se encontró el empleado." });
+                    setTimeout(() => navigate('/panel/GestionEmpleados'), 2000);
                 }
             } catch (error) {
                 console.error("Error obteniendo empleado:", error);
-                alert("Fallo al conectar con el servidor.");
+                setFeedback({ tipo: 'error', mensaje: error.response?.data?.error || "Fallo al cargar datos del empleado." });
+                setTimeout(() => navigate('/panel/GestionEmpleados'), 2500);
             } finally {
                 setLoading(false);
             }
@@ -77,33 +79,40 @@ export const EditarEmpleado = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        setFeedback(null);
         try {
             const bodyData = {
-                ...formData,
-                sueldo_base: parseFloat(formData.sueldo_base),
-                monto_comision_fija: parseFloat(formData.monto_comision_fija),
+                nombre: formData.nombre,
+                apellido: formData.apellido,
+                cargo: formData.cargo,
+                telefono: formData.telefono,
+                sueldo_base: parseFloat(formData.sueldo_base || 0),
+                monto_comision_fija: parseFloat(formData.monto_comision_fija || 0),
                 aplica_comision: parseFloat(formData.monto_comision_fija) > 0
             };
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/empleados/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyData)
-            });
+            // PUT /api/empleados/:id
+            await api.put(`/empleados/${id}`, bodyData);
 
-            if(response.ok) {
-                alert(`¡Los datos de ${formData.nombre} fueron actualizados con éxito!`);
-                navigate('/panel/GestionEmpleados');
+            setFeedback({ tipo: 'ok', mensaje: `¡Los datos de ${formData.nombre} fueron actualizados con éxito!` });
+            setTimeout(() => navigate('/panel/GestionEmpleados'), 2000);
+
+        } catch (err) {
+            console.error("Error al actualizar empleado:", err);
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
             } else {
-                const errorData = await response.json();
-                alert(`Error al actualizar: ${errorData.message}`);
+                setFeedback({ tipo: 'error', mensaje: err.response?.data?.error || "No se pudo actualizar el empleado." });
             }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("No se pudo conectar con el servidor para actualizar.");
         } finally {
             setSaving(false);
         }
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }
     };
 
     if(loading) {
@@ -115,7 +124,7 @@ export const EditarEmpleado = () => {
             <button 
                 type="button" 
                 onClick={() => navigate(-1)} 
-                className="absolute top-8 right-8 flex items-center gap-2 text-slate-400 hover:text-pink-accent font-bold text-sm transition-colors"
+                className="absolute top-8 right-8 flex items-center gap-2 text-slate-400 hover:text-pink-accent font-bold text-sm transition-colors cursor-pointer"
                 title="Volver atrás"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -127,13 +136,27 @@ export const EditarEmpleado = () => {
             <h2 className="text-3xl font-black text-slate-main mb-2">
                 Editar Datos de <span className='text-pink-accent'>{formData.nombre}</span>
             </h2>
-            <p className="text-sm font-medium text-slate-400 mb-8">Modifica la información y actualiza el expediente del empleado.</p>
+            <p className="text-sm font-medium text-slate-400 mb-6">Modifica la información y actualiza el expediente del empleado.</p>
+
+            {/* FEEDBACK */}
+            {feedback && (
+                <div style={{
+                    ...feedbackStyles[feedback.tipo],
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    fontWeight: 'bold',
+                    fontSize: '14px'
+                }}>
+                    {feedback.mensaje}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className='grid grid-cols-1 md:grid-cols-2 gap-5'>
                 <div className="flex flex-col gap-1 md:col-span-2">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Cédula / Documento (No modificable)</label>
                     <input type="text" name="id_empleado"
-                        className="w-full p-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-400 outline-none cursor-not-allowed"
+                        className="w-full p-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-400 outline-none cursor-not-allowed font-medium"
                         disabled
                         value={formData.id_empleado}
                     />
@@ -142,7 +165,7 @@ export const EditarEmpleado = () => {
                 <div className="flex flex-col gap-1">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Nombre</label>
                     <input type="text" name="nombre"
-                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all"
+                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all font-medium text-slate-700"
                         placeholder="Juan"
                         onChange={handleChange} required value={formData.nombre}
                     />
@@ -151,7 +174,7 @@ export const EditarEmpleado = () => {
                 <div className="flex flex-col gap-1">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Apellido</label>
                     <input type="text" name="apellido"
-                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all"
+                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all font-medium text-slate-700"
                         placeholder="Pérez"
                         onChange={handleChange} required value={formData.apellido}
                     />
@@ -160,7 +183,7 @@ export const EditarEmpleado = () => {
                 <div className="flex flex-col gap-1 md:col-span-2 relative">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Especialidad / Cargo en Taller</label>
                     <input type="text" name="cargo"
-                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all"
+                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all font-medium text-slate-700"
                         placeholder="Ej. Mecánico de Motor... (Escribe o Selecciona)"
                         autoComplete="off"
                         onChange={handleChange} 
@@ -186,7 +209,7 @@ export const EditarEmpleado = () => {
                 <div className="flex flex-col gap-1">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Sueldo Base ($)</label>
                     <input type="number" step="0.01" name="sueldo_base"
-                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all"
+                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all font-medium text-slate-700"
                         onChange={handleChange} required value={formData.sueldo_base}
                     />
                 </div>
@@ -194,14 +217,14 @@ export const EditarEmpleado = () => {
                 <div className="flex flex-col gap-1">
                     <label className='text-[10px] font-bold uppercase text-slate-400 tracking-widest'>Comisión por OS (% o $)</label>
                     <input type="number" step="0.01" name="monto_comision_fija"
-                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all"
+                        className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-pink-accent outline-none transition-all font-medium text-slate-700"
                         onChange={handleChange} required value={formData.monto_comision_fija}
                     />
                 </div>
 
                 <div className="md:col-span-2 pt-4">
                     <button type="submit" disabled={saving}
-                        className='w-full bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg hover:shadow-xl disabled:opacity-50'>
+                        className='cursor-pointer w-full bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg hover:shadow-xl disabled:opacity-50'>
                         {saving ? 'Aplicando Cambios...' : 'Guardar y Actualizar Empleado'}
                     </button>
                 </div>
@@ -209,3 +232,5 @@ export const EditarEmpleado = () => {
         </div>
     );
 };
+
+export default EditarEmpleado;

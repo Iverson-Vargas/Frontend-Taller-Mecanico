@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import '../assets/tablas.css';
+import api from '../services/axios.js';
 
 export const Servicios = () => {
     const [servicios, setServicios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [feedback, setFeedback] = useState(null);
     const [formData, setFormData] = useState({
         nombre_servicio: '',
         tipo_servicio: '',
@@ -17,11 +19,11 @@ export const Servicios = () => {
     const cargarServicios = async () => {
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:3000/api/servicios');
-            const data = await res.json();
-            setServicios(data.data || []);
+            const res = await api.get('/servicios');
+            setServicios(res.data.data || []);
         } catch (error) {
             console.error("Error cargando servicios", error);
+            setFeedback({ tipo: 'error', mensaje: 'Error al cargar los servicios' });
         } finally {
             setLoading(false);
         }
@@ -32,12 +34,15 @@ export const Servicios = () => {
             ...formData,
             [e.target.name]: e.target.value
         });
+        if (feedback) setFeedback(null);
     };
 
     const handleGuardar = async (e) => {
         e.preventDefault();
+        setFeedback(null);
+
         if (!formData.nombre_servicio || !formData.precio_base) {
-            alert('Nombre y Precio Base son obligatorios');
+            setFeedback({ tipo: 'error', mensaje: 'Nombre y Precio Base son obligatorios' });
             return;
         }
 
@@ -48,50 +53,63 @@ export const Servicios = () => {
                 precio_base: parseFloat(formData.precio_base)
             };
 
-            const res = await fetch('http://localhost:3000/api/servicios', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(servicioData)
-            });
+            await api.post('/servicios', servicioData);
 
-            if (res.ok) {
-                alert('Servicio guardado exitosamente');
-                setFormData({ nombre_servicio: '', tipo_servicio: '', precio_base: '' });
-                cargarServicios();
+            setFeedback({ tipo: 'ok', mensaje: 'Servicio guardado exitosamente' });
+            setFormData({ nombre_servicio: '', tipo_servicio: '', precio_base: '' });
+            cargarServicios();
+
+        } catch (err) {
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
             } else {
-                const errData = await res.json();
-                alert('Error al guardar: ' + (errData.message || 'Desconocido'));
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al guardar el servicio'
+                });
             }
-        } catch (error) {
-            console.error('Error guardando servicio:', error);
-            alert('Error de red al guardar el servicio');
         }
     };
 
     const handleEliminar = async (id) => {
         if (confirm('¿Está seguro de eliminar este servicio?')) {
+            setFeedback(null);
             try {
-                const res = await fetch(`http://localhost:3000/api/servicios/${id}`, {
-                    method: 'DELETE'
+                await api.delete(`/servicios/${id}`);
+                setFeedback({ tipo: 'ok', mensaje: 'Servicio eliminado' });
+                cargarServicios();
+            } catch (err) {
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al eliminar el servicio'
                 });
-                if (res.ok) {
-                    alert('Servicio eliminado');
-                    cargarServicios();
-                } else {
-                    alert('Error al eliminar');
-                }
-            } catch (error) {
-                console.error('Error eliminando servicio:', error);
-                alert('Error de red al eliminar');
             }
         }
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' },
     };
 
     return (
         <div className="tabla-container">
             <h1 className="titulo-tabla">Catálogo de Servicios y Precios</h1>
+
+            {feedback && (
+                <div style={{
+                    ...feedbackStyles[feedback.tipo],
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    maxWidth: '600px'
+                }}>
+                    {feedback.mensaje}
+                </div>
+            )}
             
             <div className="form-cliente" style={{ marginBottom: '30px', maxWidth: '600px', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h3>Registrar Nuevo Servicio</h3>
