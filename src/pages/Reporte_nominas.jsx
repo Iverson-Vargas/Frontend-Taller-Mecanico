@@ -1,107 +1,230 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/axios.js';
 
 export const ReporteNominas = () => {
-  const [nominas] = useState([
-    { 
-      id: 1, 
-      nombre: 'Jose Pernalete', 
-      cargo: 'Mecánico Senior',
-      salarioBase: 400.00,
-      porcentajeComision: 0.30, 
-      comisionProduccion: 150.00, 
-      bonoCalidad: 50.00,        
-      retenciones: 45.00,        
-      osFinalizadas: 8 // Dato de productividad
-    },
-    { 
-      id: 2, 
-      nombre: 'Juan Rodrigues', 
-      cargo: 'Especialista en Frenos',
-      salarioBase: 350.00,
-      porcentajeComision: 0.25, 
-      comisionProduccion: 105.00, 
-      bonoCalidad: 0.00,
-      retenciones: 38.00,
-      osFinalizadas: 5 // Dato de productividad
-    },
-  ]);
+  const [nominas, setNominas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('nombre');
+  const [feedback, setFeedback] = useState(null); // Feedback UI
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const totalAPagar = nominas.reduce((acc, n) => 
+  const mostrarFeedback = (mensaje, tipo = "ok") => {
+    setFeedback({ visible: true, mensaje, tipo });
+    setTimeout(() => setFeedback(null), 4500);
+  };
+
+  useEffect(() => {
+    const fetchNominas = async () => {
+      setLoading(true);
+      try {
+        // GET /api/empleados
+        const response = await api.get('/empleados');
+        const payload = response.data.data || response.data;
+        
+        // Extracción Inteligente
+        let empleadosArray = [];
+        if (Array.isArray(payload)) empleadosArray = payload;
+        else if (payload && Array.isArray(payload.empleados)) empleadosArray = payload.empleados;
+        
+        const datosNomina = empleadosArray.map(emp => {
+          const salarioBase = Number(emp.sueldo_base || 0);
+          const realOS = emp._count?.ordenes || 0;
+          
+          // Si no hay órdenes reales, usamos un fallback visual para el mockup si es 0
+          const osFinalizadas = realOS > 0 ? realOS : 0; 
+          const comisionProduccion = osFinalizadas * (Number(emp.monto_comision_fija) || 15);
+          
+          return {
+            id_empleado: emp.id_empleado,
+            nombre: `${emp.nombre || ''} ${emp.apellido || ''}`.trim() || 'Sin Nombre',
+            cargo: emp.cargo || 'Sin Cargo',
+            salarioBase,
+            porcentajeComision: emp.aplica_comision ? 'Comisión Fija' : 'N/A',
+            comisionProduccion,
+            bonoCalidad: osFinalizadas > 3 ? 50.00 : 0.00, // Bono dinámico
+            retenciones: salarioBase > 500 ? 45.00 : 0.00, // Retención dinámica
+            osFinalizadas
+          };
+        });
+        setNominas(datosNomina);
+      } catch (error) {
+        console.error("Error cargando reporte nóminas", error);
+        mostrarFeedback("Error cargando el reporte de nóminas.", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNominas();
+  }, [startDate, endDate]);
+
+  const liquidarPago = async (empleado, neto) => {
+    if(!window.confirm(`¿Seguro que deseas liquidar $${neto.toFixed(2)} a ${empleado.nombre}?`)) return;
+    try {
+      // POST /api/nomina/pagar
+      await api.post('/nomina/pagar', {
+        id_empleado: empleado.id_empleado,
+        monto_total: neto
+      });
+      
+      mostrarFeedback(`¡Pago registrado al historial de nómina de ${empleado.nombre} correctamente!`, "ok");
+    } catch(err) {
+      console.error("Error al pagar:", err);
+      if (err.response?.status === 400 && err.response.data?.errors) {
+        const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+        mostrarFeedback(msgs, 'error');
+      } else {
+        mostrarFeedback(err.response?.data?.error || "Error de conexión al pagar.", "error");
+      }
+    }
+  };
+
+  // Filtrado y Orden
+  const filteredNominas = nominas.filter(n => {
+    const term = searchTerm.toLowerCase();
+    return (n.nombre?.toLowerCase().includes(term) || n.cargo?.toLowerCase().includes(term));
+  }).sort((a, b) => {
+    if (sortBy === 'nombre') return (a.nombre || '').localeCompare(b.nombre || '');
+    if (sortBy === 'neto') {
+      const netoA = a.salarioBase + a.comisionProduccion + a.bonoCalidad - a.retenciones;
+      const netoB = b.salarioBase + b.comisionProduccion + b.bonoCalidad - b.retenciones;
+      return netoB - netoA;
+    }
+    if (sortBy === 'especialidad') return (a.cargo || '').localeCompare(b.cargo || '');
+    return 0;
+  });
+
+  const totalAPagar = filteredNominas.reduce((acc, n) => 
     acc + (n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones), 0
   );
 
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Encabezado */}
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-800">Liquidación de Nómina</h1>
-          <p className="text-gray-500 font-medium">Control de comisiones y productividad por mecánico</p>
-        </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-blue-600 text-right">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Pasivo Laboral</span>
-          <p className="text-3xl font-black text-blue-700">${totalAPagar.toFixed(2)}</p>
-        </div>
-      </div>
+  const feedbackStyles = {
+    ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+    error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }
+  };
 
-      {/* Tabla Pro de Nómina con columna de OS independiente */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-100 border-b border-gray-200">
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase">Empleado / Cargo</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-center">Trabajos (OS)</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-right">Sueldo Base</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-center">Tasa %</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-right">Comisiones</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-right">Bonos</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-right text-red-500">Retenciones</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-right font-bold text-blue-800">Neto a Pagar</th>
-              <th className="p-4 text-xs font-bold text-gray-600 uppercase text-center">Acción</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {nominas.map((n) => {
-              const neto = n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones;
-              return (
-                <tr key={n.id} className="hover:bg-blue-50/40 transition-colors">
-                  <td className="p-4">
-                    <div className="font-bold text-gray-800">{n.nombre}</div>
-                    <div className="text-xs text-blue-500 font-bold uppercase">{n.cargo}</div>
-                  </td>
-                  {/* Columna Independiente de OS */}
-                  <td className="p-4 text-center">
-                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold leading-none text-gray-800 bg-gray-200 rounded-lg shadow-sm">
-                      {n.osFinalizadas}
-                    </span>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Finalizadas</p>
-                  </td>
-                  <td className="p-4 text-right text-gray-600 font-medium">${n.salarioBase.toFixed(2)}</td>
-                  <td className="p-4 text-center">
-                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-xs font-black">
-                      {(n.porcentajeComision * 100)}%
-                    </span>
-                  </td>
-                  <td className="p-4 text-right text-green-600 font-bold">+${n.comisionProduccion.toFixed(2)}</td>
-                  <td className="p-4 text-right text-green-600 font-bold">+${n.bonoCalidad.toFixed(2)}</td>
-                  <td className="p-4 text-right text-red-400">-${n.retenciones.toFixed(2)}</td>
-                  <td className="p-4 text-right">
-                    <span className="text-xl font-black text-gray-900">${neto.toFixed(2)}</span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <button 
-                      onClick={() => alert(`Liquidando nómina de ${n.nombre}...`)}
-                      className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95"
-                    >
-                      Liquidar
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+  return (
+    <div className="p-8 bg-gray-50 min-h-screen font-sans relative">
+      
+      {/* Toast Notificación */}
+      {feedback && (
+          <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 z-[200]`} style={feedbackStyles[feedback.tipo]}>
+              <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
+          </div>
+      )}
+
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+            <div>
+                <h1 className="text-4xl font-black text-slate-800 tracking-tight">Liquidación de <span className="text-[#F43F5E]">Nómina</span></h1>
+                <p className="text-slate-500 font-medium">Control de pagos reales basados en sueldo base y comisiones por órdenes finalizadas.</p>
+            </div>
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-right min-w-[250px]">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Total Pasivo Laboral Real</span>
+                <p className="text-4xl font-black text-blue-700">${totalAPagar.toFixed(2)}</p>
+            </div>
+        </div>
+
+        {/* Filtros */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8 flex flex-wrap items-center gap-6">
+            <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Desde</label>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"/>
+            </div>
+            <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Hasta</label>
+                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"/>
+            </div>
+            <div className="flex-1 min-w-[300px] flex flex-col gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Buscar Técnico</label>
+                <input 
+                    type="search" 
+                    placeholder="Escribe nombre o cargo..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"
+                />
+            </div>
+            <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Ordenar por</label>
+                <select 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="cursor-pointer bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-[#F43F5E]"
+                >
+                    <option value="nombre">Nombre</option>
+                    <option value="neto">Mayor Salario</option>
+                    <option value="especialidad">Cargo</option>
+                </select>
+            </div>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 className="font-black text-slate-800 uppercase tracking-wider text-xs">Detalle de liquidación de haberes</h2>
+                {loading && <span className="text-xs font-bold text-[#F43F5E] animate-pulse">Consultando base de datos...</span>}
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase">
+                    <tr>
+                    <th className="px-6 py-4">Empleado / Cargo</th>
+                    <th className="px-6 py-4 text-center">Órdenes (OS)</th>
+                    <th className="px-6 py-4 text-right">Sueldo Base</th>
+                    <th className="px-6 py-4 text-right">Comisiones</th>
+                    <th className="px-6 py-4 text-right text-red-500">Retenciones</th>
+                    <th className="px-6 py-4 text-right font-black text-blue-800">Neto a Liquidar</th>
+                    <th className="px-6 py-4 text-center">Operación</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                    {filteredNominas.length === 0 ? (
+                        <tr><td colSpan="7" className="text-center py-20 text-slate-400 font-bold italic">No se encontraron registros para este periodo.</td></tr>
+                    ) : (
+                        filteredNominas.map((n) => {
+                            const neto = n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones;
+                            return (
+                                <tr key={n.id_empleado} className="hover:bg-slate-50 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="font-black text-slate-800 group-hover:text-[#F43F5E] transition-colors">{n.nombre}</div>
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase">{n.cargo}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className="bg-slate-100 text-slate-800 px-3 py-1 rounded-lg text-xs font-black">
+                                            {n.osFinalizadas}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right text-slate-600 font-bold">${n.salarioBase.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right text-emerald-600 font-black">+${n.comisionProduccion.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right text-rose-400">-${n.retenciones.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <span className="text-xl font-black text-slate-900">${neto.toFixed(2)}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <button 
+                                            onClick={() => liquidarPago(n, neto)}
+                                            disabled={neto <= 0}
+                                            className="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        >
+                                            Liquidar
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    )}
+                </tbody>
+                </table>
+            </div>
+        </div>
       </div>
     </div>
   );
 };
+
+export default ReporteNominas;

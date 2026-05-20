@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/axios.js';
 
 export const EstadoCliente = () => {
     const navigate = useNavigate();
@@ -17,14 +18,19 @@ export const EstadoCliente = () => {
 
         const fetchEstado = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/clientes/consulta/${cedula}`);
-                if (!res.ok) {
-                    throw new Error('No se pudo obtener la información de su vehículo');
-                }
-                const data = await res.json();
-                setClienteData(data);
+                // GET /api/clientes/consulta/:cedula
+                const res = await api.get(`/clientes/consulta/${cedula}`);
+                
+                // Smart Extraction
+                const payload = res.data.data || res.data;
+                // Dependiendo de cómo lo envuelve el backend
+                const dataFinal = payload.cliente || payload.estado || payload;
+
+                setClienteData(dataFinal);
             } catch (err) {
-                setError(err.message || 'Error de conexión con el servidor');
+                console.error("Error consultando estado:", err);
+                const serverError = err.response?.data?.error || err.response?.data?.message;
+                setError(serverError || 'Error de conexión con el servidor. Intente más tarde.');
             } finally {
                 setLoading(false);
             }
@@ -41,7 +47,7 @@ export const EstadoCliente = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-100 p-6 font-sans flex flex-col items-center">
+        <div className="min-h-screen bg-slate-100 p-6 font-sans flex flex-col items-center relative">
             <header className="w-full max-w-4xl flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Taller App</h1>
@@ -49,7 +55,7 @@ export const EstadoCliente = () => {
                 </div>
                 <button 
                     onClick={handleLogout}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
+                    className=" cursor-pointer bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
                 >
                     Cerrar Sesión
                 </button>
@@ -68,7 +74,7 @@ export const EstadoCliente = () => {
                         <p>{error}</p>
                     </div>
                 ) : clienteData ? (
-                    <div className="space-y-8 animate-fade-in">
+                    <div className="space-y-8 animate-in fade-in duration-500">
                         <div className="border-b border-slate-100 pb-6 flex justify-between items-end">
                             <div>
                                 <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Estado de su Vehículo</h2>
@@ -84,9 +90,7 @@ export const EstadoCliente = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Renderizar dinámicamente todo lo que devuelva el back */}
                             {Object.entries(clienteData).map(([key, value]) => {
-                                // Evitar objetos internos, renderizamos sus propiedades si es necesario
                                 if (typeof value === 'object' && value !== null) {
                                   return (
                                     <div key={key} className="col-span-full bg-slate-50 p-6 rounded-xl border border-slate-100">
@@ -118,3 +122,5 @@ export const EstadoCliente = () => {
         </div>
     );
 };
+
+export default EstadoCliente;

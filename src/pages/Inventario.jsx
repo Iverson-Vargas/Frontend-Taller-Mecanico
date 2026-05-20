@@ -1,37 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/axios.js';
 
 export const Inventario = () => {
-    const [repuestos, setRepuestos] = useState([
-        { id: 'REP-001', desc: 'Pastillas de Freno', ubicacion: 'A1', pCompra: 10, pVenta: 25, stock: 10, gananciaAcumulada: 0 }
-    ]);
+    const [repuestos, setRepuestos] = useState([]);
     const [form, setForm] = useState({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
     const [modalVenta, setModalVenta] = useState({ abierto: false, producto: null, cantidadVenta: 1 });
+    const [feedback, setFeedback] = useState(null);
+
+    useEffect(() => {
+        fetchInventario();
+    }, []);
+
+    const fetchInventario = async () => {
+        try {
+            const response = await api.get('/inventario');
+            const data = response.data.data || [];
+            
+            // Extraer el arreglo de repuestos
+            const repuestosArray = Array.isArray(data) ? data : (data.repuestos || []);
+            
+            setRepuestos(repuestosArray.map(r => {
+                const pVenta = Number(r.precio_venta_sugerido) || 0;
+                const pCompra = (r.precio_compra !== null && r.precio_compra !== undefined) ? Number(r.precio_compra) : (pVenta * 0.7);
+                return {
+                    id_repuesto: r.id_repuesto,
+                    id: r.codigo_barra || `REP-${r.id_repuesto}`,
+                    desc: r.descripcion || '',
+                    ubicacion: 'Almacén',
+                    pCompra: pCompra,
+                    pVenta: pVenta,
+                    stock: Number(r.stock_actual) || 0,
+                    gananciaAcumulada: (pVenta - pCompra) * (Number(r.stock_actual) || 0)
+                };
+            }));
+        } catch (error) {
+            console.error("Error cargando inventario:", error);
+            setFeedback({ tipo: 'error', mensaje: 'Error al cargar el inventario' });
+        }
+    };
 
     const gananciaTotal = repuestos.reduce((acc, r) => acc + r.gananciaAcumulada, 0);
     const inversionStock = repuestos.reduce((acc, r) => acc + (r.pCompra * r.stock), 0);
 
-    const guardar = (e) => {
+    const guardar = async (e) => {
         e.preventDefault();
-        if (!form.id) return alert("Por favor, ingresa el código del repuesto.");
-        setRepuestos([...repuestos, { ...form, stock: Number(form.stock), pCompra: Number(form.pCompra), pVenta: Number(form.pVenta), gananciaAcumulada: 0 }]);
-        setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+        setFeedback(null);
+        if (!form.id) {
+            setFeedback({ tipo: 'error', mensaje: 'Por favor, ingresa el código del repuesto.' });
+            return;
+        }
+        
+        try {
+            const payload = {
+                codigo_barra: form.id,
+                descripcion: form.desc,
+                stock_actual: Number(form.stock),
+                precio_venta_sugerido: Number(form.pVenta),
+                precio_compra: Number(form.pCompra)
+            };
+
+            await api.post('/inventario', payload);
+
+            fetchInventario();
+            setForm({ id: '', desc: '', ubicacion: '', pCompra: '', pVenta: '', stock: '' });
+            setFeedback({ tipo: 'ok', mensaje: 'Repuesto guardado exitosamente' });
+
+        } catch(err) {
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
+            } else {
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: err.response?.data?.error || 'Error al guardar el repuesto'
+                });
+            }
+        }
     };
 
-    const confirmarVenta = () => {
+    const confirmarVenta = async () => {
         const cant = Number(modalVenta.cantidadVenta);
-        if (cant > modalVenta.producto.stock) return alert("Stock insuficiente para realizar esta venta.");
+        if (cant > modalVenta.producto.stock) {
+            setFeedback({ tipo: 'error', mensaje: 'Stock insuficiente para realizar esta venta.' });
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+            return;
+        }
         
-        setRepuestos(repuestos.map(r => {
-            if (r.id === modalVenta.producto.id) {
-                return { 
-                    ...r, 
-                    stock: r.stock - cant, 
-                    gananciaAcumulada: r.gananciaAcumulada + (cant * (r.pVenta - r.pCompra)) 
-                };
-            }
-            return r;
-        }));
-        setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+        try {
+            const payload = {
+                stock_actual: modalVenta.producto.stock - cant
+            };
+            await api.put(`/inventario/${modalVenta.producto.id_repuesto}`, payload);
+
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+            fetchInventario(); // Refrescar stock
+            setFeedback({ tipo: 'ok', mensaje: 'Venta procesada exitosamente' });
+
+        } catch(err) {
+            setFeedback({
+                tipo: 'error',
+                mensaje: err.response?.data?.error || 'Error al procesar la venta en el backend.'
+            });
+            setModalVenta({ abierto: false, producto: null, cantidadVenta: 1 });
+        }
+    };
+
+    const feedbackStyles = {
+        ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
+        error: { backgroundColor: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' },
     };
 
     return (
@@ -88,6 +164,20 @@ export const Inventario = () => {
                     </p>
                 </header>
 
+                {/* FEEDBACK DE OPERACIÓN */}
+                {feedback && (
+                    <div style={{
+                        ...feedbackStyles[feedback.tipo],
+                        padding: '12px 20px',
+                        borderRadius: '12px',
+                        marginBottom: '20px',
+                        fontWeight: 'bold',
+                        fontSize: '15px'
+                    }}>
+                        {feedback.mensaje}
+                    </div>
+                )}
+
                 {/* DASHBOARD (Tarjetas de resumen) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
@@ -141,7 +231,7 @@ export const Inventario = () => {
                         <table className="w-full border-collapse min-w-[800px]">
                             <thead>
                                 <tr>
-                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tl-lg">ID</th>
+                                    <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold rounded-tl-lg">Código</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Descripción</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">Ubicación</th>
                                     <th className="text-left p-3.5 bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 font-bold">P. Compra</th>
@@ -153,7 +243,7 @@ export const Inventario = () => {
                             </thead>
                             <tbody>
                                 {repuestos.map(r => (
-                                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={r.id_repuesto} className="hover:bg-slate-50 transition-colors">
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-500 font-mono">{r.id}</td>
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-800 font-bold">{r.desc}</td>
                                         <td className="p-3.5 border-b border-slate-100 text-sm text-slate-600">{r.ubicacion}</td>

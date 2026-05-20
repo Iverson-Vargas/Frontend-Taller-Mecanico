@@ -11,10 +11,13 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
+    "axios": "^1.15.1",
+    "cors": "^2.8.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
-    "tailwindcss": "^4.2.0"
+    "tailwindcss": "^4.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

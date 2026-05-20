@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 
 export const Egresos_Gastos = () => {
-    const [exchangeRate, setExchangeRate] = useState(36.50);
+    const [exchangeRate] = useState(36.50);
     const [isBs, setIsBs] = useState(false);
     
     // Referencia oculta para el input de archivos
