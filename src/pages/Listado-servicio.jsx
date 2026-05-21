@@ -8,10 +8,15 @@ export const ListaServicio = () => {
     const [ordenes, setOrdenes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null); // { tipo: 'ok' | 'error' | 'info', mensaje: '' }
+    const [mostrarPendientes, setMostrarPendientes] = useState(true);
 
     useEffect(() => {
         cargarOrdenes();
     }, []);
+
+    const ordenesFiltradas = mostrarPendientes
+        ? ordenes.filter((orden) => ['recepcion', 'en_espera', 'en_reparacion', 'esperando_repuestos'].includes(orden.estado))
+        : ordenes;
 
     const cargarOrdenes = async () => {
         try {
@@ -89,14 +94,20 @@ export const ListaServicio = () => {
     const permisos = usuarioInfo?.permisos || {};
     const hasAnyPermission = permisos.recepcion || permisos.mecanico || permisos.admin_caja || permisos.inventario;
     const tienePermisoRecepcion = !hasAnyPermission || permisos.recepcion || permisos.admin_caja;
+    const tienePermisoMecanico = !hasAnyPermission || permisos.mecanico || permisos.admin_caja;
 
     return (
         <div className="tabla-container">
             <h1 className="titulo-tabla">LISTADO DE ORDENES</h1>
             
-            <div className="tabla-header">
+            <div className="tabla-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
                 {tienePermisoRecepcion && (
                     <button className="btn-generar" onClick={() => navigate('/panel/Orden-Servicio')}>+ Generar Orden</button>
+                )}
+                {tienePermisoMecanico && (
+                    <button className="btn-2" style={{ borderColor: '#0ea5e9', color: '#0ea5e9' }} onClick={() => setMostrarPendientes(!mostrarPendientes)}>
+                        {mostrarPendientes ? 'Mostrar todas' : 'Solo pendientes'}
+                    </button>
                 )}
             </div>
 
@@ -125,12 +136,14 @@ export const ListaServicio = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {ordenes.length === 0 ? (
+                    {ordenesFiltradas.length === 0 ? (
                         <tr>
-                            <td colSpan="5" style={{ textAlign: 'center' }}>No hay órdenes registradas</td>
+                            <td colSpan="5" style={{ textAlign: 'center' }}>
+                                {mostrarPendientes ? 'No hay órdenes pendientes de revisión.' : 'No hay órdenes registradas.'}
+                            </td>
                         </tr>
                     ) : (
-                        ordenes.map((orden) => (
+                        ordenesFiltradas.map((orden) => (
                             <tr key={orden.id_orden}>
                                 <td>{orden.id_orden}</td>
                                 <td>{orden.placa_carro}</td>

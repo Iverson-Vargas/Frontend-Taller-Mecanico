@@ -281,6 +281,31 @@
     box-shadow: 0 5px 15px rgba(244, 63, 94, 0.4);
 }
 
+.tag-recepcion,
+.tag-en_espera,
+.tag-en_reparacion,
+.tag-esperando_repuestos,
+.tag-finalizada,
+.tag-facturada,
+.tag-entregada {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+}
+
+.tag-recepcion { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.tag-en_espera { background-color: #fdf2f8; color: #9d174d; border-color: #fbcfe8; }
+.tag-en_reparacion { background-color: #ecfccb; color: #365314; border-color: #d9f99d; }
+.tag-esperando_repuestos { background-color: #fef3c7; color: #78350f; border-color: #fde68a; }
+.tag-finalizada { background-color: #dcfce7; color: #166534; border-color: #86efac; }
+.tag-facturada { background-color: #f3f4f6; color: #334155; border-color: #cbd5e1; }
+.tag-entregada { background-color: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+
 /* Tabs */
 .tabs-container {
     display: flex;
@@ -340,5 +365,43 @@
 
     .titulo-principal {
         font-size: 1.8rem;
+    }
+}
+
+@media print {
+    aside,
+    .botones,
+    .tabs-container,
+    .botones-accion,
+    .no-print,
+    .btn-2,
+    .btn-imprimir,
+    .btn-guardar,
+    .btn-generar {
+        display: none !important;
+    }
+
+    .orden-container {
+        max-width: none;
+        margin: 0;
+        padding: 1rem;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .orden-container input,
+    .orden-container select,
+    .orden-container textarea {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .orden-container .campo label {
+        color: #000 !important;
+    }
+
+    .orden-container * {
+        color: #000 !important;
     }
 }
