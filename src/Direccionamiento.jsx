@@ -15,7 +15,7 @@ import { OrdenServicio } from './pages/Orden-servicio.jsx';
 import { ListaServicio } from './pages/Listado-servicio.jsx';
 import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
-import { ReporteNominas } from './pages/reporte_nominas.jsx';
+import { ReporteNominas } from './pages/Reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
 import { RegistroCliente } from './pages/RegistroCliente.jsx';
 import { RegistroVehiculo } from './pages/RegistroVehiculo.jsx';
