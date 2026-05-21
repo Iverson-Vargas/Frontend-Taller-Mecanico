@@ -88,7 +88,7 @@ export const Login = () => {
                 // Error de negocio estándar: { success: false, error: "..." }
                 setError(
                     err.response?.data?.error ||
-                    'Error de conexión con el servidor (Revisa el puerto 3000)'
+                    'Error de conexión con el servidor'
                 );
             }
         } finally {
