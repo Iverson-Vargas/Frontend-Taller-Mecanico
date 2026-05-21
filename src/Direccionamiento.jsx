@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
+import { useState } from 'react';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Menu } from './components/Menu.jsx';
 import { Login } from './pages/Login.jsx'
@@ -22,12 +23,35 @@ import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
 import { ControlProductividad } from './pages/ControlProductividad.jsx';
 import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
 import { ResumenFinanciero } from './pages/ResumenFinanciero.jsx';
+import { Configuracion } from './pages/Configuracion.jsx';
+
+
 
 const PlantillaPrueba = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     return (
         <div className="min-h-screen bg-gray-50 flex">
-            <Menu />
-            <main className="ml-72 p-8 w-full transition-all duration-300">
+            {/* Mobile Header with Hamburger */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 z-50 flex items-center justify-between px-4 shadow-md">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white font-black text-sm">
+                        TM
+                    </div>
+                    <span className="text-white font-extrabold text-sm tracking-widest">TALLER</span>
+                </div>
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white p-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path></svg>
+                </button>
+            </div>
+            
+            {/* Overlay for mobile */}
+            {isMenuOpen && (
+                <div className="md:hidden fixed inset-0 bg-slate-900/60 z-40 backdrop-blur-sm transition-opacity" onClick={() => setIsMenuOpen(false)}></div>
+            )}
+
+            <Menu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
+            <main className="md:ml-72 mt-16 md:mt-0 p-4 sm:p-6 md:p-8 w-full transition-all duration-300">
                 <Outlet />
             </main>
         </div>
@@ -66,6 +90,10 @@ export const Direccionamiento = () => {
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
                 <Route path='RegistroCliente' element={<RegistroCliente />} />
                 <Route path='RegistroVehiculo' element={<RegistroVehiculo />} />
+                <Route path='servicios-rentables' element={<ServiciosRentables />} />
+                <Route path='ControlProductividad' element={<ControlProductividad />} />
+                <Route path='MovimientoInventario' element={<MovimientoValorInventario />} />
+                <Route path='Configuracion' element={<Configuracion />} />
             </Route>
         </Routes>
     )

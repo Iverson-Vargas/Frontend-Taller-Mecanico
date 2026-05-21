@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../assets/orden-servicio.css';
 import api from '../services/axios.js';
@@ -45,7 +45,7 @@ export const OrdenServicio = () => {
     const usuarioInfo = usuarioStr ? JSON.parse(usuarioStr) : null;
     const permisos = usuarioInfo?.permisos || {};
     
-    // Fallback: si no tiene ning├║n permiso expl├¡cito, asume true (retrocompatibilidad)
+    // Fallback: si no tiene ningún permiso explícito, asume true (retrocompatibilidad)
     const hasAnyPermission = permisos.recepcion || permisos.mecanico || permisos.admin_caja || permisos.inventario;
     const tienePermisoRecepcion = !hasAnyPermission || permisos.recepcion || permisos.admin_caja;
     const tienePermisoMecanico = !hasAnyPermission || permisos.mecanico || permisos.admin_caja;
@@ -89,7 +89,7 @@ export const OrdenServicio = () => {
 
             setMecanicos(mecanicosArray);
         } catch (error) {
-            console.error('Error cargando mec├ínicos:', error);
+            console.error('Error cargando mecánicos:', error);
             setMecanicos([]);
         }
     };
@@ -166,7 +166,7 @@ export const OrdenServicio = () => {
     const handleAgregarServicio = () => {
         const servicio = serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId);
         if (!servicio) {
-            setFeedback({ tipo: 'error', mensaje: 'Seleccione un servicio v├ílido.' });
+            setFeedback({ tipo: 'error', mensaje: 'Seleccione un servicio válido.' });
             return;
         }
 
@@ -189,9 +189,9 @@ export const OrdenServicio = () => {
 
     const getEstadoTexto = (estado) => {
         const estados = {
-            recepcion: 'Recepci├│n',
+            recepcion: 'Recepción',
             en_espera: 'En espera',
-            en_reparacion: 'En reparaci├│n',
+            en_reparacion: 'En reparación',
             esperando_repuestos: 'Esperando repuestos',
             finalizada: 'Finalizada',
             facturada: 'Facturada',
@@ -217,7 +217,7 @@ export const OrdenServicio = () => {
     const handleBuscarCliente = async () => {
         const cedula = clienteData.cedula.trim();
         if (!cedula) {
-            setFeedback({ tipo: 'error', mensaje: 'Ingrese una c├®dula para buscar' });
+            setFeedback({ tipo: 'error', mensaje: 'Ingrese una cédula para buscar' });
             return;
         }
 
@@ -236,7 +236,7 @@ export const OrdenServicio = () => {
                 telefono: cliente.telefono || ''
             });
 
-            // Los veh├¡culos ya vienen incluidos en la respuesta del cliente
+            // Los vehículos ya vienen incluidos en la respuesta del cliente
             const vehiculos = cliente.carros || [];
 
             if (vehiculos.length > 0) {
@@ -252,14 +252,14 @@ export const OrdenServicio = () => {
                 setFormData(prev => ({ ...prev, placa_carro: v.placa }));
                 setFeedback({
                     tipo: 'ok',
-                    mensaje: `Cliente: ${cliente.nombre} ${cliente.apellido || ''} ÔÇö ${vehiculos.length} veh├¡culo(s) cargados.`
+                    mensaje: `Cliente: ${cliente.nombre} ${cliente.apellido || ''} — ${vehiculos.length} vehículo(s) cargados.`
                 });
             } else {
                 setVehiculosCliente([]);
                 setVehiculoData(VEHICULO_INICIAL);
                 setFeedback({
                     tipo: 'error',
-                    mensaje: `Cliente encontrado: ${cliente.nombre}. PERO no tiene veh├¡culos registrados. Por favor registre su veh├¡culo primero en el men├║ lateral.`
+                    mensaje: `Cliente encontrado: ${cliente.nombre}. PERO no tiene vehículos registrados. Por favor registre su vehículo primero en el menú lateral.`
                 });
             }
 
@@ -322,7 +322,7 @@ export const OrdenServicio = () => {
 
     const handleGuardarOrden = async () => {
         if (!formData.placa_carro) {
-            setFeedback({ tipo: 'error', mensaje: 'Debe buscar un cliente con veh├¡culo primero' });
+            setFeedback({ tipo: 'error', mensaje: 'Debe buscar un cliente con vehículo primero' });
             return;
         }
         if (!formData.falla_declarada) {
@@ -352,7 +352,7 @@ export const OrdenServicio = () => {
             const res = id ? await api.put(`/ordenes/${id}`, ordenData) : await api.post('/ordenes', ordenData);
             const ordenGuardada = res.data.data;
 
-            // Limpiar solo si la orden se cre├│ desde cero, en edici├│n se mantiene para revisi├│n
+            // Limpiar solo si la orden se creó desde cero, en edición se mantiene para revisión
             if (!id) {
                 setFormData(FORM_INICIAL);
                 setClienteData(CLIENTE_INICIAL);
@@ -366,13 +366,13 @@ export const OrdenServicio = () => {
                 tipo: 'ok',
                 mensaje: id
                     ? `Orden #${ordenGuardada?.id_orden ?? id} actualizada exitosamente`
-                    : `Orden #${ordenGuardada?.id_orden ?? 'ÔÇö'} guardada exitosamente`
+                    : `Orden #${ordenGuardada?.id_orden ?? '—'} guardada exitosamente`
             });
 
             setTimeout(() => navigate('/panel/Lista-Servicio'), 1500);
 
         } catch (err) {
-            // Errores de validaci├│n 400 con array errors[].msg
+            // Errores de validación 400 con array errors[].msg
             if (err.response?.status === 400 && err.response.data?.errors) {
                 const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
                 setFeedback({ tipo: 'error', mensaje: msgs });
@@ -418,7 +418,7 @@ export const OrdenServicio = () => {
                 <div className="orden-dashboard" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
                     <div>
                         <p className="texto-dashboard" style={{ marginBottom: '0.25rem', fontWeight: '700' }}>Orden #{ordenOriginal?.id_orden || id}</p>
-                        <p className="texto-dashboard" style={{ color: '#64748b' }}>Cliente: {clienteData.nombre ? `${clienteData.nombre} ${clienteData.apellido}` : 'N/A'} ┬À Placa: {vehiculoData.placa || 'N/A'}</p>
+                        <p className="texto-dashboard" style={{ color: '#64748b' }}>Cliente: {clienteData.nombre ? `${clienteData.nombre} ${clienteData.apellido}` : 'N/A'} • Placa: {vehiculoData.placa || 'N/A'}</p>
                     </div>
                     <span className={`tag-${formData.estado}`} style={{ padding: '10px 16px', borderRadius: '999px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {getEstadoTexto(formData.estado)}
@@ -434,7 +434,7 @@ export const OrdenServicio = () => {
                         className={`tab-btn ${vistaActiva === 'recepcion' ? 'active' : ''}`}
                         onClick={() => setVistaActiva('recepcion')}
                     >
-                        Recepci├│n (Diagn├│stico Inicial)
+                        Recepción (Diagnóstico Inicial)
                     </button>
                 )}
                 {tienePermisoMecanico && (
@@ -443,12 +443,12 @@ export const OrdenServicio = () => {
                         className={`tab-btn ${vistaActiva === 'mecanico' ? 'active' : ''}`}
                         onClick={() => setVistaActiva('mecanico')}
                     >
-                        Mec├ínico (Diagn├│stico T├®cnico y Servicio)
+                        Mecánico (Diagnóstico Técnico y Servicio)
                     </button>
                 )}
             </div>
 
-            {/* ÔöÇÔöÇ Feedback de operaci├│n ÔöÇÔöÇ */}
+            {/* ---- Feedback de operación ---- */}
             {feedback && (
                 <div style={{
                     ...feedbackStyles[feedback.tipo],
@@ -462,17 +462,17 @@ export const OrdenServicio = () => {
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ VISTA DE RECEPCI├ôN ÔöÇÔöÇ */}
+            {/* ---- VISTA DE RECEPCIÓN ---- */}
             {vistaActiva === 'recepcion' && (
                 <div className="vista-recepcion">
-                    {/* ÔöÇÔöÇ Encabezado de orden ÔöÇÔöÇ */}
+                    {/* ---- Encabezado de orden ---- */}
             <div className="encabezado-orden">
                 <div className="numero-orden">
-                    <label>N┬░ de Orden:</label>
+                    <label>Nº de Orden:</label>
                     <input
                         type="text"
                         className="campo-lectura"
-                        placeholder="Autom├ítico"
+                        placeholder="Automático"
                         value={ordenOriginal?.id_orden || ''}
                         readOnly
                     />
@@ -490,9 +490,9 @@ export const OrdenServicio = () => {
                 <div className="campo">
                     <label>Estado de la orden:</label>
                     <select name="estado" value={formData.estado} onChange={handleInputChange}>
-                        <option value="recepcion">Recepci├│n</option>
+                        <option value="recepcion">Recepción</option>
                         <option value="en_espera">En espera</option>
-                        <option value="en_reparacion">En reparaci├│n</option>
+                        <option value="en_reparacion">En reparación</option>
                         <option value="esperando_repuestos">Esperando repuestos</option>
                         <option value="finalizada">Finalizada</option>
                         {tienePermisoAdmin && (
@@ -504,7 +504,7 @@ export const OrdenServicio = () => {
                     </select>
                 </div>
                 <div className="campo">
-                    <label>Mec├ínico asignado:</label>
+                    <label>Mecánico asignado:</label>
                     <select name="id_mecanico" value={formData.id_mecanico || ''} onChange={handleInputChange}>
                         <option value="">Seleccione</option>
                         {Array.isArray(mecanicos) && mecanicos.map((mec, index) => (
@@ -516,18 +516,18 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ÔöÇÔöÇ Datos del cliente ÔöÇÔöÇ */}
+            {/* ---- Datos del cliente ---- */}
             <h2 className="subtitulo">DATOS DEL CLIENTE</h2>
             <div className="seccion-grid">
                 <div className="campo">
-                    <label>C├®dula:</label>
+                    <label>Cédula:</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <input
                             type="text"
                             name="cedula"
                             value={clienteData.cedula}
                             onChange={handleClienteInputChange}
-                            placeholder="Ingrese c├®dula (ej: 1234567)"
+                            placeholder="Ingrese cédula (ej: 1234567)"
                             style={{ flex: 1 }}
                         />
                         <button
@@ -552,7 +552,7 @@ export const OrdenServicio = () => {
                     />
                 </div>
                 <div className="campo">
-                    <label>Tel├®fono:</label>
+                    <label>Teléfono:</label>
                     <input
                         type="text"
                         value={clienteData.telefono}
@@ -562,13 +562,13 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ÔöÇÔöÇ Datos del veh├¡culo ÔöÇÔöÇ */}
-            <h2 className="subtitulo">DATOS DEL VEH├ìCULO</h2>
+            {/* ---- Datos del vehículo ---- */}
+            <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
 
             {vehiculosCliente.length > 1 && (
                 <div className="campo" style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>
-                        Seleccionar Veh├¡culo:
+                        Seleccionar Vehículo:
                     </label>
                     <select
                         onChange={handleSeleccionarVehiculo}
@@ -598,7 +598,7 @@ export const OrdenServicio = () => {
                     <input type="text" value={vehiculoData.modelo} readOnly style={{ backgroundColor: '#f5f5f5' }} />
                 </div>
                 <div className="campo">
-                    <label>A├▒o:</label>
+                    <label>Año:</label>
                     <input type="text" value={vehiculoData.ano} readOnly style={{ backgroundColor: '#f5f5f5' }} />
                 </div>
                 <div className="campo">
@@ -607,8 +607,8 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ÔöÇÔöÇ Diagn├│stico inicial ÔöÇÔöÇ */}
-            <h2 className="subtitulo">DIAGN├ôSTICO INICIAL</h2>
+            {/* ---- Diagnóstico inicial ---- */}
+            <h2 className="subtitulo">DIAGNÓSTICO INICIAL</h2>
             <div className="diagnostico-inicial">
                 <div className="campo">
                     <label>Motivo de visita:</label>
@@ -619,20 +619,20 @@ export const OrdenServicio = () => {
                 <div className="checkboxes-grid">
                     <div className="checkbox-item">
                         <input type="checkbox" name="tiene_caucho" checked={formData.tiene_caucho} onChange={handleInputChange} id="caucho" />
-                        <label htmlFor="caucho">┬┐Caucho de repuesto?</label>
+                        <label htmlFor="caucho">¿Caucho de repuesto?</label>
                     </div>
                     <div className="checkbox-item">
                         <input type="checkbox" name="tiene_radio" checked={formData.tiene_radio} onChange={handleInputChange} id="radio" />
-                        <label htmlFor="radio">┬┐Radio?</label>
+                        <label htmlFor="radio">¿Radio?</label>
                     </div>
                     <div className="checkbox-item">
                         <input type="checkbox" name="tiene_rayones" checked={formData.tiene_rayones} onChange={handleInputChange} id="rayones" />
-                        <label htmlFor="rayones">┬┐Rayones previos?</label>
+                        <label htmlFor="rayones">¿Rayones previos?</label>
                     </div>
                 </div>
 
                 <div className="campo">
-                    <label>Fallas declaradas (descripci├│n):</label>
+                    <label>Fallas declaradas (descripción):</label>
                     <textarea name="falla_declarada" value={formData.falla_declarada} onChange={handleInputChange} rows="3"></textarea>
                 </div>
             </div>
@@ -640,14 +640,14 @@ export const OrdenServicio = () => {
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ VISTA DE MEC├üNICO ÔöÇÔöÇ */}
+            {/* ---- VISTA DE MECÁNICO ---- */}
             {vistaActiva === 'mecanico' && (
                 <div className="vista-mecanico">
-                    {/* ÔöÇÔöÇ Diagn├│stico t├®cnico ÔöÇÔöÇ */}
-            <h2 className="subtitulo">DIAGN├ôSTICO T├ëCNICO</h2>
+                    {/* ---- Diagnóstico técnico ---- */}
+            <h2 className="subtitulo">DIAGNÓSTICO TÉCNICO</h2>
             <div className="diagnostico-tecnico">
                 <div className="campo">
-                    <label>Diagn├│stico:</label>
+                    <label>Diagnóstico:</label>
                     <textarea name="diagnostico_tecnico" value={formData.diagnostico_tecnico} onChange={handleInputChange} rows="3"></textarea>
                 </div>
                 <div className="campo">
@@ -656,8 +656,8 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ÔöÇÔöÇ Servicio ÔöÇÔöÇ */}
-            <h2 className="subtitulo">ASIGNACI├ôN DE SERVICIOS</h2>
+            {/* ---- Servicio ---- */}
+            <h2 className="subtitulo">ASIGNACIÓN DE SERVICIOS</h2>
             <div className="servicio-grid">
                 <div className="campo">
                     <label>Seleccionar Servicio:</label>
@@ -668,7 +668,7 @@ export const OrdenServicio = () => {
                         <option value="">Seleccione un servicio de la lista</option>
                         {serviciosDisponibles.map(s => (
                             <option key={s.id_servicio} value={s.id_servicio}>
-                                {s.nombre_servicio} ÔÇö ${Number(s.precio_base || s.precio || 0).toFixed(2)}
+                                {s.nombre_servicio} — ${Number(s.precio_base || s.precio || 0).toFixed(2)}
                             </option>
                         ))}
                     </select>
@@ -682,7 +682,7 @@ export const OrdenServicio = () => {
                         onClick={handleAgregarServicio}
                         disabled={!servicioSeleccionadoId}
                     >
-                        Ô£ô Agregar Servicio
+                        + Agregar Servicio
                     </button>
                 </div>
             </div>
@@ -697,11 +697,11 @@ export const OrdenServicio = () => {
                 </select>
             </div>
 
-            {/* ÔöÇÔöÇ Repuestos ÔöÇÔöÇ */}
+            {/* ---- Repuestos ---- */}
             <div className="repuestos-seccion">
                 <div className="checkbox-item">
                     <input type="checkbox" id="repuesto" />
-                    <label htmlFor="repuesto">┬┐Requiere repuesto?</label>
+                    <label htmlFor="repuesto">¿Requiere repuesto?</label>
                 </div>
                 <div className="campo">
                     <label>Repuesto en inventario:</label>
@@ -716,7 +716,7 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ÔöÇÔöÇ Costos ÔöÇÔöÇ */}
+            {/* ---- Costos ---- */}
             <div className="diagnostico-tecnico mt-4">
                 <div className="campo">
                     <label>Servicios ($):</label>
@@ -725,7 +725,7 @@ export const OrdenServicio = () => {
                 <div className="mano-obra">
                     <div className="checkbox-item">
                         <input type="checkbox" id="manoObra" />
-                        <label htmlFor="manoObra">┬┐Mano de obra especial?</label>
+                        <label htmlFor="manoObra">¿Mano de obra especial?</label>
                     </div>
                     <div className="campo">
                         <label>Costo mano de obra ($):</label>
@@ -745,14 +745,14 @@ export const OrdenServicio = () => {
                 </div>
             )}
 
-            {/* ÔöÇÔöÇ M├ôDULO DE RESUMEN (Visible en ambas vistas o al final) ÔöÇÔöÇ */}
+            {/* ---- MÓDULO DE RESUMEN (Visible en ambas vistas o al final) ---- */}
             {serviciosSeleccionados.length > 0 && (
                 <div style={{ backgroundColor: '#f0fdf4', padding: '20px', borderRadius: '10px', border: '2px solid #10B981', margin: '20px 0' }}>
-                    <h2 className="subtitulo" style={{ borderLeftColor: '#10B981', marginTop: 0 }}>RESUMEN DE RECEPCI├ôN (SERVICIOS ASIGNADOS)</h2>
+                    <h2 className="subtitulo" style={{ borderLeftColor: '#10B981', marginTop: 0 }}>RESUMEN DE RECEPCIÓN (SERVICIOS ASIGNADOS)</h2>
                     <ul style={{ listStyleType: 'none', padding: 0, margin: '15px 0' }}>
                         {serviciosSeleccionados.map(s => (
                             <li key={s.id_servicio} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #d1fae5', fontSize: '1.1rem' }}>
-                                <span>­ƒöº {s.nombre_servicio}</span>
+                                <span>🛠 {s.nombre_servicio}</span>
                                 <div>
                                     <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base.toFixed(2)}</strong>
                                     {vistaActiva === 'mecanico' && (
@@ -761,7 +761,7 @@ export const OrdenServicio = () => {
                                             onClick={() => handleEliminarServicio(s.id_servicio)} 
                                             style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                                         >
-                                            Ô£ò Quitar
+                                            ✕ Quitar
                                         </button>
                                     )}
                                 </div>

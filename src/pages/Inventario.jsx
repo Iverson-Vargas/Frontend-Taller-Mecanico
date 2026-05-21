@@ -19,7 +19,7 @@ export const Inventario = () => {
             // Extraer el arreglo de repuestos
             const repuestosArray = Array.isArray(data) ? data : (data.repuestos || []);
             
-            setRepuestos(repuestosArray.map(r => {
+            const repuestosMapeados = repuestosArray.map(r => {
                 const pVenta = Number(r.precio_venta_sugerido) || 0;
                 const pCompra = (r.precio_compra !== null && r.precio_compra !== undefined) ? Number(r.precio_compra) : (pVenta * 0.7);
                 return {
@@ -32,7 +32,12 @@ export const Inventario = () => {
                     stock: Number(r.stock_actual) || 0,
                     gananciaAcumulada: (pVenta - pCompra) * (Number(r.stock_actual) || 0)
                 };
-            }));
+            });
+
+            // Ordenar por ID para que mantengan siempre la misma posición en la tabla
+            repuestosMapeados.sort((a, b) => a.id_repuesto - b.id_repuesto);
+            
+            setRepuestos(repuestosMapeados);
         } catch (error) {
             console.error("Error cargando inventario:", error);
             setFeedback({ tipo: 'error', mensaje: 'Error al cargar el inventario' });

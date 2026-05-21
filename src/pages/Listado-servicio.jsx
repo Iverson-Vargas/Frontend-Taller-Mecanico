@@ -105,7 +105,7 @@ export const ListaServicio = () => {
                     <button className="btn-generar" onClick={() => navigate('/panel/Orden-Servicio')}>+ Generar Orden</button>
                 )}
                 {tienePermisoMecanico && (
-                    <button className="btn-2" style={{ borderColor: '#0ea5e9', color: '#0ea5e9' }} onClick={() => setMostrarPendientes(!mostrarPendientes)}>
+                    <button className="btn-2" onClick={() => setMostrarPendientes(!mostrarPendientes)}>
                         {mostrarPendientes ? 'Mostrar todas' : 'Solo pendientes'}
                     </button>
                 )}
