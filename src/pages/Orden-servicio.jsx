@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import '../assets/orden-servicio.css';
 import api from '../services/axios.js';
 
@@ -23,6 +23,7 @@ const VEHICULO_INICIAL = { placa: '', marca: '', modelo: '', ano: '', kilometraj
 
 export const OrdenServicio = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
 
     const [mecanicos, setMecanicos]               = useState([]);
     const [repuestos, setRepuestos]               = useState([]);
@@ -35,6 +36,10 @@ export const OrdenServicio = () => {
     const [vehiculoData, setVehiculoData]         = useState(VEHICULO_INICIAL);
     const [vehiculosCliente, setVehiculosCliente] = useState([]);
     const [feedback, setFeedback]                 = useState(null); // { tipo: 'ok'|'error'|'info', mensaje: '' }
+    const [ordenCargada, setOrdenCargada]         = useState(false);
+    const [ordenOriginal, setOrdenOriginal]       = useState(null);
+    const [manoObra, setManoObra]                 = useState('0');
+    const [repuestoCosto, setRepuestoCosto]       = useState('0');
     
     const usuarioStr = localStorage.getItem('usuario');
     const usuarioInfo = usuarioStr ? JSON.parse(usuarioStr) : null;
@@ -52,7 +57,11 @@ export const OrdenServicio = () => {
         cargarMecanicos();
         cargarRepuestos();
         cargarServicios();
-    }, []);
+        if (id) {
+            cargarOrden();
+            if (tienePermisoMecanico) setVistaActiva('mecanico');
+        }
+    }, [id]);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
 
@@ -101,6 +110,107 @@ export const OrdenServicio = () => {
             setRepuestos([]);
         }
     };
+
+    const cargarOrden = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get(`/ordenes/${id}`);
+            const orden = res.data.data.orden || res.data.data;
+            setOrdenOriginal(orden || null);
+
+            setFormData({
+                placa_carro: orden.placa_carro || '',
+                id_mecanico: orden.id_mecanico || null,
+                motivo_visita: orden.motivo_visita || '',
+                falla_declarada: orden.falla_declarada || '',
+                tiene_caucho: !!orden.tiene_caucho,
+                tiene_radio: !!orden.tiene_radio,
+                tiene_rayones: !!orden.tiene_rayones,
+                observaciones: orden.observaciones || '',
+                estado: orden.estado || 'recepcion',
+                prioridad: orden.prioridad || 'normal',
+                diagnostico_tecnico: orden.diagnostico_tecnico || ''
+            });
+
+            setClienteData({
+                cedula: orden.carro?.cliente?.cedula_rif || orden.carro?.cliente?.cedula || '',
+                nombre: orden.carro?.cliente?.nombre || '',
+                apellido: orden.carro?.cliente?.apellido || '',
+                telefono: orden.carro?.cliente?.telefono || ''
+            });
+
+            setVehiculoData({
+                placa: orden.placa_carro || '',
+                marca: orden.carro?.marca || '',
+                modelo: orden.carro?.modelo || '',
+                ano: orden.carro?.ano || '',
+                kilometraje: orden.carro?.kilometraje || ''
+            });
+
+            const serviciosOrden = (orden.detalles_servicios || orden.servicios || []).map((serv) => ({
+                id_servicio: serv.id_servicio || serv.id || serv.servicio?.id_servicio || serv.servicio?.id,
+                nombre_servicio: serv.servicio?.nombre_servicio || serv.nombre_servicio || serv.nombre || 'Servicio',
+                precio_base: Number(serv.precio_aplicado || serv.precio_base || serv.servicio?.precio_base || serv.precio || 0)
+            }));
+
+            setServiciosSeleccionados(serviciosOrden);
+            setOrdenCargada(true);
+        } catch (error) {
+            console.error('Error cargando orden:', error);
+            setFeedback({ tipo: 'error', mensaje: 'No se pudo cargar la orden seleccionada.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAgregarServicio = () => {
+        const servicio = serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId);
+        if (!servicio) {
+            setFeedback({ tipo: 'error', mensaje: 'Seleccione un servicio válido.' });
+            return;
+        }
+
+        if (serviciosSeleccionados.some(s => s.id_servicio == servicio.id_servicio)) {
+            setFeedback({ tipo: 'info', mensaje: 'Este servicio ya fue agregado.' });
+            return;
+        }
+
+        setServiciosSeleccionados([...serviciosSeleccionados, {
+            id_servicio: servicio.id_servicio,
+            nombre_servicio: servicio.nombre_servicio,
+            precio_base: Number(servicio.precio_base || servicio.precio || 0)
+        }] );
+        setServicioSeleccionadoId('');
+    };
+
+    const handleEliminarServicio = (idServicio) => {
+        setServiciosSeleccionados(serviciosSeleccionados.filter(s => s.id_servicio !== idServicio));
+    };
+
+    const getEstadoTexto = (estado) => {
+        const estados = {
+            recepcion: 'Recepción',
+            en_espera: 'En espera',
+            en_reparacion: 'En reparación',
+            esperando_repuestos: 'Esperando repuestos',
+            finalizada: 'Finalizada',
+            facturada: 'Facturada',
+            entregada: 'Entregada'
+        };
+        return estados[estado] || estado;
+    };
+
+    const estadoBadgeClass = (estado) => {
+        return `tag-${estado}`;
+    };
+
+    const serviciosTotal = useMemo(() => {
+        return serviciosSeleccionados.reduce((total, servicio) => total + Number(servicio.precio_base || 0), 0);
+    }, [serviciosSeleccionados]);
+
+    const manoObraTotal = Number(manoObra) || 0;
+    const repuestoTotal = Number(repuestoCosto) || 0;
+    const totalOrden = serviciosTotal + manoObraTotal + repuestoTotal;
 
     // ── Búsqueda de cliente y vehículos ─────────────────────────────────────
 
@@ -224,7 +334,6 @@ export const OrdenServicio = () => {
         setLoading(true);
 
         try {
-            // POST /api/ordenes → { success, message, data: { id_orden, ... } }
             const ordenData = {
                 placa_carro:         formData.placa_carro,
                 id_mecanico:         formData.id_mecanico || null,
@@ -240,20 +349,24 @@ export const OrdenServicio = () => {
                 prioridad:           formData.prioridad           || 'normal'
             };
 
-            const res = await api.post('/ordenes', ordenData);
-            const ordenCreada = res.data.data;
+            const res = id ? await api.put(`/ordenes/${id}`, ordenData) : await api.post('/ordenes', ordenData);
+            const ordenGuardada = res.data.data;
 
-            // Limpiar todo
-            setFormData(FORM_INICIAL);
-            setClienteData(CLIENTE_INICIAL);
-            setVehiculoData(VEHICULO_INICIAL);
-            setVehiculosCliente([]);
-            setServiciosSeleccionados([]);
-            setServicioSeleccionadoId('');
+            // Limpiar solo si la orden se creó desde cero, en edición se mantiene para revisión
+            if (!id) {
+                setFormData(FORM_INICIAL);
+                setClienteData(CLIENTE_INICIAL);
+                setVehiculoData(VEHICULO_INICIAL);
+                setVehiculosCliente([]);
+                setServiciosSeleccionados([]);
+                setServicioSeleccionadoId('');
+            }
 
             setFeedback({
                 tipo: 'ok',
-                mensaje: `Orden #${ordenCreada?.id_orden ?? '—'} guardada exitosamente`
+                mensaje: id
+                    ? `Orden #${ordenGuardada?.id_orden ?? id} actualizada exitosamente`
+                    : `Orden #${ordenGuardada?.id_orden ?? '—'} guardada exitosamente`
             });
 
             setTimeout(() => navigate('/panel/Lista-Servicio'), 1500);
@@ -276,6 +389,9 @@ export const OrdenServicio = () => {
 
     const handListaServicio = () => navigate('/panel/Lista-Servicio');
     const handListaClientes = () => navigate('/panel/Listado-Clientes');
+    const handleImprimirOrden = () => {
+        window.print();
+    };
 
     // ── Estilos de feedback ──────────────────────────────────────────────────
     const feedbackStyles = {
@@ -298,6 +414,17 @@ export const OrdenServicio = () => {
             </div>
 
             <h1 className="titulo-principal">NUEVA ORDEN DE SERVICIO</h1>
+            {(ordenOriginal || id) && (
+                <div className="orden-dashboard" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
+                    <div>
+                        <p className="texto-dashboard" style={{ marginBottom: '0.25rem', fontWeight: '700' }}>Orden #{ordenOriginal?.id_orden || id}</p>
+                        <p className="texto-dashboard" style={{ color: '#64748b' }}>Cliente: {clienteData.nombre ? `${clienteData.nombre} ${clienteData.apellido}` : 'N/A'} · Placa: {vehiculoData.placa || 'N/A'}</p>
+                    </div>
+                    <span className={`tag-${formData.estado}`} style={{ padding: '10px 16px', borderRadius: '999px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {getEstadoTexto(formData.estado)}
+                    </span>
+                </div>
+            )}
 
             {/* ── Tabs de Vista ── */}
             <div className="tabs-container">
@@ -342,7 +469,13 @@ export const OrdenServicio = () => {
             <div className="encabezado-orden">
                 <div className="numero-orden">
                     <label>N° de Orden:</label>
-                    <input type="text" className="campo-lectura" placeholder="Automático" readOnly />
+                    <input
+                        type="text"
+                        className="campo-lectura"
+                        placeholder="Automático"
+                        value={ordenOriginal?.id_orden || ''}
+                        readOnly
+                    />
                 </div>
                 <div className="fecha-hora">
                     <div className="campo">
@@ -535,35 +668,25 @@ export const OrdenServicio = () => {
                         <option value="">Seleccione un servicio de la lista</option>
                         {serviciosDisponibles.map(s => (
                             <option key={s.id_servicio} value={s.id_servicio}>
-                                {s.nombre_servicio}
+                                {s.nombre_servicio} — ${Number(s.precio_base || s.precio || 0).toFixed(2)}
                             </option>
                         ))}
                     </select>
                 </div>
-                
-                {servicioSeleccionadoId && (
-                    <div className="campo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10B981', marginBottom: '10px' }}>
-                            Precio Base: ${serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId)?.precio_base}
-                        </span>
-                        <button 
-                            type="button" 
-                            className="btn-2" 
-                            style={{ backgroundColor: '#10B981', borderColor: '#10B981', color: 'white' }}
-                            onClick={() => {
-                                const svc = serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId);
-                                if (svc && !serviciosSeleccionados.find(s => s.id_servicio === svc.id_servicio)) {
-                                    setServiciosSeleccionados([...serviciosSeleccionados, svc]);
-                                    setServicioSeleccionadoId('');
-                                }
-                            }}
-                        >
-                            ✓ Aceptar Servicio
-                        </button>
-                    </div>
-                )}
+
+                <div className="campo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                    <button 
+                        type="button" 
+                        className="btn-2" 
+                        style={{ backgroundColor: '#10B981', borderColor: '#10B981', color: 'white', marginTop: 'auto' }}
+                        onClick={handleAgregarServicio}
+                        disabled={!servicioSeleccionadoId}
+                    >
+                        ✓ Agregar Servicio
+                    </button>
+                </div>
             </div>
-            
+
             <div className="campo mt-2">
                 <label>Prioridad de la orden:</label>
                 <select name="prioridad" value={formData.prioridad} onChange={handleInputChange} style={{ maxWidth: '300px' }}>
@@ -596,8 +719,8 @@ export const OrdenServicio = () => {
             {/* ── Costos ── */}
             <div className="diagnostico-tecnico mt-4">
                 <div className="campo">
-                    <label>Costo ($):</label>
-                    <input type="text" className="campo-lectura" readOnly />
+                    <label>Servicios ($):</label>
+                    <input type="text" className="campo-lectura" readOnly value={`$${serviciosTotal.toFixed(2)}`} />
                 </div>
                 <div className="mano-obra">
                     <div className="checkbox-item">
@@ -606,12 +729,16 @@ export const OrdenServicio = () => {
                     </div>
                     <div className="campo">
                         <label>Costo mano de obra ($):</label>
-                        <input type="text" />
+                        <input type="number" value={manoObra} onChange={(e) => setManoObra(e.target.value)} min="0" step="0.01" />
                     </div>
                 </div>
+                <div className="campo">
+                    <label>Repuesto extra ($):</label>
+                    <input type="number" value={repuestoCosto} onChange={(e) => setRepuestoCosto(e.target.value)} min="0" step="0.01" />
+                </div>
                 <div className="campo subtotal">
-                    <label>Subtotal ($):</label>
-                    <input type="text" className="campo-lectura campo-destacado" readOnly />
+                    <label>Total estimado ($):</label>
+                    <input type="text" className="campo-lectura campo-destacado" readOnly value={`$${totalOrden.toFixed(2)}`} />
                 </div>
             </div>
 
@@ -627,11 +754,11 @@ export const OrdenServicio = () => {
                             <li key={s.id_servicio} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #d1fae5', fontSize: '1.1rem' }}>
                                 <span>🔧 {s.nombre_servicio}</span>
                                 <div>
-                                    <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base}</strong>
+                                    <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base.toFixed(2)}</strong>
                                     {vistaActiva === 'mecanico' && (
                                         <button 
                                             type="button" 
-                                            onClick={() => setServiciosSeleccionados(serviciosSeleccionados.filter(x => x.id_servicio !== s.id_servicio))} 
+                                            onClick={() => handleEliminarServicio(s.id_servicio)} 
                                             style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                                         >
                                             ✕ Quitar
@@ -642,14 +769,14 @@ export const OrdenServicio = () => {
                         ))}
                     </ul>
                     <div style={{ textAlign: 'right', fontSize: '1.4rem', fontWeight: 'bold', color: '#10B981', marginTop: '10px' }}>
-                        TOTAL SERVICIOS: ${serviciosSeleccionados.reduce((acc, curr) => acc + parseFloat(curr.precio_base), 0).toFixed(2)}
+                        TOTAL SERVICIOS: ${serviciosTotal.toFixed(2)}
                     </div>
                 </div>
             )}
 
             {/* ── Acciones ── */}
-            <div className="botones-accion">
-                <button className="btn-imprimir" type="button">Imprimir Orden</button>
+            <div className="botones-accion no-print">
+                <button className="btn-imprimir" type="button" onClick={handleImprimirOrden}>Imprimir Orden</button>
                 <button
                     className="btn-guardar"
                     type="button"

@@ -61,6 +61,7 @@ export const Direccionamiento = () => {
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
+                <Route path='Orden-Servicio/:id' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
                 <Route path='RegistroCliente' element={<RegistroCliente />} />
