@@ -30,6 +30,8 @@ export const OrdenServicio = () => {
     const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
     const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
     const [servicioSeleccionadoId, setServicioSeleccionadoId] = useState('');
+    const [servicioSeleccionadoEsEspecial, setServicioSeleccionadoEsEspecial] = useState(false);
+    const [servicioSeleccionadoDescripcionEspecial, setServicioSeleccionadoDescripcionEspecial] = useState('');
     const [loading, setLoading]                   = useState(false);
     const [formData, setFormData]                 = useState(FORM_INICIAL);
     const [clienteData, setClienteData]           = useState(CLIENTE_INICIAL);
@@ -150,7 +152,9 @@ export const OrdenServicio = () => {
             const serviciosOrden = (orden.detalles_servicios || orden.servicios || []).map((serv) => ({
                 id_servicio: serv.id_servicio || serv.id || serv.servicio?.id_servicio || serv.servicio?.id,
                 nombre_servicio: serv.servicio?.nombre_servicio || serv.nombre_servicio || serv.nombre || 'Servicio',
-                precio_base: Number(serv.precio_aplicado || serv.precio_base || serv.servicio?.precio_base || serv.precio || 0)
+                precio_base: Number(serv.precio_aplicado || serv.precio_base || serv.servicio?.precio_base || serv.precio || 0),
+                es_especial: Boolean(serv.es_especial),
+                descripcion_especial: serv.descripcion_especial || ''
             }));
 
             setServiciosSeleccionados(serviciosOrden);
@@ -178,9 +182,13 @@ export const OrdenServicio = () => {
         setServiciosSeleccionados([...serviciosSeleccionados, {
             id_servicio: servicio.id_servicio,
             nombre_servicio: servicio.nombre_servicio,
-            precio_base: Number(servicio.precio_base || servicio.precio || 0)
+            precio_base: Number(servicio.precio_base || servicio.precio || 0),
+            es_especial: servicioSeleccionadoEsEspecial,
+            descripcion_especial: servicioSeleccionadoDescripcionEspecial
         }] );
         setServicioSeleccionadoId('');
+        setServicioSeleccionadoEsEspecial(false);
+        setServicioSeleccionadoDescripcionEspecial('');
     };
 
     const handleEliminarServicio = (idServicio) => {
@@ -360,6 +368,8 @@ export const OrdenServicio = () => {
                 setVehiculosCliente([]);
                 setServiciosSeleccionados([]);
                 setServicioSeleccionadoId('');
+                setServicioSeleccionadoEsEspecial(false);
+                setServicioSeleccionadoDescripcionEspecial('');
             }
 
             setFeedback({
@@ -680,12 +690,37 @@ export const OrdenServicio = () => {
                         className="btn-2" 
                         style={{ backgroundColor: '#10B981', borderColor: '#10B981', color: 'white', marginTop: 'auto' }}
                         onClick={handleAgregarServicio}
-                        disabled={!servicioSeleccionadoId}
+                        disabled={!servicioSeleccionadoId || (servicioSeleccionadoEsEspecial && !servicioSeleccionadoDescripcionEspecial.trim())}
                     >
                         + Agregar Servicio
                     </button>
                 </div>
             </div>
+
+            {servicioSeleccionadoId && (
+                <div className="servicio-grid mt-2">
+                    <div className="checkbox-item" style={{ display: 'flex', alignItems: 'center' }}>
+                        <input 
+                            type="checkbox" 
+                            id="es_especial" 
+                            checked={servicioSeleccionadoEsEspecial} 
+                            onChange={(e) => setServicioSeleccionadoEsEspecial(e.target.checked)} 
+                        />
+                        <label htmlFor="es_especial">¿Es servicio especial?</label>
+                    </div>
+                    {servicioSeleccionadoEsEspecial && (
+                        <div className="campo">
+                            <label>Descripción especial:</label>
+                            <input 
+                                type="text" 
+                                value={servicioSeleccionadoDescripcionEspecial} 
+                                onChange={(e) => setServicioSeleccionadoDescripcionEspecial(e.target.value)} 
+                                placeholder="Describa el trabajo especial..." 
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="campo mt-2">
                 <label>Prioridad de la orden:</label>
@@ -751,20 +786,27 @@ export const OrdenServicio = () => {
                     <h2 className="subtitulo" style={{ borderLeftColor: '#10B981', marginTop: 0 }}>RESUMEN DE RECEPCIÓN (SERVICIOS ASIGNADOS)</h2>
                     <ul style={{ listStyleType: 'none', padding: 0, margin: '15px 0' }}>
                         {serviciosSeleccionados.map(s => (
-                            <li key={s.id_servicio} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #d1fae5', fontSize: '1.1rem' }}>
-                                <span>🛠 {s.nombre_servicio}</span>
-                                <div>
-                                    <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base.toFixed(2)}</strong>
-                                    {vistaActiva === 'mecanico' && (
-                                        <button 
-                                            type="button" 
-                                            onClick={() => handleEliminarServicio(s.id_servicio)} 
-                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                                        >
-                                            ✕ Quitar
-                                        </button>
-                                    )}
+                            <li key={s.id_servicio} style={{ display: 'flex', flexDirection: 'column', padding: '10px', borderBottom: '1px solid #d1fae5', fontSize: '1.1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>🛠 {s.nombre_servicio} {s.es_especial && <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2 uppercase tracking-wide">Especial</span>}</span>
+                                    <div>
+                                        <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base.toFixed(2)}</strong>
+                                        {vistaActiva === 'mecanico' && (
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleEliminarServicio(s.id_servicio)} 
+                                                style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                                            >
+                                                ✕ Quitar
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
+                                {s.es_especial && s.descripcion_especial && (
+                                    <div style={{ marginTop: '5px', fontSize: '0.9rem', color: '#475569', fontStyle: 'italic' }}>
+                                        Detalle: {s.descripcion_especial}
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
