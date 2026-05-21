@@ -10,18 +10,18 @@ import { EditarEmpleado } from './pages/EditarEmpleado.jsx';
 import { Facturacion } from './pages/Facturacion.jsx';
 import { Contabilidad } from './pages/Contabilidad.jsx';
 import { Reportes } from './pages/Reportes.jsx';
-import { ResumenFinanciero } from './pages/ResumenFinanciero.jsx';
 import { OrdenServicio } from './pages/Orden-servicio.jsx';
 import { ListaServicio } from './pages/Listado-servicio.jsx';
-import { ListaClientes } from './pages/Listado-clientes.jsx'; 
+import { ListaClientes } from './pages/Listado-clientes.jsx';
 import { ReporteGanancia } from './pages/Reporte_ganancia.jsx';
-import { ReporteNominas } from './pages/Reporte_nominas.jsx';
+import { ReporteNominas } from './pages/reporte_nominas.jsx';
 import { EstadoCliente } from './pages/EstadoCliente.jsx';
 import { RegistroCliente } from './pages/RegistroCliente.jsx';
 import { RegistroVehiculo } from './pages/RegistroVehiculo.jsx';
 import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
 import { ControlProductividad } from './pages/ControlProductividad.jsx';
 import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
+import { ResumenFinanciero } from './pages/ResumenFinanciero.jsx';
 
 const PlantillaPrueba = () => {
     return (
@@ -49,9 +49,6 @@ export const Direccionamiento = () => {
                     <PlantillaPrueba />
                 </ProtectedRoute>
             }>
-
-                <Route index element={<RegistroCliente />} />
-                
                 <Route path='ReporteGanancia' element={<ReporteGanancia />} />
                 <Route path='ReporteNominas' element={<ReporteNominas />} />
                 <Route path='Servicios' element={<Servicios />} />
@@ -63,10 +60,8 @@ export const Direccionamiento = () => {
                 <Route path='Contabilidad' element={<Contabilidad />} />
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
-                <Route path='servicios-rentables' element={<ServiciosRentables />} />
-                <Route path='ControlProductividad' element={<ControlProductividad />} />
-                <Route path='MovimientoInventario' element={<MovimientoValorInventario />} />
                 <Route path='Orden-Servicio' element={<OrdenServicio />} />
+                <Route path='Orden-Servicio/:id' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
                 <Route path='RegistroCliente' element={<RegistroCliente />} />

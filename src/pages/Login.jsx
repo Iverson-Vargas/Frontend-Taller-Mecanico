@@ -43,7 +43,8 @@ export const Login = () => {
                 localStorage.setItem('usuario', JSON.stringify({
                     cedula_rif: empleado.cedula_rif,
                     nombre: `${empleado.nombre} ${empleado.apellido ?? ''}`.trim(),
-                    rol: empleado.cargo
+                    rol: empleado.cargo,
+                    permisos: empleado.permisos || {}
                 }));
 
                 navigate('/panel');
@@ -164,7 +165,7 @@ export const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`cursor-pointer w-full mt-2 bg-[#F43F5E] hover:bg-rose-600 text-white font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] border-none p-3.5 text-center text-sm tracking-wide ${loading ? 'opacity-75 cursor-wait' : ''}`}
+                            className={`w-full mt-2 bg-[#F43F5E] hover:bg-rose-600 text-white font-bold rounded-lg shadow-sm transition-all active:scale-[0.98] border-none p-3.5 text-center text-sm tracking-wide ${loading ? 'opacity-75 cursor-wait' : ''}`}
                         >
                             {loading ? "CARGANDO..." : (esEmpleado ? "ENTRAR AL SISTEMA" : "CONSULTAR ESTADO")}
                         </button>
