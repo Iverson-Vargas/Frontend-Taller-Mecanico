@@ -33,7 +33,6 @@ const PlantillaPrueba = () => {
 }
 
 export const Direccionamiento = () => {
-
     return (
         <Routes>
             <Route path='/' element={<Login />} />
@@ -47,7 +46,6 @@ export const Direccionamiento = () => {
                     <PlantillaPrueba />
                 </ProtectedRoute>
             }>
-
                 <Route index element={<RegistroCliente />} />
                 
                 <Route path='ReporteGanancia' element={<ReporteGanancia />} />
@@ -62,7 +60,9 @@ export const Direccionamiento = () => {
                 <Route path='Reportes' element={<Reportes />} />
                 <Route path='Resumen-Financiero' element={<ResumenFinanciero />} />
                 <Route path='servicios-rentables' element={<ServiciosRentables />} />
-                <Route path='Orden-Servicio' element={<OrdenServicio />} />
+                
+                {/* RUTAS CORREGIDAS EN MINÚSCULAS */}
+                <Route path='orden-servicio' element={<OrdenServicio />} />
                 <Route path='Lista-Servicio' element={<ListaServicio />} />
                 <Route path='Listado-Clientes' element={<ListaClientes />} />
                 <Route path='RegistroCliente' element={<RegistroCliente />} />

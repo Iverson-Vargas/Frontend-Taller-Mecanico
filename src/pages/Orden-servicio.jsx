@@ -12,7 +12,7 @@ export const OrdenServicio = () => {
     
     const [formData, setFormData] = useState({
         placa_carro: '',
-        id_mecanico: null,
+        id_mecanico: '',
         motivo_visita: '',
         falla_declarada: '',
         tiene_caucho: false,
@@ -70,7 +70,6 @@ export const OrdenServicio = () => {
         }
     };
 
-    // Buscar cliente por cédula
     const handleBuscarCliente = async () => {
         const cedula = clienteData.cedula.trim();
         if (!cedula) {
@@ -80,9 +79,7 @@ export const OrdenServicio = () => {
 
         setLoading(true);
         try {
-            // 1. Buscar cliente por cédula
             const resCliente = await fetch(`http://localhost:3001/api/clientes/consulta/${cedula}`);
-            
             if (!resCliente.ok) {
                 if (resCliente.status === 404) {
                     alert('Cliente no encontrado. Debe registrarlo primero.');
@@ -94,12 +91,9 @@ export const OrdenServicio = () => {
             }
 
             const dataCliente = await resCliente.json();
-            console.log('Cliente respuesta:', dataCliente);
-            
             if (dataCliente && dataCliente.data) {
                 const cliente = dataCliente.data;
                 
-                // Llenar datos del cliente
                 setClienteData({
                     cedula: cliente.cedula_rif || cedula,
                     nombre: cliente.nombre || '',
@@ -107,12 +101,9 @@ export const OrdenServicio = () => {
                     telefono: cliente.telefono || ''
                 });
 
-                // 2. Buscar vehículos del cliente usando la cédula
                 const resVehiculos = await fetch(`http://localhost:3001/api/carros/cliente/${cedula}`);
                 if (resVehiculos.ok) {
                     const dataVehiculos = await resVehiculos.json();
-                    console.log('Vehículos respuesta:', dataVehiculos);
-                    
                     if (dataVehiculos && dataVehiculos.data && dataVehiculos.data.length > 0) {
                         setVehiculosCliente(dataVehiculos.data);
                         const vehiculo = dataVehiculos.data[0];
@@ -127,53 +118,25 @@ export const OrdenServicio = () => {
                             ...prev,
                             placa_carro: vehiculo.placa
                         }));
-                        alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido} - Vehículos encontrados: ${dataVehiculos.data.length}`);
+                        alert(`Cliente encontrado: ${cliente.nombre} ${cliente.apellido}`);
                     } else {
                         alert('Cliente encontrado pero no tiene vehículos registrados');
                         setVehiculosCliente([]);
-                        setVehiculoData({
-                            placa: '',
-                            marca: '',
-                            modelo: '',
-                            ano: '',
-                            kilometraje: ''
-                        });
                     }
-                } else {
-                    alert('Error al obtener vehículos del cliente');
                 }
-            } else {
-                alert('Cliente no encontrado');
-                limpiarDatosCliente();
             }
         } catch (error) {
             console.error('Error buscando cliente:', error);
-            alert('Error de red al buscar el cliente.');
-            limpiarDatosCliente();
         } finally {
             setLoading(false);
         }
     };
 
     const limpiarDatosCliente = () => {
-        setClienteData({
-            cedula: '',
-            nombre: '',
-            apellido: '',
-            telefono: ''
-        });
-        setVehiculoData({
-            placa: '',
-            marca: '',
-            modelo: '',
-            ano: '',
-            kilometraje: ''
-        });
+        setClienteData({ cedula: '', nombre: '', apellido: '', telefono: '' });
+        setVehiculoData({ placa: '', marca: '', modelo: '', ano: '', kilometraje: '' });
         setVehiculosCliente([]);
-        setFormData(prev => ({
-            ...prev,
-            placa_carro: ''
-        }));
+        setFormData(prev => ({ ...prev, placa_carro: '' }));
     };
 
     const handleSeleccionarVehiculo = (e) => {
@@ -187,10 +150,7 @@ export const OrdenServicio = () => {
                 ano: vehiculo.ano || '',
                 kilometraje: vehiculo.kilometraje || ''
             });
-            setFormData(prev => ({
-                ...prev,
-                placa_carro: vehiculo.placa
-            }));
+            setFormData(prev => ({ ...prev, placa_carro: vehiculo.placa }));
         }
     };
 
@@ -204,18 +164,12 @@ export const OrdenServicio = () => {
 
     const handleClienteInputChange = (e) => {
         const { name, value } = e.target;
-        setClienteData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setClienteData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
-        if (e) e.preventDefault();
-        handleGuardarOrden();
-    };
-
-    const handleGuardarOrden = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Detiene la recarga de página nativa
+        
         if (!formData.placa_carro) {
             alert('Debe buscar un cliente con vehículo primero');
             return;
@@ -240,48 +194,18 @@ export const OrdenServicio = () => {
                 estado: formData.estado
             };
 
-            console.log('Guardando orden:', ordenData);
             const response = await fetch('http://localhost:3001/api/ordenes', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ordenData)
             });
             const data = await response.json();
-            console.log('Respuesta:', data);
             
             if (response.status === 201 || data.status === 201) {
-                alert(`Orden guardada exitosamente. Número: ${data.data?.id_orden || 'generado'}`);
-                // Limpiar formulario
-                setFormData({
-                    placa_carro: '',
-                    id_mecanico: null,
-                    motivo_visita: '',
-                    falla_declarada: '',
-                    tiene_caucho: false,
-                    tiene_radio: false,
-                    tiene_rayones: false,
-                    observaciones: '',
-                    diagnostico_tecnico: '',
-                    estado: 'recepcion'
-                });
-                setClienteData({
-                    cedula: '',
-                    nombre: '',
-                    apellido: '',
-                    telefono: ''
-                });
-                setVehiculoData({
-                    placa: '',
-                    marca: '',
-                    modelo: '',
-                    ano: '',
-                    kilometraje: ''
-                });
+                alert(`Orden guardada exitosamente.`);
                 navigate('/panel/Lista-Servicio');
             } else {
-                alert('Error al guardar la orden: ' + (data?.message || 'Error desconocido'));
+                alert('Error al guardar: ' + (data?.message || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error guardando orden:', error);
@@ -291,21 +215,13 @@ export const OrdenServicio = () => {
         }
     };
 
-    const handListaServicio = () => {
-        navigate('/panel/Lista-Servicio');
-    };
-
-    const handListaClientes = () => {
-        navigate('/panel/Listado-Clientes');
-    };
-
     return (
         <form className="orden-container" onSubmit={handleSubmit}>
             <div className="botones">
-                <button type="button" className="btn-2" onClick={handListaServicio}>
+                <button type="button" className="btn-2" onClick={() => navigate('/panel/Lista-Servicio')}>
                     Listado de servicios
                 </button>
-                <button type="button" className="btn-2" onClick={handListaClientes}>
+                <button type="button" className="btn-2" onClick={() => navigate('/panel/Listado-Clientes')}>
                     Listado de clientes
                 </button>
             </div>
@@ -341,7 +257,7 @@ export const OrdenServicio = () => {
                 </div>
                 <div className="campo">
                     <label>Mecánico asignado:</label>
-                    <select name="id_mecanico" value={formData.id_mecanico || ''} onChange={handleInputChange}>
+                    <select name="id_mecanico" value={formData.id_mecanico} onChange={handleInputChange}>
                         <option value="">Seleccione</option>
                         {mecanicos.map(mec => (
                             <option key={mec.id_empleado} value={mec.id_empleado}>
@@ -362,49 +278,29 @@ export const OrdenServicio = () => {
                             name="cedula"
                             value={clienteData.cedula}
                             onChange={handleClienteInputChange}
-                            placeholder="Ingrese cédula (ej: 1234567)" 
+                            placeholder="Ingrese cédula" 
                             style={{ flex: 1 }}
                         />
-                        <button 
-                            type="button" 
-                            onClick={handleBuscarCliente}
-                            disabled={loading}
-                            style={{ padding: '5px 15px', cursor: 'pointer' }}
-                        >
+                        <button type="button" onClick={handleBuscarCliente} disabled={loading} style={{ padding: '5px 15px' }}>
                             {loading ? 'Buscando...' : 'Buscar'}
                         </button>
                     </div>
                 </div>
                 <div className="campo">
                     <label>Nombre:</label>
-                    <input 
-                        type="text" 
-                        value={clienteData.nombre}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
+                    <input type="text" value={clienteData.nombre} readOnly style={{ backgroundColor: '#f5f5f5' }} />
                 </div>
                 <div className="campo">
                     <label>Teléfono:</label>
-                    <input 
-                        type="text" 
-                        value={clienteData.telefono}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
+                    <input type="text" value={clienteData.telefono} readOnly style={{ backgroundColor: '#f5f5f5' }} />
                 </div>
             </div>
 
             <h2 className="subtitulo">DATOS DEL VEHÍCULO</h2>
-            
             {vehiculosCliente.length > 1 && (
                 <div className="campo" style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Seleccionar Vehículo:</label>
-                    <select 
-                        onChange={handleSeleccionarVehiculo} 
-                        value={vehiculoData.placa} 
-                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#fff' }}
-                    >
+                    <select onChange={handleSeleccionarVehiculo} value={vehiculoData.placa} style={{ width: '100%', padding: '8px' }}>
                         {vehiculosCliente.map(v => (
                             <option key={v.placa} value={v.placa}>
                                 {v.placa} - {v.marca} {v.modelo}
@@ -415,51 +311,11 @@ export const OrdenServicio = () => {
             )}
 
             <div className="seccion-grid">
-                <div className="campo">
-                    <label>Placa:</label>
-                    <input 
-                        type="text" 
-                        value={vehiculoData.placa}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                </div>
-                <div className="campo">
-                    <label>Marca:</label>
-                    <input 
-                        type="text" 
-                        value={vehiculoData.marca}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                </div>
-                <div className="campo">
-                    <label>Modelo:</label>
-                    <input 
-                        type="text" 
-                        value={vehiculoData.modelo}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                </div>
-                <div className="campo">
-                    <label>Año:</label>
-                    <input 
-                        type="text" 
-                        value={vehiculoData.ano}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                </div>
-                <div className="campo">
-                    <label>Kilometraje actual:</label>
-                    <input 
-                        type="text" 
-                        value={vehiculoData.kilometraje}
-                        readOnly
-                        style={{ backgroundColor: '#f5f5f5' }}
-                    />
-                </div>
+                <div className="campo"><label>Placa:</label><input type="text" value={vehiculoData.placa} readOnly style={{ backgroundColor: '#f5f5f5' }} /></div>
+                <div className="campo"><label>Marca:</label><input type="text" value={vehiculoData.marca} readOnly style={{ backgroundColor: '#f5f5f5' }} /></div>
+                <div className="campo"><label>Modelo:</label><input type="text" value={vehiculoData.modelo} readOnly style={{ backgroundColor: '#f5f5f5' }} /></div>
+                <div className="campo"><label>Año:</label><input type="text" value={vehiculoData.ano} readOnly style={{ backgroundColor: '#f5f5f5' }} /></div>
+                <div className="campo"><label>Kilometraje actual:</label><input type="text" value={vehiculoData.kilometraje} readOnly style={{ backgroundColor: '#f5f5f5' }} /></div>
             </div>
 
             <h2 className="subtitulo">DIAGNÓSTICO INICIAL</h2>
@@ -468,8 +324,6 @@ export const OrdenServicio = () => {
                     <label>Motivo de visita:</label>
                     <textarea name="motivo_visita" value={formData.motivo_visita} onChange={handleInputChange} rows="2"></textarea>
                 </div>
-
-                <h3 className="subtitulo-secundario">INVENTARIO INICIAL</h3>
                 <div className="checkboxes-grid">
                     <div className="checkbox-item">
                         <input type="checkbox" name="tiene_caucho" checked={formData.tiene_caucho} onChange={handleInputChange} id="caucho" />
@@ -484,7 +338,6 @@ export const OrdenServicio = () => {
                         <label htmlFor="rayones">¿Rayones previos?</label>
                     </div>
                 </div>
-
                 <div className="campo">
                     <label>Fallas declaradas (descripción):</label>
                     <textarea name="falla_declarada" value={formData.falla_declarada} onChange={handleInputChange} rows="3"></textarea>
@@ -503,69 +356,9 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            <h2 className="subtitulo">SERVICIO</h2>
-            <div className="servicio-grid">
-                <div className="campo">
-                    <label>Tipo de servicio:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Mantenimiento preventivo</option>
-                        <option>Reparación mecánica</option>
-                    </select>
-                </div>
-                <div className="campo">
-                    <label>Prioridad:</label>
-                    <select name="prioridad" value={formData.prioridad} onChange={handleInputChange}>
-                        <option value="baja">Baja</option>
-                        <option value="normal">Normal</option>
-                        <option value="alta">Alta</option>
-                        <option value="urgente">Urgente</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="repuestos-seccion">
-                <div className="checkbox-item">
-                    <input type="checkbox" id="repuesto" />
-                    <label htmlFor="repuesto">¿Requiere repuesto?</label>
-                </div>
-                <div className="campo">
-                    <label>Repuesto en inventario:</label>
-                    <select>
-                        <option value="">Seleccione un repuesto</option>
-                        {repuestos.map(rep => (
-                            <option key={rep.id_inventario} value={rep.id_inventario}>
-                                {rep.descripcion}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            <div className="diagnostico-tecnico mt-4">
-                <div className="campo">
-                    <label>Costo ($):</label>
-                    <input type="text" className="campo-lectura" readOnly />
-                </div>
-                <div className="mano-obra">
-                    <div className="checkbox-item">
-                        <input type="checkbox" id="manoObra" />
-                        <label htmlFor="manoObra">¿Mano de obra especial?</label>
-                    </div>
-                    <div className="campo">
-                        <label>Costo mano de obra ($):</label>
-                        <input type="text" />
-                    </div>
-                </div>
-                <div className="campo subtotal">
-                    <label>Subtotal ($):</label>
-                    <input type="text" className="campo-lectura campo-destacado" readOnly />
-                </div>
-            </div>
-
             <div className="botones-accion">
-                <button className="btn-imprimir">Imprimir Orden</button>
-                <button className="btn-guardar" onClick={handleGuardarOrden} disabled={loading}>
+                <button type="button" className="btn-imprimir">Imprimir Orden</button>
+                <button type="submit" className="btn-guardar" disabled={loading}>
                     {loading ? 'Guardando...' : 'Guardar Orden'}
                 </button>
             </div>
