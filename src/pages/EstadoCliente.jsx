@@ -91,7 +91,33 @@ export const EstadoCliente = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {Object.entries(clienteData).map(([key, value]) => {
-                                if (typeof value === 'object' && value !== null) {
+                                if (Array.isArray(value)) {
+                                    return (
+                                        <div key={key} className="col-span-full bg-slate-50 p-6 rounded-xl border border-slate-100">
+                                            <h3 className="font-bold text-slate-800 capitalize mb-4 text-lg border-b border-slate-200 pb-2">{key.replace(/_/g, ' ')}</h3>
+                                            <div className="space-y-4">
+                                                {value.map((item, index) => (
+                                                    <div key={index} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                        {typeof item === 'object' && item !== null ? (
+                                                            Object.entries(item).map(([itemKey, itemVal]) => (
+                                                                <div key={itemKey}>
+                                                                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{itemKey.replace(/_/g, ' ')}</span>
+                                                                    <span className="block font-medium text-slate-800 text-base">
+                                                                        {typeof itemVal === 'object' && itemVal !== null ? JSON.stringify(itemVal) : String(itemVal)}
+                                                                    </span>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="col-span-full">
+                                                                <span className="block font-medium text-slate-800 text-base">{String(item)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (typeof value === 'object' && value !== null) {
                                   return (
                                     <div key={key} className="col-span-full bg-slate-50 p-6 rounded-xl border border-slate-100">
                                         <h3 className="font-bold text-slate-800 capitalize mb-4 text-lg border-b border-slate-200 pb-2">{key.replace(/_/g, ' ')}</h3>
@@ -99,7 +125,9 @@ export const EstadoCliente = () => {
                                             {Object.entries(value).map(([subKey, subVal]) => (
                                                 <div key={subKey} className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
                                                     <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{subKey.replace(/_/g, ' ')}</span>
-                                                    <span className="block font-medium text-slate-800 text-base">{String(subVal)}</span>
+                                                    <span className="block font-medium text-slate-800 text-base">
+                                                        {typeof subVal === 'object' && subVal !== null ? JSON.stringify(subVal) : String(subVal)}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
