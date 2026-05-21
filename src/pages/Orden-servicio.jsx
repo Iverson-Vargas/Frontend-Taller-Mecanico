@@ -26,19 +26,47 @@ export const OrdenServicio = () => {
 
     const [mecanicos, setMecanicos]               = useState([]);
     const [repuestos, setRepuestos]               = useState([]);
+    const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
+    const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
+    const [servicioSeleccionadoId, setServicioSeleccionadoId] = useState('');
     const [loading, setLoading]                   = useState(false);
     const [formData, setFormData]                 = useState(FORM_INICIAL);
     const [clienteData, setClienteData]           = useState(CLIENTE_INICIAL);
     const [vehiculoData, setVehiculoData]         = useState(VEHICULO_INICIAL);
     const [vehiculosCliente, setVehiculosCliente] = useState([]);
     const [feedback, setFeedback]                 = useState(null); // { tipo: 'ok'|'error'|'info', mensaje: '' }
+    
+    const usuarioStr = localStorage.getItem('usuario');
+    const usuarioInfo = usuarioStr ? JSON.parse(usuarioStr) : null;
+    const permisos = usuarioInfo?.permisos || {};
+    
+    // Fallback: si no tiene ningún permiso explícito, asume true (retrocompatibilidad)
+    const hasAnyPermission = permisos.recepcion || permisos.mecanico || permisos.admin_caja || permisos.inventario;
+    const tienePermisoRecepcion = !hasAnyPermission || permisos.recepcion || permisos.admin_caja;
+    const tienePermisoMecanico = !hasAnyPermission || permisos.mecanico || permisos.admin_caja;
+    const tienePermisoAdmin = !hasAnyPermission || permisos.admin_caja;
+
+    const [vistaActiva, setVistaActiva]           = useState(tienePermisoRecepcion ? 'recepcion' : 'mecanico'); // 'recepcion' o 'mecanico'
 
     useEffect(() => {
         cargarMecanicos();
         cargarRepuestos();
+        cargarServicios();
     }, []);
 
     // ── Carga inicial ────────────────────────────────────────────────────────
+
+    const cargarServicios = async () => {
+        try {
+            const res = await api.get('/servicios');
+            let servs = [];
+            if (Array.isArray(res.data.data)) servs = res.data.data;
+            else if (res.data.data && Array.isArray(res.data.data.servicios)) servs = res.data.data.servicios;
+            setServiciosDisponibles(servs);
+        } catch (error) {
+            console.error('Error cargando servicios:', error);
+        }
+    };
 
     const cargarMecanicos = async () => {
         try {
@@ -158,6 +186,8 @@ export const OrdenServicio = () => {
         setVehiculoData(VEHICULO_INICIAL);
         setVehiculosCliente([]);
         setFormData(prev => ({ ...prev, placa_carro: '' }));
+        setServiciosSeleccionados([]);
+        setServicioSeleccionadoId('');
     };
 
     const handleSeleccionarVehiculo = (e) => {
@@ -222,6 +252,7 @@ export const OrdenServicio = () => {
                 tiene_rayones:       formData.tiene_rayones,
                 observaciones:       formData.observaciones       || null,
                 diagnostico_tecnico: formData.diagnostico_tecnico || null,
+                servicios:           serviciosSeleccionados,
                 estado:              formData.estado,
                 prioridad:           formData.prioridad           || 'normal'
             };
@@ -234,6 +265,8 @@ export const OrdenServicio = () => {
             setClienteData(CLIENTE_INICIAL);
             setVehiculoData(VEHICULO_INICIAL);
             setVehiculosCliente([]);
+            setServiciosSeleccionados([]);
+            setServicioSeleccionadoId('');
 
             setFeedback({
                 tipo: 'ok',
@@ -283,6 +316,28 @@ export const OrdenServicio = () => {
 
             <h1 className="titulo-principal">NUEVA ORDEN DE SERVICIO</h1>
 
+            {/* ── Tabs de Vista ── */}
+            <div className="tabs-container">
+                {tienePermisoRecepcion && (
+                    <button
+                        type="button"
+                        className={`tab-btn ${vistaActiva === 'recepcion' ? 'active' : ''}`}
+                        onClick={() => setVistaActiva('recepcion')}
+                    >
+                        Recepción (Diagnóstico Inicial)
+                    </button>
+                )}
+                {tienePermisoMecanico && (
+                    <button
+                        type="button"
+                        className={`tab-btn ${vistaActiva === 'mecanico' ? 'active' : ''}`}
+                        onClick={() => setVistaActiva('mecanico')}
+                    >
+                        Mecánico (Diagnóstico Técnico y Servicio)
+                    </button>
+                )}
+            </div>
+
             {/* ── Feedback de operación ── */}
             {feedback && (
                 <div style={{
@@ -297,7 +352,10 @@ export const OrdenServicio = () => {
                 </div>
             )}
 
-            {/* ── Encabezado de orden ── */}
+            {/* ── VISTA DE RECEPCIÓN ── */}
+            {vistaActiva === 'recepcion' && (
+                <div className="vista-recepcion">
+                    {/* ── Encabezado de orden ── */}
             <div className="encabezado-orden">
                 <div className="numero-orden">
                     <label>N° de Orden:</label>
@@ -321,8 +379,12 @@ export const OrdenServicio = () => {
                         <option value="en_reparacion">En reparación</option>
                         <option value="esperando_repuestos">Esperando repuestos</option>
                         <option value="finalizada">Finalizada</option>
-                        <option value="facturada">Facturada</option>
-                        <option value="entregada">Entregada</option>
+                        {tienePermisoAdmin && (
+                            <>
+                                <option value="facturada">Facturada</option>
+                                <option value="entregada">Entregada</option>
+                            </>
+                        )}
                     </select>
                 </div>
                 <div className="campo">
@@ -459,7 +521,13 @@ export const OrdenServicio = () => {
                 </div>
             </div>
 
-            {/* ── Diagnóstico técnico ── */}
+                </div>
+            )}
+
+            {/* ── VISTA DE MECÁNICO ── */}
+            {vistaActiva === 'mecanico' && (
+                <div className="vista-mecanico">
+                    {/* ── Diagnóstico técnico ── */}
             <h2 className="subtitulo">DIAGNÓSTICO TÉCNICO</h2>
             <div className="diagnostico-tecnico">
                 <div className="campo">
@@ -473,25 +541,54 @@ export const OrdenServicio = () => {
             </div>
 
             {/* ── Servicio ── */}
-            <h2 className="subtitulo">SERVICIO</h2>
+            <h2 className="subtitulo">ASIGNACIÓN DE SERVICIOS</h2>
             <div className="servicio-grid">
                 <div className="campo">
-                    <label>Tipo de servicio:</label>
-                    <select>
-                        <option value="">Seleccione</option>
-                        <option>Mantenimiento preventivo</option>
-                        <option>Reparación mecánica</option>
+                    <label>Seleccionar Servicio:</label>
+                    <select 
+                        value={servicioSeleccionadoId} 
+                        onChange={(e) => setServicioSeleccionadoId(e.target.value)}
+                    >
+                        <option value="">Seleccione un servicio de la lista</option>
+                        {serviciosDisponibles.map(s => (
+                            <option key={s.id_servicio} value={s.id_servicio}>
+                                {s.nombre_servicio}
+                            </option>
+                        ))}
                     </select>
                 </div>
-                <div className="campo">
-                    <label>Prioridad:</label>
-                    <select name="prioridad" value={formData.prioridad} onChange={handleInputChange}>
-                        <option value="baja">Baja</option>
-                        <option value="normal">Normal</option>
-                        <option value="alta">Alta</option>
-                        <option value="urgente">Urgente</option>
-                    </select>
-                </div>
+                
+                {servicioSeleccionadoId && (
+                    <div className="campo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10B981', marginBottom: '10px' }}>
+                            Precio Base: ${serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId)?.precio_base}
+                        </span>
+                        <button 
+                            type="button" 
+                            className="btn-2" 
+                            style={{ backgroundColor: '#10B981', borderColor: '#10B981', color: 'white' }}
+                            onClick={() => {
+                                const svc = serviciosDisponibles.find(s => s.id_servicio == servicioSeleccionadoId);
+                                if (svc && !serviciosSeleccionados.find(s => s.id_servicio === svc.id_servicio)) {
+                                    setServiciosSeleccionados([...serviciosSeleccionados, svc]);
+                                    setServicioSeleccionadoId('');
+                                }
+                            }}
+                        >
+                            ✓ Aceptar Servicio
+                        </button>
+                    </div>
+                )}
+            </div>
+            
+            <div className="campo mt-2">
+                <label>Prioridad de la orden:</label>
+                <select name="prioridad" value={formData.prioridad} onChange={handleInputChange} style={{ maxWidth: '300px' }}>
+                    <option value="baja">Baja</option>
+                    <option value="normal">Normal</option>
+                    <option value="alta">Alta</option>
+                    <option value="urgente">Urgente</option>
+                </select>
             </div>
 
             {/* ── Repuestos ── */}
@@ -534,6 +631,38 @@ export const OrdenServicio = () => {
                     <input type="text" className="campo-lectura campo-destacado" readOnly />
                 </div>
             </div>
+
+                </div>
+            )}
+
+            {/* ── MÓDULO DE RESUMEN (Visible en ambas vistas o al final) ── */}
+            {serviciosSeleccionados.length > 0 && (
+                <div style={{ backgroundColor: '#f0fdf4', padding: '20px', borderRadius: '10px', border: '2px solid #10B981', margin: '20px 0' }}>
+                    <h2 className="subtitulo" style={{ borderLeftColor: '#10B981', marginTop: 0 }}>RESUMEN DE RECEPCIÓN (SERVICIOS ASIGNADOS)</h2>
+                    <ul style={{ listStyleType: 'none', padding: 0, margin: '15px 0' }}>
+                        {serviciosSeleccionados.map(s => (
+                            <li key={s.id_servicio} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #d1fae5', fontSize: '1.1rem' }}>
+                                <span>🔧 {s.nombre_servicio}</span>
+                                <div>
+                                    <strong style={{ color: '#065f46', marginRight: '15px' }}>${s.precio_base}</strong>
+                                    {vistaActiva === 'mecanico' && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setServiciosSeleccionados(serviciosSeleccionados.filter(x => x.id_servicio !== s.id_servicio))} 
+                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                                        >
+                                            ✕ Quitar
+                                        </button>
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <div style={{ textAlign: 'right', fontSize: '1.4rem', fontWeight: 'bold', color: '#10B981', marginTop: '10px' }}>
+                        TOTAL SERVICIOS: ${serviciosSeleccionados.reduce((acc, curr) => acc + parseFloat(curr.precio_base), 0).toFixed(2)}
+                    </div>
+                </div>
+            )}
 
             {/* ── Acciones ── */}
             <div className="botones-accion">

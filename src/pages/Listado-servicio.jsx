@@ -84,12 +84,20 @@ export const ListaServicio = () => {
         return <div className="tabla-container">Cargando órdenes...</div>;
     }
 
+    const usuarioStr = localStorage.getItem('usuario');
+    const usuarioInfo = usuarioStr ? JSON.parse(usuarioStr) : null;
+    const permisos = usuarioInfo?.permisos || {};
+    const hasAnyPermission = permisos.recepcion || permisos.mecanico || permisos.admin_caja || permisos.inventario;
+    const tienePermisoRecepcion = !hasAnyPermission || permisos.recepcion || permisos.admin_caja;
+
     return (
         <div className="tabla-container">
             <h1 className="titulo-tabla">LISTADO DE ORDENES</h1>
             
             <div className="tabla-header">
-                <button className="btn-generar" onClick={() => navigate('/panel/Orden-Servicio')}>+ Generar Orden</button>
+                {tienePermisoRecepcion && (
+                    <button className="btn-generar" onClick={() => navigate('/panel/Orden-Servicio')}>+ Generar Orden</button>
+                )}
             </div>
 
             {/* ── Feedback de operación ── */}

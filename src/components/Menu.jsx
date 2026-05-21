@@ -19,7 +19,11 @@ export const Menu = () => {
         }
     };
 
-    const menuItems = [
+    const usuarioStr = localStorage.getItem('usuario');
+    const usuarioInfo = usuarioStr ? JSON.parse(usuarioStr) : null;
+    const permisos = usuarioInfo?.permisos || {};
+
+    const rawMenuItems = [
         {
             name: 'Recepción y Diagnóstico',
             icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>,
@@ -80,6 +84,21 @@ export const Menu = () => {
             ]
         }
     ];
+
+    const menuItems = rawMenuItems.filter(item => {
+        // Si no tiene ningún permiso definido (usuarios antiguos), mostrar todo para no romper el sistema
+        const hasAnyPermission = permisos.recepcion || permisos.mecanico || permisos.admin_caja || permisos.inventario;
+        if (!hasAnyPermission) return true;
+
+        if (item.name === 'Recepción y Diagnóstico') return permisos.recepcion || permisos.admin_caja;
+        if (item.name === 'Servicios y Precios') return permisos.mecanico || permisos.recepcion || permisos.admin_caja;
+        if (item.name === 'Inventario y Repuestos') return permisos.inventario || permisos.admin_caja || permisos.mecanico;
+        if (item.name === 'Recursos Humanos') return permisos.admin_caja;
+        if (item.name === 'Facturación y Caja') return permisos.admin_caja;
+        if (item.name === 'Finanzas y Gastos') return permisos.admin_caja;
+        if (item.name === 'Reportes Estratégicos') return permisos.admin_caja;
+        return true;
+    });
 
     return (
         <aside className="fixed top-0 left-0 w-72 h-screen bg-[#0f172a] text-slate-50 shadow-2xl flex flex-col z-50 overflow-hidden font-sans border-r border-slate-800/40">

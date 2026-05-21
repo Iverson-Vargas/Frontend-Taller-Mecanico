@@ -43,7 +43,8 @@ export const Login = () => {
                 localStorage.setItem('usuario', JSON.stringify({
                     cedula_rif: empleado.cedula_rif,
                     nombre: `${empleado.nombre} ${empleado.apellido ?? ''}`.trim(),
-                    rol: empleado.cargo
+                    rol: empleado.cargo,
+                    permisos: empleado.permisos || {}
                 }));
 
                 navigate('/panel');

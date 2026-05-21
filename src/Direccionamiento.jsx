@@ -21,6 +21,7 @@ import { RegistroVehiculo } from './pages/RegistroVehiculo.jsx';
 import { ServiciosRentables } from './pages/ServiciosRentables.jsx';
 import { ControlProductividad } from './pages/ControlProductividad.jsx';
 import { MovimientoValorInventario } from './pages/MovimientoValorInventario.jsx';
+import { ResumenFinanciero } from './pages/ResumenFinanciero.jsx';
 
 const PlantillaPrueba = () => {
     return (
@@ -50,7 +51,6 @@ export const Direccionamiento = () => {
             }>
                 <Route path='ReporteGanancia' element={<ReporteGanancia />} />
                 <Route path='ReporteNominas' element={<ReporteNominas />} />
-                <Route path='Recepcion' element={<Recepcion />} />
                 <Route path='Servicios' element={<Servicios />} />
                 <Route path='Inventario' element={<Inventario />} />
                 <Route path='GestionEmpleados' element={<GestionEmpleados />} />

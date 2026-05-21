@@ -281,6 +281,37 @@
     box-shadow: 0 5px 15px rgba(244, 63, 94, 0.4);
 }
 
+/* Tabs */
+.tabs-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.tab-btn {
+    padding: 0.8rem 2rem;
+    border: 2px solid #e2e8f0;
+    background-color: #f9f9f9;
+    color: #64748b;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background-color: #e2e8f0;
+}
+
+.tab-btn.active {
+    background-color: #F43F5E;
+    color: #ffffff;
+    border-color: #F43F5E;
+    box-shadow: 0 4px 10px rgba(244, 63, 94, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .orden-container {
