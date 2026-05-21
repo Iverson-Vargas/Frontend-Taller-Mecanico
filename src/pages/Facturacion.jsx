@@ -98,6 +98,25 @@ export const Facturacion = () => {
 
   const [tasaCambio, setTasaCambio] = useState(0);
   const [pagos, setPagos] = useState([{ metodo: "", moneda: "", monto: 0 }]);
+  const [cargandoTasa, setCargandoTasa] = useState(false);
+
+  useEffect(() => {
+    const fetchTasaBCV = async () => {
+      setCargandoTasa(true);
+      try {
+        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api-bcv-pi.vercel.app/api/tasa/usd')}`);
+        const data = await res.json();
+                if (data && data.valor && data.valor.valor_num) {
+          setTasaCambio(parseFloat(Number(data.valor.valor_num).toFixed(2)));
+        }
+      } catch (error) {
+        console.error('Error al obtener la tasa BCV:', error);
+      } finally {
+        setCargandoTasa(false);
+      }
+    };
+    fetchTasaBCV();
+  }, []);
 
   const buscarOrdenServicio = async () => {
     if (!ordenServicio) {
@@ -150,10 +169,14 @@ export const Facturacion = () => {
     const igtf = pagoEfectivoUSD > 0 ? pagoEfectivoUSD * 0.03 : 0;
 
     setSubtotalUSD(subtotalUSD);
-    setSubtotalBs(subtotalBs);
     setIva(iva);
     setIgtf(igtf);
   };
+
+  // Efecto para recalcular subtotalBs automáticamente cuando cambia la tasa o el subtotalUSD
+  useEffect(() => {
+    setSubtotalBs(subtotalUSD * Number(tasaCambio || 0));
+  }, [tasaCambio, subtotalUSD]);
 
   // Efecto para recalcular IGTF automáticamente cuando cambian los pagos
   useEffect(() => {
@@ -375,14 +398,23 @@ export const Facturacion = () => {
 
             {/* Panel de Tasa del Día */}
             <div className="mb-5 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tasa de Cambio (Bs/USD)</label>
-              <input
-                type="number"
-                value={tasaCambio}
-                onChange={(e) => setTasaCambio(e.target.value)}
-                className="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none text-slate-800 font-bold text-sm transition-all"
-                placeholder="0.00"
-              />
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tasa de Cambio BCV (Bs/USD)</label>
+              <div className="relative">
+                  <input
+                    type="number"
+                    value={tasaCambio}
+                    onChange={(e) => setTasaCambio(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#F43F5E] focus:border-transparent outline-none text-slate-800 font-bold text-sm transition-all"
+                    placeholder="0.00"
+                    disabled={cargandoTasa}
+                  />
+                  {cargandoTasa && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F43F5E]"></div>
+                      </div>
+                  )}
+              </div>
+              <p className="text-[10px] text-slate-400 font-bold mt-1.5 uppercase tracking-wider text-right">Tasa Sincronizada Automáticamente</p>
             </div>
 
             {/* Resumen Matemático */}

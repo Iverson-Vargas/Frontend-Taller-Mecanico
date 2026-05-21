@@ -7,6 +7,26 @@ export const Contabilidad = () => {
         const saved = localStorage.getItem('tasa_cambio');
         return saved ? parseFloat(saved) : 36.50;
     });
+    const [cargandoTasa, setCargandoTasa] = useState(false);
+
+    useEffect(() => {
+        const fetchTasaBCV = async () => {
+            setCargandoTasa(true);
+            try {
+                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api-bcv-pi.vercel.app/api/tasa/usd')}`);
+                const data = await res.json();
+                if (data && data.valor && data.valor.valor_num) {
+                    setExchangeRate(parseFloat(Number(data.valor.valor_num).toFixed(2)));
+                }
+            } catch (error) {
+                console.error('Error al obtener la tasa BCV:', error);
+            } finally {
+                setCargandoTasa(false);
+            }
+        };
+        fetchTasaBCV();
+    }, []);
+
     const [isBs, setIsBs] = useState(false);
     const [viewMode, setViewMode] = useState('Global'); // 'Global' o 'Personal'
 
@@ -372,7 +392,7 @@ export const Contabilidad = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         {/* INPUT TASA DE CAMBIO */}
-                        <div className="bg-white border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-2 shadow-sm">
+                        <div className="bg-white border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-2 shadow-sm relative pr-8">
                             <span className="text-[10px] font-black text-slate-400">TASA BCV (Bs):</span>
                             <input 
                                 type="number" 
@@ -380,7 +400,13 @@ export const Contabilidad = () => {
                                 value={exchangeRate}
                                 onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 0)}
                                 className="w-16 text-sm font-black text-slate-800 outline-none bg-transparent"
+                                disabled={cargandoTasa}
                             />
+                            {cargandoTasa && (
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#F43F5E]"></div>
+                                </div>
+                            )}
                         </div>
 
                         <button 

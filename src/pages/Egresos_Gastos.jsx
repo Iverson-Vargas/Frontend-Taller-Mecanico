@@ -1,8 +1,27 @@
 import React, { useState, useRef } from 'react';
 
 export const Egresos_Gastos = () => {
-    const [exchangeRate] = useState(36.50);
+    const [exchangeRate, setExchangeRate] = useState(36.50);
+    const [cargandoTasa, setCargandoTasa] = useState(false);
     const [isBs, setIsBs] = useState(false);
+
+    useEffect(() => {
+        const fetchTasaBCV = async () => {
+            setCargandoTasa(true);
+            try {
+                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api-bcv-pi.vercel.app/api/tasa/usd')}`);
+                const data = await res.json();
+                if (data && data.valor && data.valor.valor_num) {
+                    setExchangeRate(parseFloat(Number(data.valor.valor_num).toFixed(2)));
+                }
+            } catch (error) {
+                console.error('Error al obtener la tasa BCV:', error);
+            } finally {
+                setCargandoTasa(false);
+            }
+        };
+        fetchTasaBCV();
+    }, []);
     
     // Referencia oculta para el input de archivos
     const fileInputRef = useRef(null);
@@ -90,8 +109,11 @@ export const Egresos_Gastos = () => {
                 </header>
 
                 <div className="flex justify-end items-center gap-4 mb-5">
-                    <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 font-bold">
+                    <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 font-bold flex items-center gap-2">
                         Tasa BCV: <span className="text-[#F43F5E]">{exchangeRate}</span>
+                        {cargandoTasa && (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#F43F5E] ml-1"></div>
+                        )}
                     </div>
                     <button 
                         className="bg-[#F43F5E] hover:bg-rose-600 text-white border-none px-4 py-2.5 rounded-xl cursor-pointer font-semibold text-sm transition-colors" 
