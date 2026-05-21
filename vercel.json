@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
+      "source": "/api/bcv",
+      "destination": "https://api-bcv-pi.vercel.app/api/tasa/usd"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/index.html"
     }
   ]
 }

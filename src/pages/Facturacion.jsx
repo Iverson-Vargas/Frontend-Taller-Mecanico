@@ -104,7 +104,7 @@ export const Facturacion = () => {
     const fetchTasaBCV = async () => {
       setCargandoTasa(true);
       try {
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api-bcv-pi.vercel.app/api/tasa/usd')}`);
+        const res = await fetch('/api/bcv');
         const data = await res.json();
                 if (data && data.valor && data.valor.valor_num) {
           setTasaCambio(parseFloat(Number(data.valor.valor_num).toFixed(2)));
