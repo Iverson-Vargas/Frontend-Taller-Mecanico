@@ -15,6 +15,7 @@ export const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
+        
 
         if (esEmpleado && (!username || !password)) {
             setError("Por favor ingresa usuario y contraseña");
