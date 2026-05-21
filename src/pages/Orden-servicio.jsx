@@ -333,6 +333,10 @@ export const OrdenServicio = () => {
             setFeedback({ tipo: 'error', mensaje: 'Debe buscar un cliente con vehículo primero' });
             return;
         }
+        if (!formData.motivo_visita) {
+            setFeedback({ tipo: 'error', mensaje: 'El motivo de visita es requerido' });
+            return;
+        }
         if (!formData.falla_declarada) {
             setFeedback({ tipo: 'error', mensaje: 'La falla declarada es requerida' });
             return;
@@ -345,7 +349,7 @@ export const OrdenServicio = () => {
             const ordenData = {
                 placa_carro:         formData.placa_carro,
                 id_mecanico:         formData.id_mecanico || null,
-                motivo_visita:       formData.motivo_visita       || null,
+                motivo_visita:       formData.motivo_visita,
                 falla_declarada:     formData.falla_declarada,
                 tiene_caucho:        formData.tiene_caucho,
                 tiene_radio:         formData.tiene_radio,
