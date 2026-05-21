@@ -42,7 +42,20 @@ export const GestionEmpleados = () => {
                 }
 
                 // Preservamos el acumulado mock si no viene de DB
-                const dataWithMock = empleadosArray.map(emp => ({ ...emp, acumulado: emp.acumulado || 0 }));
+                const dataWithMock = empleadosArray.map(emp => {
+                    const sueldoBase = Number(emp.sueldo_base || 0);
+                    const comisionFija = Number(emp.monto_comision_fija || 0);
+                    const montoAcumulado = emp.acumulado != null
+                        ? Number(emp.acumulado)
+                        : sueldoBase + comisionFija;
+
+                    return {
+                        ...emp,
+                        sueldo_base: sueldoBase,
+                        monto_comision_fija: comisionFija,
+                        acumulado: montoAcumulado
+                    };
+                });
                 setEmpleados(dataWithMock);
                 setFeedback(null);
             } catch (err) {

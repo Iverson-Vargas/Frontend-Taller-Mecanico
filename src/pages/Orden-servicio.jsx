@@ -126,47 +126,30 @@ export const OrdenServicio = () => {
                 telefono: cliente.telefono || ''
             });
 
-            // 2. GET /api/carros/cliente/:cedula → { success, message, data: [ ... ] }
-            try {
-                const resVehiculos = await api.get(`/carros/cliente/${cedula}`);
-                const dataPayload = resVehiculos.data.data;
-                
-                let vehiculos = [];
-                if (Array.isArray(dataPayload)) {
-                    vehiculos = dataPayload;
-                } else if (dataPayload && Array.isArray(dataPayload.carros)) {
-                    vehiculos = dataPayload.carros;
-                } else if (dataPayload && Array.isArray(dataPayload.vehiculos)) {
-                    vehiculos = dataPayload.vehiculos;
-                }
+            // Los vehículos ya vienen incluidos en la respuesta del cliente
+            const vehiculos = cliente.carros || [];
 
-                if (vehiculos.length > 0) {
-                    setVehiculosCliente(vehiculos);
-                    const v = vehiculos[0];
-                    setVehiculoData({
-                        placa: v.placa        || '',
-                        marca: v.marca        || '',
-                        modelo: v.modelo      || '',
-                        ano: v.ano            || '',
-                        kilometraje: v.kilometraje || ''
-                    });
-                    setFormData(prev => ({ ...prev, placa_carro: v.placa }));
-                    setFeedback({
-                        tipo: 'info',
-                        mensaje: `Cliente: ${cliente.nombre} ${cliente.apellido || ''} — ${vehiculos.length} vehículo(s) encontrado(s)`
-                    });
-                } else {
-                    setVehiculosCliente([]);
-                    setVehiculoData(VEHICULO_INICIAL);
-                    setFeedback({
-                        tipo: 'info',
-                        mensaje: `Cliente encontrado: ${cliente.nombre} — Sin vehículos registrados`
-                    });
-                }
-            } catch {
+            if (vehiculos.length > 0) {
+                setVehiculosCliente(vehiculos);
+                const v = vehiculos[0];
+                setVehiculoData({
+                    placa: v.placa        || '',
+                    marca: v.marca        || '',
+                    modelo: v.modelo      || '',
+                    ano: v.ano            || '',
+                    kilometraje: v.kilometraje || ''
+                });
+                setFormData(prev => ({ ...prev, placa_carro: v.placa }));
                 setFeedback({
-                    tipo: 'info',
-                    mensaje: `Cliente encontrado: ${cliente.nombre} — No se pudieron cargar sus vehículos`
+                    tipo: 'ok',
+                    mensaje: `Cliente: ${cliente.nombre} ${cliente.apellido || ''} — ${vehiculos.length} vehículo(s) cargados.`
+                });
+            } else {
+                setVehiculosCliente([]);
+                setVehiculoData(VEHICULO_INICIAL);
+                setFeedback({
+                    tipo: 'error',
+                    mensaje: `Cliente encontrado: ${cliente.nombre}. PERO no tiene vehículos registrados. Por favor registre su vehículo primero en el menú lateral.`
                 });
             }
 
