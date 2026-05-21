@@ -35,9 +35,19 @@ export const ReporteNominas = () => {
           const salarioBase = Number(emp.sueldo_base || 0);
           const realOS = emp._count?.ordenes || 0;
           
-          // Si no hay órdenes reales, usamos un fallback visual para el mockup si es 0
           const osFinalizadas = realOS > 0 ? realOS : 0; 
           const comisionProduccion = osFinalizadas * (Number(emp.monto_comision_fija) || 15);
+
+          const bonoCalidad = osFinalizadas > 3 ? 50.00 : 0.00;
+          const retenciones = salarioBase > 500 ? 45.00 : 0.00;
+          
+          const totalCalculado = salarioBase + comisionProduccion + bonoCalidad - retenciones;
+          const totalPagado = (emp.nominas || [])
+            .filter(n => n.tipo_pago === 'liquidacion')
+            .reduce((acc, curr) => acc + Number(curr.monto_total || 0), 0);
+            
+          let neto = totalCalculado - totalPagado;
+          if (neto < 0) neto = 0;
           
           return {
             id_empleado: emp.id_empleado,
@@ -46,9 +56,10 @@ export const ReporteNominas = () => {
             salarioBase,
             porcentajeComision: emp.aplica_comision ? 'Comisión Fija' : 'N/A',
             comisionProduccion,
-            bonoCalidad: osFinalizadas > 3 ? 50.00 : 0.00, // Bono dinámico
-            retenciones: salarioBase > 500 ? 45.00 : 0.00, // Retención dinámica
-            osFinalizadas
+            bonoCalidad, // Bono dinámico
+            retenciones, // Retención dinámica
+            osFinalizadas,
+            neto
           };
         });
         setNominas(datosNomina);
@@ -62,26 +73,7 @@ export const ReporteNominas = () => {
     fetchNominas();
   }, [startDate, endDate]);
 
-  const liquidarPago = async (empleado, neto) => {
-    if(!window.confirm(`¿Seguro que deseas liquidar $${neto.toFixed(2)} a ${empleado.nombre}?`)) return;
-    try {
-      // POST /api/nomina/pagar
-      await api.post('/nomina/pagar', {
-        id_empleado: empleado.id_empleado,
-        monto_total: neto
-      });
-      
-      mostrarFeedback(`¡Pago registrado al historial de nómina de ${empleado.nombre} correctamente!`, "ok");
-    } catch(err) {
-      console.error("Error al pagar:", err);
-      if (err.response?.status === 400 && err.response.data?.errors) {
-        const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
-        mostrarFeedback(msgs, 'error');
-      } else {
-        mostrarFeedback(err.response?.data?.error || "Error de conexión al pagar.", "error");
-      }
-    }
-  };
+
 
   // Filtrado y Orden
   const filteredNominas = nominas.filter(n => {
@@ -90,17 +82,13 @@ export const ReporteNominas = () => {
   }).sort((a, b) => {
     if (sortBy === 'nombre') return (a.nombre || '').localeCompare(b.nombre || '');
     if (sortBy === 'neto') {
-      const netoA = a.salarioBase + a.comisionProduccion + a.bonoCalidad - a.retenciones;
-      const netoB = b.salarioBase + b.comisionProduccion + b.bonoCalidad - b.retenciones;
-      return netoB - netoA;
+      return (b.neto || 0) - (a.neto || 0);
     }
     if (sortBy === 'especialidad') return (a.cargo || '').localeCompare(b.cargo || '');
     return 0;
   });
 
-  const totalAPagar = filteredNominas.reduce((acc, n) => 
-    acc + (n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones), 0
-  );
+  const totalAPagar = filteredNominas.reduce((acc, n) => acc + (n.neto || 0), 0);
 
   const feedbackStyles = {
     ok:    { backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' },
@@ -116,6 +104,8 @@ export const ReporteNominas = () => {
               <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
           </div>
       )}
+
+
 
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -179,15 +169,14 @@ export const ReporteNominas = () => {
                     <th className="px-6 py-4 text-right">Comisiones</th>
                     <th className="px-6 py-4 text-right text-red-500">Retenciones</th>
                     <th className="px-6 py-4 text-right font-black text-blue-800">Neto a Liquidar</th>
-                    <th className="px-6 py-4 text-center">Operación</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                     {filteredNominas.length === 0 ? (
-                        <tr><td colSpan="7" className="text-center py-20 text-slate-400 font-bold italic">No se encontraron registros para este periodo.</td></tr>
+                        <tr><td colSpan="6" className="text-center py-20 text-slate-400 font-bold italic">No se encontraron registros para este periodo.</td></tr>
                     ) : (
                         filteredNominas.map((n) => {
-                            const neto = n.salarioBase + n.comisionProduccion + n.bonoCalidad - n.retenciones;
+                            const neto = n.neto;
                             return (
                                 <tr key={n.id_empleado} className="hover:bg-slate-50 transition-colors group">
                                     <td className="px-6 py-4">
@@ -204,15 +193,6 @@ export const ReporteNominas = () => {
                                     <td className="px-6 py-4 text-right text-rose-400">-${n.retenciones.toFixed(2)}</td>
                                     <td className="px-6 py-4 text-right">
                                         <span className="text-xl font-black text-slate-900">${neto.toFixed(2)}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <button 
-                                            onClick={() => liquidarPago(n, neto)}
-                                            disabled={neto <= 0}
-                                            className="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-                                        >
-                                            Liquidar
-                                        </button>
                                     </td>
                                 </tr>
                             );

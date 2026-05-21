@@ -8,6 +8,7 @@ export const GestionEmpleados = () => {
     const [empleados, setEmpleados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ visible: false, empleado: null });
 
     // Búsqueda y Ordenamiento
     const [searchTerm, setSearchTerm] = useState('');
@@ -45,9 +46,20 @@ export const GestionEmpleados = () => {
                 const dataWithMock = empleadosArray.map(emp => {
                     const sueldoBase = Number(emp.sueldo_base || 0);
                     const comisionFija = Number(emp.monto_comision_fija || 0);
-                    const montoAcumulado = emp.acumulado != null
-                        ? Number(emp.acumulado)
-                        : sueldoBase + comisionFija;
+                    
+                    const realOS = emp._count?.ordenes || 0;
+                    const osFinalizadas = realOS > 0 ? realOS : 0; 
+                    const comisionProduccion = osFinalizadas * (comisionFija || 15);
+                    const bonoCalidad = osFinalizadas > 3 ? 50.00 : 0.00;
+                    const retenciones = sueldoBase > 500 ? 45.00 : 0.00;
+                    const totalCalculado = sueldoBase + comisionProduccion + bonoCalidad - retenciones;
+
+                    const totalPagado = (emp.nominas || [])
+                        .filter(n => n.tipo_pago === 'liquidacion')
+                        .reduce((acc, curr) => acc + Number(curr.monto_total || 0), 0);
+
+                    let montoAcumulado = totalCalculado - totalPagado;
+                    if (montoAcumulado < 0) montoAcumulado = 0;
 
                     return {
                         ...emp,
@@ -71,14 +83,34 @@ export const GestionEmpleados = () => {
         fetchEmpleados();
     }, []);
 
-    const liquidarPago = (id) => {
-        if(window.confirm("¿Confirmar liquidación de haberes?")) {
-            // Nota: Esto es un mock UI. Cuando haya endpoint se cambiará por api.post(...)
+    const confirmarLiquidarPago = (emp) => {
+        setConfirmDialog({ visible: true, empleado: emp });
+    };
+
+    const procesarPago = async () => {
+        const { empleado } = confirmDialog;
+        setConfirmDialog({ visible: false, empleado: null });
+
+        try {
+            await api.post('/nomina/pagar', {
+                id_empleado: empleado.id_empleado,
+                monto_total: empleado.acumulado
+            });
+
             setEmpleados(empleados.map(emp =>
-                emp.id_empleado === id ? { ...emp, acumulado: 0 } : emp
+                emp.id_empleado === empleado.id_empleado ? { ...emp, acumulado: 0 } : emp
             ));
             setFeedback({ tipo: 'ok', mensaje: 'Liquidación registrada exitosamente' });
             setTimeout(() => setFeedback(null), 3000);
+        } catch(err) {
+            console.error("Error al pagar:", err);
+            if (err.response?.status === 400 && err.response.data?.errors) {
+                const msgs = err.response.data.errors.map(e => e.msg).join(' | ');
+                setFeedback({ tipo: 'error', mensaje: msgs });
+            } else {
+                setFeedback({ tipo: 'error', mensaje: err.response?.data?.error || "Error de conexión al pagar." });
+            }
+            setTimeout(() => setFeedback(null), 4500);
         }
     };
 
@@ -121,15 +153,34 @@ export const GestionEmpleados = () => {
 
             {/* FEEDBACK */}
             {feedback && (
-                <div style={{
-                    ...feedbackStyles[feedback.tipo],
-                    padding: '12px 20px',
-                    borderRadius: '8px',
-                    marginBottom: '20px',
-                    fontWeight: 'bold',
-                    fontSize: '15px'
-                }}>
-                    {feedback.mensaje}
+                <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 z-[200]`} style={feedbackStyles[feedback.tipo]}>
+                    <p className="font-bold text-sm tracking-wide">{feedback.mensaje}</p>
+                </div>
+            )}
+
+            {/* Modal Confirmación de Liquidación */}
+            {confirmDialog.visible && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-slate-100">
+                        <h3 className="text-xl font-black text-slate-800 mb-2">Confirmar Liquidación</h3>
+                        <p className="text-slate-500 text-sm mb-6">
+                            ¿Seguro que deseas liquidar los haberes pendientes de <span className="font-bold text-slate-800">{confirmDialog.empleado?.nombre} {confirmDialog.empleado?.apellido}</span>?
+                        </p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setConfirmDialog({ visible: false, empleado: null })}
+                                className="flex-1 cursor-pointer bg-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all text-sm"
+                            >
+                                CANCELAR
+                            </button>
+                            <button 
+                                onClick={procesarPago}
+                                className="flex-1 cursor-pointer bg-[#F43F5E] text-white font-black py-3 rounded-xl hover:bg-rose-600 shadow-md transition-all text-sm"
+                            >
+                                SÍ, LIQUIDAR
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -225,7 +276,7 @@ export const GestionEmpleados = () => {
                                                 Editar
                                             </button>
                                             {(emp.acumulado || 0) > 0 ? (
-                                                <button onClick={() => liquidarPago(emp.id_empleado)} className="btn-liquidar-pink px-4 py-2 rounded-xl">
+                                                <button onClick={() => confirmarLiquidarPago(emp)} className="btn-liquidar-pink px-4 py-2 rounded-xl">
                                                     Liquidar Pago
                                                 </button>
                                             ) : (
